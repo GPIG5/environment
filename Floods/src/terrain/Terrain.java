@@ -67,6 +67,7 @@ public class Terrain {
 			for (int r = srow; r < erow; r++) {
 				for (int c = scol; c < ecol; c++) {
 					int base = (r * ncols) + c;
+					// Extract vectors and scale to world size.
 					Vector3f v1 = vertices[base].mult(g.getWorldScale());
 					v1.addLocal(g.getWorldTranslation());
 					Vector3f v2 = vertices[base + 1].mult(g.getWorldScale());
@@ -77,6 +78,7 @@ public class Terrain {
 					v4.addLocal(g.getWorldTranslation());
 					//System.out.println("v1: " + v1 + " v2: " + v2 + " v3: " + v3 + " v4: " + v4);
 					// Triangle 1
+					// Test for collision.
 					if (collideTriangle(p, t, v1, v2, v3, fnormals[r][c][0])) {
 						collisions.add(true);
 					}
@@ -99,20 +101,36 @@ public class Terrain {
 	// Test collision with a single triangle
 	// Todo: wrap cpoint and t0, t1 into collision result object.
 	// http://www.realtimerendering.com/intersections.html
+	/**
+	 * @param p
+	 * The particle with which the terrain is colliding with.
+	 * @param time
+	 * The max time that will be considered for collisions.
+	 * @param a
+	 * First point of triangle in mesh.
+	 * @param b
+	 * Second point of triangle in mesh.
+	 * @param c
+	 * Third point of triangle in mesh.
+	 * @param norm
+	 * Normal of triangle.
+	 * @return
+	 */
 	private boolean collideTriangle(Particle p, float time,
 			Vector3f a, Vector3f b, Vector3f c, Vector3f norm) {
+		// Inverse radius.
 		float invrad = 1/p.getRadius();
+		// Velocity of particle.
 		Vector3f velocity = p.getVelocity();
+		// Position of particle.
 		Vector3f base =  p.getWorldTranslation();
-		Matrix3f cbm = new Matrix3f(invrad, 0, 0, 
-									0, invrad, 0, 
-									0, 0, invrad);
+
 		// scale triangle based on particle size.
-		Vector3f evel = cbm.mult(velocity);
-		Vector3f ea = cbm.mult(a);
-		Vector3f eb = cbm.mult(b);
-		Vector3f ec = cbm.mult(c);
-		System.out.println(a + " " + ea);
+		Vector3f evel = velocity.mult(invrad);
+		Vector3f ea = a.mult(invrad);
+		Vector3f eb = b.mult(invrad);
+		Vector3f ec = c.mult(invrad);
+		//System.out.println(a + " " + ea);
 	
 		if (norm.dot(evel.normalize()) >= 0) {
 			// Not facing plane.
