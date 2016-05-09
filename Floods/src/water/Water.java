@@ -47,6 +47,7 @@ public class Water extends Node {
 	public void process() {
 		emitParticles();
 		long ticks_now = System.currentTimeMillis();
+		// How much time this frame represents.
 		float t = ticks_now - ticks_last;
 		for (Spatial s : this.children) {
 			if (s instanceof Particle) {

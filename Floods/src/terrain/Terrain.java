@@ -29,6 +29,8 @@ public class Terrain {
 	ASCTerrain ater;
 	Geometry g;
 	static final float scale = 0.005f;
+	// Value for excluding almost parallel spheres.
+	static final float epsilon = 0.00005f;
 	
 	public Terrain(Material mat) {
 		ater = new ASCTerrain("lidar.zip");
@@ -101,6 +103,7 @@ public class Terrain {
 	// Test collision with a single triangle
 	// Todo: wrap cpoint and t0, t1 into collision result object.
 	// http://www.realtimerendering.com/intersections.html
+	//https://github.com/jongber/AndroidOpengl/blob/f290fe0a58485151047a9c7cedc8138f4556c546/app/src/main/java/glproj/jongber/androidopengl/utils/joml/Intersectionf.java
 	/**
 	 * @param p
 	 * The particle with which the terrain is colliding with.
@@ -116,284 +119,171 @@ public class Terrain {
 	 * Normal of triangle.
 	 * @return
 	 */
-	private boolean collideTriangle(Particle p, float time,
-			Vector3f a, Vector3f b, Vector3f c, Vector3f norm) {
-		// Inverse radius.
-		float invrad = 1/p.getRadius();
-		// Velocity of particle.
-		Vector3f velocity = p.getVelocity();
-		// Position of particle.
-		Vector3f base =  p.getWorldTranslation();
-
-		// scale triangle based on particle size.
-		Vector3f evel = velocity.mult(invrad);
-		Vector3f ea = a.mult(invrad);
-		Vector3f eb = b.mult(invrad);
-		Vector3f ec = c.mult(invrad);
-		//System.out.println(a + " " + ea);
-	
-		if (norm.dot(evel.normalize()) >= 0) {
-			// Not facing plane.
-			return false;
-		}
-		
-		float sdist = p.getWorldTranslation().dot(norm) - norm.dot(ea);
-		float t0, t1;
-		boolean embedded = false;
-		float normDotVel = norm.dot(evel);
-		
-		// if sphere is traveling parallel to plane...
-		if (normDotVel == 0.0f) {
-			if (Math.abs(sdist) >= 1.0f) {
-				// Sphere is not embedded in plane.
-				return false;
-			}
-			else {
-				// sphere is embedded in plane.
-				// Intersects for range 0..1
-				embedded = true;
-				t0 = 0.0f;
-				t1 = 1.0f;
-			}
-		}
-		else {
-			// Calculate intersection interval.
-			t0 = (-1-sdist)/normDotVel;
-			t1 = (1-sdist)/normDotVel;
-			
-			// Swap such t0 < t1
-			if (t0 > t1) {
-				float temp = t1;
-				t1 = t0;
-				t0 = temp;
-			}
-			
-			// Check that within range
-			if (t0 > 1.0f || t1 < 0.0f) {
-				// Both t values are outside 0..1
-				// Can not collide.
-				return false;
-			}
-			
-			// Clamp to 0..1
-			if (t0 < 0.0) {
-				t0 = 0.0f;
-			}
-			if (t1 < 0.0f) {
-				t1 = 0.0f;
-			}
-			if (t0 > 1.0f) {
-				t0 = 1.0f;
-			}
-			if (t1 > 1.0f) {
-				t1 = 1.0f;
-			}
-			
-		}
-		// We now have t0 and t1 at which sphere
-		// intersects the triangle's plane.
-		// We now check for collisions in this interval.
-		Vector3f cpoint;
-		boolean cfound = false;
-		float t = 1.0f;
-		
-		// Check for collision inside the triangle.
-		// This must happen at t0.
-		if (!embedded) {
-			Vector3f intersect = 
-					p.getWorldTranslation().subtract(norm);
-			intersect.addLocal(velocity.mult(t0));
-			if (inTriangle(base, ea, eb, ec)) {
-				return true;
-				// cfound = true;
-				//t = t0;
-				//cpoint = intersect;
-			}
-		}
-		
-		// Check against points.
-		float velsqr = velocity.lengthSquared();
-		float c2, c1, c0;
-		c2 = velsqr;
-		Root root = new Root();
-		// point A
-		c1 = 2.0f * velocity.dot(base.subtract(ea));
-		c0 = ea.subtract(base).lengthSquared() - 1.0f;
-		if (getLowestRoot(c2, c1, c0, t, root)) {
-			t = root.getRoot();
-			//cfound = true;
-			//cpoint = a;
-			return true;
-		}
-		
-		c1 = 2.0f * velocity.dot(base.subtract(eb));
-		c0 = eb.subtract(base).lengthSquared() - 1.0f;
-		if (getLowestRoot(c2, c1, c0, t, root)) {
-			t = root.getRoot();
-			//cfound = true;
-			//cpoint = b;
-			return true;
-		}
-		
-		c1 = 2.0f*velocity.dot(base.subtract(ec));
-		c0 = ec.subtract(base).lengthSquared() - 1.0f;
-		if (getLowestRoot(c2, c1, c0, t, root)) {
-			t = root.getRoot();
-			// cfound = true;
-			// cpoint = b;
-			return true;
-		}
-		
-		// Check edges
-		// a -> b
-		Vector3f edge = eb.subtract(ea);
-		Vector3f baseToVertex = ea.subtract(base);
-		float edgeSqrLen = edge.lengthSquared();
-		float edgeDotVelocity = edge.dot(velocity);
-		float edgeDotBaseToVertex = edge.dot(baseToVertex);
-		
-		// Equation parameters
-		c2 = edgeSqrLen * -velsqr + edgeDotVelocity*edgeDotVelocity;
-		c1 = edgeSqrLen * (2*velocity.dot(baseToVertex)) - 
-				2.0f * edgeDotVelocity*edgeDotBaseToVertex;
-		c0 = edgeSqrLen*(1-baseToVertex.lengthSquared()) + 
-				edgeDotBaseToVertex*edgeDotBaseToVertex;
-		if (getLowestRoot(c2, c1, c0, t, root)) {
-			float f = (edgeDotVelocity * root.getRoot() -edgeDotBaseToVertex)/edgeSqrLen;
-			if (f >= 0.0f && f <= 1.0f) {
-				t = root.getRoot();
-				// cfound = true;
-				//cpoint = a.add(edge.mult(f));
-				return true;
-			}
-		}
-		
-		// b -> c
-		edge = ec.subtract(eb);
-		baseToVertex = eb.subtract(base);
-		edgeSqrLen = edge.lengthSquared();
-		edgeDotVelocity = edge.dot(velocity);
-		edgeDotBaseToVertex = edge.dot(baseToVertex);
-		c2 = edgeSqrLen * -velsqr + edgeDotVelocity*edgeDotVelocity;
-		c1 = edgeSqrLen * (2*velocity.dot(baseToVertex)) - 
-				2.0f * edgeDotVelocity*edgeDotBaseToVertex;
-		c0 = edgeSqrLen*(1-baseToVertex.lengthSquared()) + 
-				edgeDotBaseToVertex*edgeDotBaseToVertex;
-		
-		if (getLowestRoot(c2, c1, c0, t, root)) {
-			float f = (edgeDotVelocity * root.getRoot() -edgeDotBaseToVertex)/edgeSqrLen;
-			if (f >= 0.0f && f <= 1.0f) {
-				t = root.getRoot();
-				// cfound = true;
-				//cpoint = b.add(edge.mult(f));
-				return true;
-			}
-		}
-		
-		// c -> a
-		edge = ea.subtract(ec);
-		baseToVertex = ec.subtract(base);
-		edgeSqrLen = edge.lengthSquared();
-		edgeDotVelocity = edge.dot(velocity);
-		edgeDotBaseToVertex = edge.dot(baseToVertex);
-		c2 = edgeSqrLen * -velsqr + edgeDotVelocity*edgeDotVelocity;
-		c1 = edgeSqrLen * (2*velocity.dot(baseToVertex)) - 
-				2.0f * edgeDotVelocity*edgeDotBaseToVertex;
-		c0 = edgeSqrLen*(1-baseToVertex.lengthSquared()) + 
-				edgeDotBaseToVertex*edgeDotBaseToVertex;
-		
-		if (getLowestRoot(c2, c1, c0, t, root)) {
-			float f = (edgeDotVelocity * root.getRoot() -edgeDotBaseToVertex)/edgeSqrLen;
-			if (f >= 0.0f && f <= 1.0f) {
-				t = root.getRoot();
-				// cfound = true;
-				//cpoint = c.add(edge.mult(f));
-				return true;
-			}
-		}
-		
-		
-		
-		return false;
-		/*
-		float planeeq = -(norm.x*ta.x + norm.y * ta.y + norm.z * ta.z);
-		// Colliding against the back of the triangle
-        if (norm.dot(p.getVelocity().normalize()) >= 0) {
+	private boolean collideTriangle(Particle p, float tmax,
+			Vector3f v0, Vector3f v1, Vector3f v2, Vector3f norm) {
+		Vector3f base = p.getWorldTranslation();
+		Vector3f vel = p.getVelocity();
+		float rad = p.getRadius();
+		Vector3f v10 = v1.subtract(v0);
+		Vector3f v20 = v2.subtract(v0);
+		// Plane of triangle.
+        float a = v10.y * v20.z - v20.y * v10.z;
+        float b = v10.z * v20.x - v20.z * v10.x;
+        float c = v10.x * v20.y - v20.x * v10.y;
+        float d = -(a * v0.x + b * v0.y + c * v0.z);
+        float invLen = (float) (1.0 / Math.sqrt(a * a + b * b + c * c));
+        float signedDist = (a * base.x + b * base.y + c * base.z + d) * invLen;
+        float dot = (a * vel.x + b * vel.y + c * vel.z) * invLen;
+        // Nearly parallel.
+        if (dot < epsilon && dot > -epsilon) {
         	return false;
         }
-        // Else carry on....
-        float distance = p.getWorldTranslation().dot(norm) + planeeq;
-        float normdotvel = p.getVelocity().dot(norm);
-        float t0, t1;
-        boolean embedded = false;
-        if (normdotvel == 0.0) {
-        	// Sphere is parallel to plane.
-        	if (Math.abs(distance) >= 1.0) {
-        		// Sphere is not embedded, no collision.
-        		return false;
-        	} else {
-        		// Sphere is embedded. Ooops.
-        		embedded = true;
-        		t0 = 0;
-        		t1 = 1;
-        	}	
-        } else {
-        	t0 = (-1.0f - distance)/normdotvel;
-        	t1 = (1.0f - distance)/normdotvel;
-        	// Ensure t0 > t1
-        	if (t0  > t1) {
-        		float temp = t1;
-        		t1 = t0;
-        		t0 = temp;
-        	}
-        	// Check if within range.
-        	if (t0 > 1.0f || t1 < 0.0f) {
-        		return false;
-        	}
-            // Clamp to [0,1]
-            if (t0 < 0.0) t0 = 0.0f;
-            if (t1 < 0.0) t1 = 0.0f;
-            if (t0 > 1.0) t0 = 1.0f;
-            if (t1 > 1.0) t1 = 1.0f;
-
-        }
-        if (t0 >= t) {
+        float pt0 = (rad - signedDist)/dot;
+        // Not in this time frame
+        if (pt0 > tmax) {
         	return false;
         }
-        
-        if (!embedded) {
-        	// Calculate intersection point.
-        	Vector3f intersect = p.getWorldTranslation().subtract(norm);
-        	Vector3f v = p.getVelocity().mult(t0);
-        	intersect.addLocal(v);
-        	// Is this point in the triangle?
-        	if (inTriangle(intersect, ta, tb, tc)) {
-        		return true;
-        	}
+        float pt1 = (-rad - signedDist) / dot;
+        float p0X = base.x - rad * a * invLen + vel.x * pt0;
+        float p0Y = base.y - rad * b * invLen + vel.y * pt0;
+        float p0Z = base.z - rad * c * invLen + vel.z * pt0;
+        if (inTriangle(new Vector3f(p0X, p0Y, p0Z), v0, v10, v20)) {
+        	// pointAndTime.x = p0X;\
+        	// pointAndTime.y = p0Y;
+        	// pointAndTime.z = p0Z;
+            // pointAndTime.w = pt0;
+        	return true;
         }
-        float velsqr = p.getVelocity().lengthSquared();
-        // there's more, but we don't care about embedded particles yet.
-		return true; */
+        float t0 = tmax;
+        float A = vel.lengthSquared();
+        float rad2 = rad * rad;
+        // test against v0
+        Vector3f centerV0 = base.subtract(v0);
+        float B0 = 2.0f * vel.dot(centerV0);
+        float C0 = centerV0.lengthSquared() - rad2;
+        float root0 = getLowestRoot(A, B0, C0, t0);
+        if (!Float.isNaN(root0) && root0 < t0) {
+//            pointAndTime.x = v0X;
+//            pointAndTime.y = v0Y;
+//            pointAndTime.z = v0Z;
+//            pointAndTime.w = root0;
+            t0 = root0;
+            return true;
+        }
+        // test against v1
+        Vector3f centerV1 = base.subtract(v1);
+        float centerV1Len = centerV1.lengthSquared();
+        float B1 = 2.0f * vel.dot(centerV1);
+        float C1 = centerV1Len - rad2;
+        float root1 = getLowestRoot(A, B1, C1, t0);
+        if (!Float.isNaN(root1) && root1 < t0) {
+//            pointAndTime.x = v1X;
+//            pointAndTime.y = v1Y;
+//            pointAndTime.z = v1Z;
+//            pointAndTime.w = root1;
+            t0 = root1;
+            return true;
+        }
+        // test against v2
+        Vector3f centerV2 = base.subtract(v2);
+        float B2 = 2.0f * (vel.x * centerV2.x + vel.y * centerV2.y + vel.z * centerV2.z);
+        float C2 = centerV2.lengthSquared()- rad2;
+        float root2 = getLowestRoot(A, B2, C2, t0);
+        if (!Float.isNaN(root2) && root2 < t0) {
+//            pointAndTime.x = v2X;
+//            pointAndTime.y = v2Y;
+//            pointAndTime.z = v2Z;
+//            pointAndTime.w = root2;
+            t0 = root2;
+            return true;
+        }
+        float velLen = vel.lengthSquared();
+        // test against edge10
+        float len10 = v10.lengthSquared();
+        float baseTo0Len = centerV0.lengthSquared();
+        float v10Vel = v10.dot(vel);
+        float A10 = len10 * -velLen + v10Vel * v10Vel;
+        float v10BaseTo0 = v10.x * -centerV0.x + v10.y * -centerV0.y + v10.z * -centerV0.z;
+        float velBaseTo0 = vel.x * -centerV0.x + vel.y * -centerV0.y + vel.z * -centerV0.z;
+        float B10 = len10 * 2 * velBaseTo0 - 2 * v10Vel * v10BaseTo0;
+        float C10 = len10 * (rad2 - baseTo0Len) + v10BaseTo0 * v10BaseTo0;
+        float root10 = getLowestRoot(A10, B10, C10, t0);
+        if (!Float.isNaN(root10)) {
+	        float f10 = (v10Vel * root10 - v10BaseTo0) / len10;
+	        if (f10 >= 0.0f && f10 <= 1.0f && root10 < t0) {
+//	            pointAndTime.x = v0X + f10 * v10X;
+//	            pointAndTime.y = v0Y + f10 * v10Y;
+//	            pointAndTime.z = v0Z + f10 * v10Z;
+//	            pointAndTime.w = root10;
+	            t0 = root10;
+	            return true;
+	        }
+        }
+        // test against edge20
+        float len20 = v20.lengthSquared();
+        float v20Vel = v20.dot(vel);
+        float A20 = len20 * -velLen + v20Vel * v20Vel;
+        float v20BaseTo0 = v20.x * -centerV0.x + v20.y * -centerV0.y + v20.z * -centerV0.z;
+        float B20 = len20 * 2 * velBaseTo0 - 2 * v20Vel * v20BaseTo0;
+        float C20 = len20 * (rad2 - baseTo0Len) + v20BaseTo0 * v20BaseTo0;
+        float root20 = getLowestRoot(A20, B20, C20, t0);
+        if (!Float.isNaN(root20)) {
+	        float f20 = (v20Vel * root20 - v20BaseTo0) / len20;
+	        if (f20 >= 0.0f && f20 <= 1.0f && root20 < pt1) {
+//	            pointAndTime.x = v0X + f20 * v20X;
+//	            pointAndTime.y = v0Y + f20 * v20Y;
+//	            pointAndTime.z = v0Z + f20 * v20Z;
+//	            pointAndTime.w = root20;
+	            t0 = root20;
+	            return true;
+	        }
+        }
+        // test against edge21
+        Vector3f v21 =  v2.subtract(v1);
+        float len21 = v21.lengthSquared();
+        float baseTo1Len = centerV1Len;
+        float v21Vel = v21.dot(vel);
+        float A21 = len21 * -velLen + v21Vel * v21Vel;
+        float v21BaseTo1 = v21.x * -centerV1.x + v21.y * -centerV1.y + v21.z * -centerV1.z;
+        float velBaseTo1 = vel.x * -centerV1.x + vel.y * -centerV1.y + vel.z * -centerV1.z;
+        float B21 = len21 * 2 * velBaseTo1 - 2 * v21Vel * v21BaseTo1;
+        float C21 = len21 * (rad2 - baseTo1Len) + v21BaseTo1 * v21BaseTo1;
+        float root21 = getLowestRoot(A21, B21, C21, t0);
+        if (!Float.isNaN(root21)) {
+	        float f21 = (v21Vel * root21 - v21BaseTo1) / len21;
+	        if (f21 >= 0.0f && f21 <= 1.0f && root21 < t0) {
+	//            pointAndTime.x = v1X + f21 * v21X;
+	//            pointAndTime.y = v1Y + f21 * v21Y;
+	//            pointAndTime.z = v1Z + f21 * v21Z;
+	//            pointAndTime.w = root21;
+	            t0 = root21;
+	            return true;
+	        }
+        }
+        return false;
 	}
 	
-	
-	private boolean inTriangle(Vector3f p, Vector3f a, Vector3f b, Vector3f c) {
-		Vector3f ta = a.subtract(p);
-		Vector3f tb = b.subtract(p);
-		Vector3f tc = c.subtract(p);
-		
-		ta.normalizeLocal();
-		tb.normalizeLocal();
-		tc.normalizeLocal();
-		
-		float angle = (float) (Math.acos(ta.dot(tb)) + Math.acos(tb.dot(tc)) + Math.acos(tc.dot(ta)));
-		return Math.abs(angle - (FastMath.TWO_PI)) < 0.01;
+	// Fast triangle checker - From joml.Intersectionf.java
+	private boolean inTriangle(Vector3f p, Vector3f v0, Vector3f v1, Vector3f v2) {		
+        Vector3f e10 = v1.subtract(v0);        
+        Vector3f e20 = v2.subtract(v0);        
+        float a = e10.dot(e10);
+        float b = e10.dot(e20);
+        float c = e20.dot(e20);
+        float ac_bb = a * c - b * b;
+        Vector3f vp = p.subtract(v0);
+        float d = vp.dot(e10);
+        float e = vp.dot(e20);
+        float x = d * c - e * b;
+        float y = e * a - d * b;
+        float z = x + y - ac_bb;
+        return ((Float.floatToRawIntBits(z) & ~(Float.floatToRawIntBits(x) | Float.floatToRawIntBits(y))) & 0x80000000) != 0;
 	}
 	
-	boolean getLowestRoot(float a, float b, float c, float max, Root r) {
+	private float getLowestRoot(float a, float b, float c, float max) {
 		float det = b*b + 4.0f*a*c;
 		if (det < 0.0f) {
-			return false;
+			return Float.NaN;
 		}
 		
 		float sqrtD = (float) Math.sqrt(det);
@@ -407,15 +297,13 @@ public class Terrain {
 		}
 		
 		if (r1 > 0 && r1 < max) {
-			r.setRoot(r1);
-			return true;
+			return r1;
 		}
 		
 		if (r2 > 0 && r2 < max) {
-			r.setRoot(r2);
-			return true;
+			return r2;
 		}
-		return false;
+		return Float.NaN;
 	}
 	
 	public Geometry getGeometry() {
