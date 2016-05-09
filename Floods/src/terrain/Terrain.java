@@ -12,7 +12,9 @@ import com.jme3.material.Material;
 import water.Particle;
 
 import com.jme3.math.FastMath;
+import com.jme3.math.Matrix3f;
 import com.jme3.math.Matrix4f;
+import com.jme3.math.Plane;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -73,12 +75,13 @@ public class Terrain {
 					v3.addLocal(g.getWorldTranslation());
 					Vector3f v4 = vertices[base + ncols + 1].mult(g.getWorldScale());
 					v4.addLocal(g.getWorldTranslation());
+					//System.out.println("v1: " + v1 + " v2: " + v2 + " v3: " + v3 + " v4: " + v4);
 					// Triangle 1
 					if (collideTriangle(p, t, v1, v2, v3, fnormals[r][c][0])) {
 						collisions.add(true);
 					}
 					// Triangle 2
-					if (collideTriangle(p, t, v3, v2, v4, fnormals[r][c][0])) {
+					if (collideTriangle(p, t, v3, v2, v4, fnormals[r][c][1])) {
 						collisions.add(true);
 					}
 				}
@@ -94,13 +97,207 @@ public class Terrain {
 	// http://www.peroxide.dk/papers/collision/collision.pdf
 	//https://hub.jmonkeyengine.org/t/ellipsoid-collision-detection-system/2064/2
 	// Test collision with a single triangle
-	private boolean collideTriangle(Particle p, float t,
+	// Todo: wrap cpoint and t0, t1 into collision result object.
+	// http://www.realtimerendering.com/intersections.html
+	private boolean collideTriangle(Particle p, float time,
 			Vector3f a, Vector3f b, Vector3f c, Vector3f norm) {
+		float invrad = 1/p.getRadius();
+		Vector3f velocity = p.getVelocity();
+		Vector3f base =  p.getWorldTranslation();
+		Matrix3f cbm = new Matrix3f(invrad, 0, 0, 
+									0, invrad, 0, 
+									0, 0, invrad);
 		// scale triangle based on particle size.
-		float invradius = 1/p.getRadius();
-		Vector3f ta = a.mult(invradius);
-		Vector3f tb = b.mult(invradius);
-		Vector3f tc = c.mult(invradius);
+		Vector3f evel = cbm.mult(velocity);
+		Vector3f ea = cbm.mult(a);
+		Vector3f eb = cbm.mult(b);
+		Vector3f ec = cbm.mult(c);
+		System.out.println(a + " " + ea);
+	
+		if (norm.dot(evel.normalize()) >= 0) {
+			// Not facing plane.
+			return false;
+		}
+		
+		float sdist = p.getWorldTranslation().dot(norm) - norm.dot(ea);
+		float t0, t1;
+		boolean embedded = false;
+		float normDotVel = norm.dot(evel);
+		
+		// if sphere is traveling parallel to plane...
+		if (normDotVel == 0.0f) {
+			if (Math.abs(sdist) >= 1.0f) {
+				// Sphere is not embedded in plane.
+				return false;
+			}
+			else {
+				// sphere is embedded in plane.
+				// Intersects for range 0..1
+				embedded = true;
+				t0 = 0.0f;
+				t1 = 1.0f;
+			}
+		}
+		else {
+			// Calculate intersection interval.
+			t0 = (-1-sdist)/normDotVel;
+			t1 = (1-sdist)/normDotVel;
+			
+			// Swap such t0 < t1
+			if (t0 > t1) {
+				float temp = t1;
+				t1 = t0;
+				t0 = temp;
+			}
+			
+			// Check that within range
+			if (t0 > 1.0f || t1 < 0.0f) {
+				// Both t values are outside 0..1
+				// Can not collide.
+				return false;
+			}
+			
+			// Clamp to 0..1
+			if (t0 < 0.0) {
+				t0 = 0.0f;
+			}
+			if (t1 < 0.0f) {
+				t1 = 0.0f;
+			}
+			if (t0 > 1.0f) {
+				t0 = 1.0f;
+			}
+			if (t1 > 1.0f) {
+				t1 = 1.0f;
+			}
+			
+		}
+		// We now have t0 and t1 at which sphere
+		// intersects the triangle's plane.
+		// We now check for collisions in this interval.
+		Vector3f cpoint;
+		boolean cfound = false;
+		float t = 1.0f;
+		
+		// Check for collision inside the triangle.
+		// This must happen at t0.
+		if (!embedded) {
+			Vector3f intersect = 
+					p.getWorldTranslation().subtract(norm);
+			intersect.addLocal(velocity.mult(t0));
+			if (inTriangle(base, ea, eb, ec)) {
+				return true;
+				// cfound = true;
+				//t = t0;
+				//cpoint = intersect;
+			}
+		}
+		
+		// Check against points.
+		float velsqr = velocity.lengthSquared();
+		float c2, c1, c0;
+		c2 = velsqr;
+		Root root = new Root();
+		// point A
+		c1 = 2.0f * velocity.dot(base.subtract(ea));
+		c0 = ea.subtract(base).lengthSquared() - 1.0f;
+		if (getLowestRoot(c2, c1, c0, t, root)) {
+			t = root.getRoot();
+			//cfound = true;
+			//cpoint = a;
+			return true;
+		}
+		
+		c1 = 2.0f * velocity.dot(base.subtract(eb));
+		c0 = eb.subtract(base).lengthSquared() - 1.0f;
+		if (getLowestRoot(c2, c1, c0, t, root)) {
+			t = root.getRoot();
+			//cfound = true;
+			//cpoint = b;
+			return true;
+		}
+		
+		c1 = 2.0f*velocity.dot(base.subtract(ec));
+		c0 = ec.subtract(base).lengthSquared() - 1.0f;
+		if (getLowestRoot(c2, c1, c0, t, root)) {
+			t = root.getRoot();
+			// cfound = true;
+			// cpoint = b;
+			return true;
+		}
+		
+		// Check edges
+		// a -> b
+		Vector3f edge = eb.subtract(ea);
+		Vector3f baseToVertex = ea.subtract(base);
+		float edgeSqrLen = edge.lengthSquared();
+		float edgeDotVelocity = edge.dot(velocity);
+		float edgeDotBaseToVertex = edge.dot(baseToVertex);
+		
+		// Equation parameters
+		c2 = edgeSqrLen * -velsqr + edgeDotVelocity*edgeDotVelocity;
+		c1 = edgeSqrLen * (2*velocity.dot(baseToVertex)) - 
+				2.0f * edgeDotVelocity*edgeDotBaseToVertex;
+		c0 = edgeSqrLen*(1-baseToVertex.lengthSquared()) + 
+				edgeDotBaseToVertex*edgeDotBaseToVertex;
+		if (getLowestRoot(c2, c1, c0, t, root)) {
+			float f = (edgeDotVelocity * root.getRoot() -edgeDotBaseToVertex)/edgeSqrLen;
+			if (f >= 0.0f && f <= 1.0f) {
+				t = root.getRoot();
+				// cfound = true;
+				//cpoint = a.add(edge.mult(f));
+				return true;
+			}
+		}
+		
+		// b -> c
+		edge = ec.subtract(eb);
+		baseToVertex = eb.subtract(base);
+		edgeSqrLen = edge.lengthSquared();
+		edgeDotVelocity = edge.dot(velocity);
+		edgeDotBaseToVertex = edge.dot(baseToVertex);
+		c2 = edgeSqrLen * -velsqr + edgeDotVelocity*edgeDotVelocity;
+		c1 = edgeSqrLen * (2*velocity.dot(baseToVertex)) - 
+				2.0f * edgeDotVelocity*edgeDotBaseToVertex;
+		c0 = edgeSqrLen*(1-baseToVertex.lengthSquared()) + 
+				edgeDotBaseToVertex*edgeDotBaseToVertex;
+		
+		if (getLowestRoot(c2, c1, c0, t, root)) {
+			float f = (edgeDotVelocity * root.getRoot() -edgeDotBaseToVertex)/edgeSqrLen;
+			if (f >= 0.0f && f <= 1.0f) {
+				t = root.getRoot();
+				// cfound = true;
+				//cpoint = b.add(edge.mult(f));
+				return true;
+			}
+		}
+		
+		// c -> a
+		edge = ea.subtract(ec);
+		baseToVertex = ec.subtract(base);
+		edgeSqrLen = edge.lengthSquared();
+		edgeDotVelocity = edge.dot(velocity);
+		edgeDotBaseToVertex = edge.dot(baseToVertex);
+		c2 = edgeSqrLen * -velsqr + edgeDotVelocity*edgeDotVelocity;
+		c1 = edgeSqrLen * (2*velocity.dot(baseToVertex)) - 
+				2.0f * edgeDotVelocity*edgeDotBaseToVertex;
+		c0 = edgeSqrLen*(1-baseToVertex.lengthSquared()) + 
+				edgeDotBaseToVertex*edgeDotBaseToVertex;
+		
+		if (getLowestRoot(c2, c1, c0, t, root)) {
+			float f = (edgeDotVelocity * root.getRoot() -edgeDotBaseToVertex)/edgeSqrLen;
+			if (f >= 0.0f && f <= 1.0f) {
+				t = root.getRoot();
+				// cfound = true;
+				//cpoint = c.add(edge.mult(f));
+				return true;
+			}
+		}
+		
+		
+		
+		return false;
+		/*
 		float planeeq = -(norm.x*ta.x + norm.y * ta.y + norm.z * ta.z);
 		// Colliding against the back of the triangle
         if (norm.dot(p.getVelocity().normalize()) >= 0) {
@@ -158,8 +355,9 @@ public class Terrain {
         }
         float velsqr = p.getVelocity().lengthSquared();
         // there's more, but we don't care about embedded particles yet.
-		return true;
+		return true; */
 	}
+	
 	
 	private boolean inTriangle(Vector3f p, Vector3f a, Vector3f b, Vector3f c) {
 		Vector3f ta = a.subtract(p);
@@ -171,7 +369,35 @@ public class Terrain {
 		tc.normalizeLocal();
 		
 		float angle = (float) (Math.acos(ta.dot(tb)) + Math.acos(tb.dot(tc)) + Math.acos(tc.dot(ta)));
-		return Math.abs(angle - (FastMath.TWO_PI))  < 0.01;
+		return Math.abs(angle - (FastMath.TWO_PI)) < 0.01;
+	}
+	
+	boolean getLowestRoot(float a, float b, float c, float max, Root r) {
+		float det = b*b + 4.0f*a*c;
+		if (det < 0.0f) {
+			return false;
+		}
+		
+		float sqrtD = (float) Math.sqrt(det);
+		float r1 = (-b - sqrtD) / (2*a);
+		float r2 = (-b + sqrtD) / (2*a);
+		
+		if (r1 > r2) {
+			float temp = r2;
+			r2 = r1;
+			r1 = temp;
+		}
+		
+		if (r1 > 0 && r1 < max) {
+			r.setRoot(r1);
+			return true;
+		}
+		
+		if (r2 > 0 && r2 < max) {
+			r.setRoot(r2);
+			return true;
+		}
+		return false;
 	}
 	
 	public Geometry getGeometry() {
