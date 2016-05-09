@@ -10,4 +10,5 @@
 <fullyQualifiedTypeName name="comms.Receiver"/>
 <fullyQualifiedTypeName name="java.nio.ByteBuffer"/>
 <fullyQualifiedTypeName name="java.nio.ByteOrder"/>
+<fullyQualifiedTypeName name="java.io.BufferedOutputStream"/>
 </qualifiedTypeNameHistroy>
