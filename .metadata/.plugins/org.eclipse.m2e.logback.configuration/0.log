@@ -25,3 +25,70 @@
 2016-05-09 13:32:14,187 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory /Users/david/Desktop/environment/Floods/src/main/resources
 2016-05-09 13:32:14,189 [Worker-9] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
 2016-05-09 13:32:14,189 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory /Users/david/Desktop/environment/Floods/src/test/resources
+2016-05-09 14:14:00,711 [Worker-9] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: Floods:Floods:0.0.1-SNAPSHOT @ C:\Users\hoo\Downloads\environment\Floods\pom.xml.
+2016-05-09 14:14:02,599 [Worker-9] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:14:02,601 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:14:02,604 [Worker-9] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:14:02,607 [Worker-9] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:14:04,731 [Worker-7] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: Floods:Floods:0.0.1-SNAPSHOT @ C:\Users\hoo\Downloads\environment\Floods\pom.xml.
+2016-05-09 14:14:06,424 [Worker-12] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:14:06,426 [Worker-12] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:14:06,427 [Worker-12] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:14:06,429 [Worker-12] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:14:18,432 [Worker-20] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:14:18,434 [Worker-20] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:14:18,435 [Worker-20] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:14:18,437 [Worker-20] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:14:48,478 [Worker-10] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:14:48,479 [Worker-10] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:14:48,481 [Worker-10] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:14:48,482 [Worker-10] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:19:59,654 [Worker-10] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:19:59,656 [Worker-10] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:19:59,659 [Worker-10] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:19:59,661 [Worker-10] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:20:07,119 [Worker-1] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: Floods:Floods:0.0.1-SNAPSHOT @ C:\Users\hoo\Downloads\environment\Floods\pom.xml.
+2016-05-09 14:20:08,747 [Worker-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://jcenter.bintray.com/com/google/code/gson/gson/2.6.2/gson-2.6.2.pom
+2016-05-09 14:20:08,813 [Worker-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://jcenter.bintray.com/com/google/code/gson/gson/2.6.2/gson-2.6.2.pom
+2016-05-09 14:20:08,896 [Worker-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://jcenter.bintray.com/com/google/code/gson/gson-parent/2.6.2/gson-parent-2.6.2.pom
+2016-05-09 14:20:08,951 [Worker-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://jcenter.bintray.com/com/google/code/gson/gson-parent/2.6.2/gson-parent-2.6.2.pom
+2016-05-09 14:20:09,022 [Worker-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://jcenter.bintray.com/org/sonatype/oss/oss-parent/7/oss-parent-7.pom
+2016-05-09 14:20:09,074 [Worker-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://jcenter.bintray.com/org/sonatype/oss/oss-parent/7/oss-parent-7.pom
+2016-05-09 14:20:09,351 [Worker-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://jcenter.bintray.com/com/google/code/gson/gson/2.6.2/gson-2.6.2.jar
+2016-05-09 14:20:09,545 [Worker-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://jcenter.bintray.com/com/google/code/gson/gson/2.6.2/gson-2.6.2.jar
+2016-05-09 14:20:09,964 [Worker-1] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:20:09,965 [Worker-1] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:20:09,967 [Worker-1] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:20:09,967 [Worker-1] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:20:10,788 [Worker-0] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:20:10,790 [Worker-0] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:20:10,791 [Worker-0] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:20:10,792 [Worker-0] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:20:34,271 [Worker-6] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:20:34,274 [Worker-6] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:20:34,276 [Worker-6] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:20:34,277 [Worker-6] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:25:41,499 [Worker-2] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:25:41,500 [Worker-2] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:25:41,501 [Worker-2] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:25:41,502 [Worker-2] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:43:00,568 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:43:00,570 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:43:00,572 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:43:00,574 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:43:17,842 [Worker-10] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:43:17,844 [Worker-10] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:43:17,846 [Worker-10] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:43:17,847 [Worker-10] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:43:21,187 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:43:21,190 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:43:21,195 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:43:21,197 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 14:43:35,398 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:43:35,401 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 14:43:35,404 [Worker-19] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 14:43:35,406 [Worker-19] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources
+2016-05-09 15:17:09,297 [Worker-12] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 15:17:09,298 [Worker-12] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\main\resources
+2016-05-09 15:17:09,300 [Worker-12] WARN  o.e.m.c.i.embedder.EclipseLogger - Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+2016-05-09 15:17:09,301 [Worker-12] INFO  o.e.m.c.i.embedder.EclipseLogger - skip non existing resourceDirectory C:\Users\hoo\Downloads\environment\Floods\src\test\resources

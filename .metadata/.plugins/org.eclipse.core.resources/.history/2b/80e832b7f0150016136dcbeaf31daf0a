@@ -1,0 +1,52 @@
+package comms;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.gson.*;
+
+public class Receiver {
+
+	private final int PORT = 5555;
+	private final int SIZE_BYTES = 4;
+	
+	public Receiver() {}
+
+	private void recData() {
+		try (ServerSocket ss = new ServerSocket(PORT);
+				Socket cs = ss.accept();
+				BufferedInputStream in = new BufferedInputStream(cs.getInputStream())) {
+
+			byte[] msgSize = new byte[SIZE_BYTES];
+			in.read(msgSize, 0, SIZE_BYTES);
+			
+			int read;
+			StringBuilder sb = new StringBuilder();
+			
+			while( (read = in.read()) != -1) {
+				sb.append((char) read);
+			}
+			
+			String encodedStr = sb.toString();
+			
+			System.out.println(encodedStr);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+
+
+		Receiver rec = new Receiver();
+		rec.recData();
+
+	}
+
+}
