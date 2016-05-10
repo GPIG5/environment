@@ -2,9 +2,12 @@ package terrain;
 
 
 import java.util.ArrayList;
+import java.util.PriorityQueue;
+
 import com.jme3.material.Material;
 
 import water.CollisionResult;
+import water.CRCompare;
 import water.Particle;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -78,10 +81,10 @@ public class Terrain {
 	 * @return
 	 * ArrayList of collision results.
 	 */
-	public ArrayList<CollisionResult> collide(Particle p, float t, Neighbourhood n) {
+	public PriorityQueue<CollisionResult> collide(Particle p, float t, Neighbourhood n) {
 		Vector3f vertices[] = ater.getVertices();
 		Vector3f fnormals[][][] = ater.getFaceNormals();
-		ArrayList<CollisionResult> collisions = new ArrayList<CollisionResult>();
+		PriorityQueue<CollisionResult> collisions = new PriorityQueue<CollisionResult>(new CRCompare());
 		int ncols = ater.getCols();
 		for (int r = n.getSRow(); r <= n.getERow(); r++) {
 			for (int c = n.getSCol(); c <= n.getECol(); c++) {

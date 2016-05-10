@@ -104,10 +104,10 @@ public class Floods extends SimpleApplication {
 	private void makeWater() {
 		water = new Water(terrain);
 		
-		Vector3f loc = new Vector3f(15, 7, 26);
+		Vector3f loc = new Vector3f(17, 7, 32);
 		Vector3f dir = new Vector3f(0, -0.001f, 0);
 		//Vector3f bounds = new Vector3f(40, 5, 50);
-		Vector3f bounds = new Vector3f(1,1,1);
+		Vector3f bounds = new Vector3f(2,1,2);
 		Material mat = new Material(assetManager,
 		          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
 		mat.setColor("Color", ColorRGBA.Blue);   // set color of material to blue

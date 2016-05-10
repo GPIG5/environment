@@ -1,5 +1,7 @@
 package water;
 
+import java.util.Comparator;
+
 import com.jme3.math.Vector3f;
 
 public class CollisionResult {
