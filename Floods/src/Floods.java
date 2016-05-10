@@ -1,5 +1,3 @@
-import java.awt.Color;
-
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.FlyCamAppState;
 import com.jme3.app.LegacyApplication;
@@ -43,7 +41,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.post.FilterPostProcessor;
  
 
 public class Floods extends SimpleApplication {
@@ -105,13 +102,13 @@ public class Floods extends SimpleApplication {
 		water = new Water(terrain);
 		
 		Vector3f loc = new Vector3f(17, 7, 32);
-		Vector3f dir = new Vector3f(0, -0.001f, 0);
+		Vector3f a = new Vector3f(0, 0, 1f);
 		//Vector3f bounds = new Vector3f(40, 5, 50);
-		Vector3f bounds = new Vector3f(2,1,2);
+		Vector3f bounds = new Vector3f(0.5f,1,0.5f);
 		Material mat = new Material(assetManager,
 		          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
 		mat.setColor("Color", ColorRGBA.Blue);   // set color of material to blue
-		Emitter e1 = new Emitter(loc, dir, 1, bounds, mat);
+		Emitter e1 = new Emitter(loc, a, 10, bounds, mat);
 		water.addEmitter(e1);
 		rootNode.attachChild(water);
 	}

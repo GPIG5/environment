@@ -11,26 +11,27 @@ import terrain.Terrain;
 
 public class Particle extends Geometry {
 	Vector3f velocity;
-	Vector3f force;
+	Vector3f acc;
+	// Some sort of velocity averaging thing between frames.
+	Vector3f ev;
 	Cell cell;
 	
 	float radius;
 	// The number of ticks when this was last rendered.
 	long ticks_last;
 	
-	
-	float density;
+	// rest_density.......
+	float density = 1000;
 	float pressure;
 	
-	// 
-	final float mass = 1;
-	
-	public Particle(Vector3f pos, Vector3f v, Material mat, float r) {
+	public Particle(Vector3f pos, Vector3f a, Material mat, float r) {
 		super("Particle", new Sphere(4,4, r));
 		this.setMaterial(mat);
 		this.move(pos);
-		velocity = v;
+		velocity = new Vector3f();
 		radius = r;
+		ev = new Vector3f(0,0,0);
+		acc = a;
 		ticks_last = -1;
 	}
 	
@@ -67,6 +68,15 @@ public class Particle extends Geometry {
 		return cell;
 	}
 	
+	public Vector3f getEv() {
+		return ev;
+	}
+	
+	public void updateEv() {
+		// ev is average of ev and new velocity.
+		ev.addLocal(velocity).mult(0.5f);
+	}
+	
 	public boolean collide(Particle p, float t) {
 		Vector3f pvel = p.getVelocity();
 		float angle = velocity.angleBetween(pvel);
@@ -83,10 +93,6 @@ public class Particle extends Geometry {
 		return false;
 	}
 	
-	public float getMass() {
-		return mass;
-	}
-	
 	public void setDensity(float d) {
 		density = d;
 	}
@@ -101,5 +107,13 @@ public class Particle extends Geometry {
 	
 	public float getPressure() {
 		return pressure;
+	}
+	
+	public Vector3f getAccel() {
+		return acc;
+	}
+	
+	public void setAccel(Vector3f a) {
+		acc = a;
 	}
 }
