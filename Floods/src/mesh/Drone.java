@@ -3,82 +3,106 @@ package mesh;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import com.google.gson.*;
 
 public class Drone implements Runnable {
 
-
-    //TODO drone add remove itself to mesh list
-    //TODO drone keeps location
-    //TODO drone somehow checks if data to send
 	private final int sizeBytes = 4;
-    private final int id;
+    private final Integer id;
+    private final int queueSize = 30;
 
     private Socket clientSoc;
     private Gson gson = new Gson();
-    private int location = 0;
+    private Location location = new Location(0, 0, 0);
+    private Mesh mesh;
+
+    public BlockingQueue<String> dataToSend = new ArrayBlockingQueue<>(queueSize);
 
 	public Drone(Socket clientSoc, Mesh mesh) throws IOException {
         this.clientSoc = clientSoc;
-        String encodedStr = rxData();
-        id = gson.fromJson(encodedStr, Integer.class);
+        this.mesh = mesh;
+        try (BufferedInputStream in = new BufferedInputStream(clientSoc.getInputStream())) {
+            String encodedStr = rxData(in);
+            id = gson.fromJson(encodedStr, Integer.class);
+            mesh.drones.put(id, this);
+        }
 	}
 
-	private String rxData() throws IOException {
-		try (BufferedInputStream in = new BufferedInputStream(clientSoc.getInputStream())) {
-			int size = 0;
-            byte[] sizeBuf = new byte[sizeBytes];
-            int bytesRead = in.read(sizeBuf, 0, sizeBytes);
-            if (bytesRead != sizeBytes) {
-                throw new IOException("Did not read the correct amount of size bytes");
-            }
-			for (int i = 0; i != sizeBytes; ++i) {
-				size |= sizeBuf[i] << 8 * (sizeBytes - i - 1);
-			}
+	private String rxData(BufferedInputStream in) throws IOException {
+        int size = 0;
+        byte[] sizeBuf = new byte[sizeBytes];
+        int bytesRead = in.read(sizeBuf, 0, sizeBytes);
+        if (bytesRead != sizeBytes) {
+            throw new IOException("Did not read the correct amount of size bytes");
+        }
+        for (int i = 0; i != sizeBytes; ++i) {
+            size |= sizeBuf[i] << 8 * (sizeBytes - i - 1);
+        }
 
-			byte[] msgBuf = new byte[size];
-			bytesRead = in.read(msgBuf, 0, size);
-            if (bytesRead != sizeBytes) {
-                throw new IOException("Did not read the correct amount of message bytes");
-            }
+        byte[] msgBuf = new byte[size];
+        bytesRead = in.read(msgBuf, 0, size);
+        if (bytesRead != sizeBytes) {
+            throw new IOException("Did not read the correct amount of message bytes");
+        }
 
-            return new String(msgBuf, "UTF-8");
-		}
+        return new String(msgBuf, "UTF-8");
 	}
 
-	private void txData() throws IOException {
+	private void txData(BufferedOutputStream out, String toSend) throws IOException {
+        byte[] strBytes = toSend.getBytes("UTF-8");
+        int size = strBytes.length;
 
-		try (BufferedOutputStream out = new BufferedOutputStream(clientSoc.getOutputStream())) {
-            String toSend = "Hello";
-            String encodedStr = gson.toJson(toSend);
+        if (size > (2 ^ (8 * sizeBytes))) {
+            throw new IllegalStateException("Tried to encode message with size larger than sizeBytes");
+        }
 
-            byte[] strBytes = encodedStr.getBytes("UTF-8");
-            int size = strBytes.length;
+        for (int i = 0; i != sizeBytes; ++i) {
+            out.write(size >>> 8 * (sizeBytes - i - 1));
+        }
+        out.write(strBytes, 0, size);
+    }
 
-            if (size > (2 ^ (8 * sizeBytes))) {
-                throw new IllegalStateException("Tried to encode message with size larger than sizeBytes");
-            }
+    public Location getLocation() {
+        synchronized (location) {
+            return location;
+        }
+    }
 
-            for (int i = 0; i != sizeBytes; ++i) {
-                out.write(size >>> 8 * (sizeBytes - i - 1));
-            }
-            out.write(strBytes, 0, size);
-		}
+    public void setLocation(double x, double y, double z) {
+        synchronized (location) {
+            location.setX(x);
+            location.setY(y);
+            location.setZ(z);
+        }
     }
 
 	@Override
 	public void run() {
-        try {
+        try (BufferedInputStream in = new BufferedInputStream(clientSoc.getInputStream());
+             BufferedOutputStream out = new BufferedOutputStream(clientSoc.getOutputStream())) {
+            //Main loop
             while (true) {
-                String encodedStr = rxData();
-                //do something with data
+                //Check if data to receive from actual drone
+                if (in.available() > 0) {
+                    String encodedStr = rxData(in);
+                    //do something with data
+                }
+
+                //Check if data to send from other drones
+                while (!dataToSend.isEmpty()) {
+                    String msgToSend = dataToSend.take();
+                    txData(out, msgToSend);
+                }
+
             }
-        } catch (IOException e) {
+        } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         } finally {
+            mesh.drones.remove(id);
             try {
                 clientSoc.close();
             } catch (IOException e) {

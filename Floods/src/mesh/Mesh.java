@@ -22,14 +22,22 @@ public class Mesh {
         ;
     }
 
-    public void messageGlobal() {
-        ;
+    /**
+     * Send a message to all drones except the one specified by txId
+     * @param txId  - null if *every* drone is to be messaged
+     * @param msg   - the message
+     */
+    public void messageGlobal(Integer txId, String msg) {
+        drones.forEach( (k,v) -> {
+            if (txId != null && (k != txId)) {
+                v.dataToSend.add(msg);
+            }
+        });
     }
 
-    public boolean inRange(Drone tx, Drone rx) {
-
-        return false;
+    public static void main(String[] args) {
+        Mesh m = new Mesh();
+        m.start();
     }
-
 
 }
