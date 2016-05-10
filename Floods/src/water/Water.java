@@ -8,8 +8,10 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
+import terrain.Cell;
 import terrain.Neighbourhood;
 import terrain.Terrain;
+
 ///https://github.com/benma/pysph/blob/master/src/sph/sph.py
 public class Water extends Node {
 	float viscosity = 250;
@@ -19,8 +21,11 @@ public class Water extends Node {
 	float h = 2.0f;
 	ArrayList<Emitter> emitters;
 	long ticks_last;
+	// Every particle is contained within a grid square, for pruning.
 	ArrayList<Particle> grid[][];
 	Terrain terrain;
+	int nrows;
+	int ncols;
 	
 	
 	public Water(Terrain t) {
@@ -28,6 +33,14 @@ public class Water extends Node {
 		emitters =  new ArrayList<Emitter>();
 		ticks_last = System.currentTimeMillis();
 		terrain = t;
+		nrows =  terrain.getRows();
+		ncols =  terrain.getCols();
+		grid = new ArrayList[nrows][ncols];
+		for (int r = 0; r < nrows; r++) {
+			for (int c = 0; c < ncols; c++) {
+				grid[r][c] = new ArrayList<Particle>();
+			}
+		}
 	}
 	
 	public void addEmitter(Emitter e) {
@@ -38,12 +51,26 @@ public class Water extends Node {
 		for (Emitter e : emitters) {
 			Particle[] particles = e.emit();
 			for (Particle p : particles) {
-				this.attachChild(p);
+				// Add to correct grid cell.
+				Cell c = terrain.getCell(p.getWorldTranslation());
+				if (c.isValid()) {
+					this.attachChild(p);
+				}
 			}
 		}
 	}
 	
-	//Monaghan's popular cubic spline kernel
+	private ArrayList<Boolean> collide(Particle p1, float t, Neighbourhood n) {
+		// Scan through particle neighbourhood.
+		for (int r = n.getSRow(); r <= n.getERow(); r++) {
+			for (int c = n.getSCol(); c <= n.getECol(); c++) {
+				for (Particle p2 : grid[r][c]) {
+					
+				}
+			}
+		}
+		return null;
+	}
 	
 	public void process() {
 		emitParticles();
@@ -53,21 +80,18 @@ public class Water extends Node {
 		for (Spatial s : this.children) {
 			if (s instanceof Particle) {
 				Particle p = (Particle)s;
-				Neighbourhood n = terrain.getNeighbourhood(p.getWorldTranslation(), 3);
-				if (!n.isInGrid() || p.getWorldTranslation().getY() < -2) {
+				Cell c = terrain.getCell(p.getWorldTranslation());
+				if (!c.isValid() || p.getWorldTranslation().getY() < -2) {
 					// Cull first
 					p.removeFromParent();
 				}
 				else {
+					Neighbourhood n = terrain.getNeighbourhood(c, 3);
 					if (terrain.collide(p, t, n).size() == 0) {
 						p.move(t);
 					}
-					//if (p.collideWith(ter, cr) > 0) {
-				
-					//}
-					//else {
-						
-					//}
+					
+					// Has the particle moved cell.
 				}
 			}
 		}

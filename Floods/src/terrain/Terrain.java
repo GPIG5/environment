@@ -2,27 +2,10 @@ package terrain;
 
 
 import java.util.ArrayList;
-
-import com.jme3.bounding.BoundingVolume;
-import com.jme3.collision.Collidable;
-import com.jme3.collision.CollisionResults;
-import com.jme3.collision.UnsupportedCollisionException;
 import com.jme3.material.Material;
-
 import water.Particle;
-
-import com.jme3.math.FastMath;
-import com.jme3.math.Matrix3f;
-import com.jme3.math.Matrix4f;
-import com.jme3.math.Plane;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Mesh;
-import com.jme3.scene.SceneGraphVisitor;
-import com.jme3.scene.Spatial;
-import com.jme3.scene.VertexBuffer;
-import com.jme3.util.BufferUtils;
 
 //http://environment.data.gov.uk/ds/survey/index.jsp
 public class Terrain {
@@ -41,25 +24,22 @@ public class Terrain {
 
 	/**
 	 * 
-	 * @param p
-	 * The point which should be placed within the grid.
+	 * @param c
+	 * Cell to generate neighbourhood from.
 	 * @param nsize
 	 * The size of the neighbourhood to be generated (assumed odd).
 	 * @return
 	 * The created neighbourhood.
 	 */
-	public Neighbourhood getNeighbourhood(Vector3f p, int nsize) {
-		Vector3f prel = p.subtract(g.getWorldTranslation());
-		float cellsize = ater.getCellsize() * scale;
+	public Neighbourhood getNeighbourhood(Cell c, int nsize) {
 		int nrows = ater.getRows();
 		int ncols = ater.getCols();
 		Neighbourhood result;
-		if (prel.x >= 0.0 && prel.x <= (cellsize * nrows) 
-				&& prel.z >= 0.0 && prel.z <= (cellsize * ncols)) {
+		if (c.isValid()) {
 			// in grid
 			int n = nsize/2;
-			int row = (int) Math.floor(prel.x/cellsize);
-			int col = (int) Math.floor(prel.z/cellsize);
+			int row = c.getRow();
+			int col = c.getCol();
 			int srow = (row - n) < 0 ? 0 : row - n;
 			int erow = (row + n) > nrows - 1 ? nrows - 1 : row + n;
 			int scol = (col - n) < 0 ? 0 : col - n;
@@ -73,12 +53,24 @@ public class Terrain {
 		return result;
 	}
 	
-	/**
+	public Cell getCell(Vector3f p) {
+		Vector3f prel = p.subtract(g.getWorldTranslation());
+		float cellsize = ater.getCellsize() * scale;
+		if (prel.x >= 0.0 && prel.x <= (cellsize * ater.getRows()) 
+				&& prel.z >= 0.0 && prel.z <= (cellsize * ater.getCols())) {
+			return new Cell((int) Math.floor(prel.x/cellsize), (int) Math.floor(prel.z/cellsize));	
+		}
+		else {
+			return new Cell(-1, -1);
+		}
+	}
+	
+	/** Collide particle with neighbourhood of terrain.
 	 * 
 	 * @param p
 	 * The particle with which to collide the terrain with.
 	 * @param t
-	 * The timespan in which a collision should be considered.
+	 * The max time in which a collision should be considered.
 	 * @param n
 	 * The neighbourhood in which collisions should be considered.
 	 * @return
@@ -90,7 +82,7 @@ public class Terrain {
 		ArrayList<Boolean> collisions = new ArrayList<Boolean>();
 		int ncols = ater.getCols();
 		for (int r = n.getSRow(); r <= n.getERow(); r++) {
-			for (int c = n.getSCol(); c < n.getECol(); c++) {
+			for (int c = n.getSCol(); c <= n.getECol(); c++) {
 				int base = (r * ncols) + c;
 				// Extract vectors and scale to world size.
 				Vector3f v1 = vertices[base].mult(g.getWorldScale());
@@ -118,11 +110,10 @@ public class Terrain {
 	
 	// http://www.peroxide.dk/papers/collision/collision.pdf
 	//https://hub.jmonkeyengine.org/t/ellipsoid-collision-detection-system/2064/2
-	// Test collision with a single triangle
 	// Todo: wrap cpoint and t0, t1 into collision result object.
 	// http://www.realtimerendering.com/intersections.html
 	//https://github.com/jongber/AndroidOpengl/blob/f290fe0a58485151047a9c7cedc8138f4556c546/app/src/main/java/glproj/jongber/androidopengl/utils/joml/Intersectionf.java
-	/**
+	/** Test collision with a moving sphere (particle) and a single triangle in the terrain.
 	 * @param p
 	 * The particle with which the terrain is colliding with.
 	 * @param time
@@ -281,7 +272,19 @@ public class Terrain {
         return false;
 	}
 	
-	// Fast triangle checker - From joml.Intersectionf.java
+	/**
+	 * Fast check function for whether a point is within a triangle (From joml.Intersectionf.java).
+	 * @param p
+	 * The point which to check.
+	 * @param v0
+	 * The first vertex of the triangle.
+	 * @param v1
+	 * The second vertex of the triangle.
+	 * @param v2
+	 * The third vertex of the triangle.
+	 * @return
+	 * True if the point is in the triangle.
+	 */
 	private boolean inTriangle(Vector3f p, Vector3f v0, Vector3f v1, Vector3f v2) {		
         Vector3f e10 = v1.subtract(v0);        
         Vector3f e20 = v2.subtract(v0);        
@@ -322,6 +325,14 @@ public class Terrain {
 			return r2;
 		}
 		return Float.NaN;
+	}
+	
+	public int getRows() {
+		return ater.getRows(); 
+	}
+	
+	public int getCols() {
+		return ater.getCols();
 	}
 	
 	public Geometry getGeometry() {
