@@ -8,6 +8,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
+import terrain.Neighbourhood;
 import terrain.Terrain;
 ///https://github.com/benma/pysph/blob/master/src/sph/sph.py
 public class Water extends Node {
@@ -52,12 +53,13 @@ public class Water extends Node {
 		for (Spatial s : this.children) {
 			if (s instanceof Particle) {
 				Particle p = (Particle)s;
-				if (p.getWorldTranslation().getY() < -2) {
+				Neighbourhood n = terrain.getNeighbourhood(p.getWorldTranslation(), 3);
+				if (!n.isInGrid() || p.getWorldTranslation().getY() < -2) {
 					// Cull first
 					p.removeFromParent();
 				}
 				else {
-					if (terrain.collide(p, t).size() == 0) {
+					if (terrain.collide(p, t, n).size() == 0) {
 						p.move(t);
 					}
 					//if (p.collideWith(ter, cr) > 0) {

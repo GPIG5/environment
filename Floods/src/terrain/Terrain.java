@@ -38,62 +38,80 @@ public class Terrain {
         g.setMaterial(mat);
         g.scale(scale, scale, scale);
 	}
-	
-	
-	public ArrayList<Boolean> collide(Particle p, float t) {
-		// Find closest row/col for particle
-		// y axis bounding box.
-		// Every triangle in box AND surrounding boxes
-		// We assume that only scales in all 3 axes are done
-		// Similarly no rotations, hence we can reuse our earlier normals.
-		// However, we must translate a,b,c
-		// Make p's position relative to terrain.
-		Vector3f vertices[] = ater.getVertices();
-		Vector3f prel = p.getWorldTranslation().subtract(g.getWorldTranslation());
-		Vector3f fnormals[][][] = ater.getFaceNormals();
-		ArrayList<Boolean> collisions = new ArrayList<Boolean>();
-		// Is prel within the terrain (x,z) only for now?
+
+	/**
+	 * 
+	 * @param p
+	 * The point which should be placed within the grid.
+	 * @param nsize
+	 * The size of the neighbourhood to be generated (assumed odd).
+	 * @return
+	 * The created neighbourhood.
+	 */
+	public Neighbourhood getNeighbourhood(Vector3f p, int nsize) {
+		Vector3f prel = p.subtract(g.getWorldTranslation());
 		float cellsize = ater.getCellsize() * scale;
 		int nrows = ater.getRows();
 		int ncols = ater.getCols();
-		
-		int row, col;
+		Neighbourhood result;
 		if (prel.x >= 0.0 && prel.x <= (cellsize * nrows) 
 				&& prel.z >= 0.0 && prel.z <= (cellsize * ncols)) {
-			row = (int) Math.floor(prel.x/cellsize);
-			col = (int) Math.floor(prel.z/cellsize);
-			int srow = (row == 0) ? 0 : row - 1;
-			int erow = (row+2) > nrows - 1 ? nrows - 1 : row+2;
-			int scol = (col == 0) ? 0 : col - 1;
-			int ecol = (col+2) > ncols - 1 ? ncols - 1 : col+2;
-			for (int r = srow; r < erow; r++) {
-				for (int c = scol; c < ecol; c++) {
-					int base = (r * ncols) + c;
-					// Extract vectors and scale to world size.
-					Vector3f v1 = vertices[base].mult(g.getWorldScale());
-					v1.addLocal(g.getWorldTranslation());
-					Vector3f v2 = vertices[base + 1].mult(g.getWorldScale());
-					v2.addLocal(g.getWorldTranslation());
-					Vector3f v3 = vertices[base + ncols].mult(g.getWorldScale());
-					v3.addLocal(g.getWorldTranslation());
-					Vector3f v4 = vertices[base + ncols + 1].mult(g.getWorldScale());
-					v4.addLocal(g.getWorldTranslation());
-					//System.out.println("v1: " + v1 + " v2: " + v2 + " v3: " + v3 + " v4: " + v4);
-					// Triangle 1
-					// Test for collision.
-					if (collideTriangle(p, t, v1, v2, v3, fnormals[r][c][0])) {
-						collisions.add(true);
-					}
-					// Triangle 2
-					if (collideTriangle(p, t, v3, v2, v4, fnormals[r][c][1])) {
-						collisions.add(true);
-					}
-				}
-			}
+			// in grid
+			int n = nsize/2;
+			int row = (int) Math.floor(prel.x/cellsize);
+			int col = (int) Math.floor(prel.z/cellsize);
+			int srow = (row - n) < 0 ? 0 : row - n;
+			int erow = (row + n) > nrows - 1 ? nrows - 1 : row + n;
+			int scol = (col - n) < 0 ? 0 : col - n;
+			int ecol = (col + n) > ncols - 1 ? ncols - 1 : col + n;
+			result = new Neighbourhood(row, col, srow, scol, erow, ecol, true);
 		}
 		else {
-			// No col possible - or + cellsize?
-			// System.out.println("NOPE");
+			// not in grid
+			result = new Neighbourhood(-1, -1, -1, -1, -1, -1, false);
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param p
+	 * The particle with which to collide the terrain with.
+	 * @param t
+	 * The timespan in which a collision should be considered.
+	 * @param n
+	 * The neighbourhood in which collisions should be considered.
+	 * @return
+	 * ArrayList of collision results.
+	 */
+	public ArrayList<Boolean> collide(Particle p, float t, Neighbourhood n) {
+		Vector3f vertices[] = ater.getVertices();
+		Vector3f fnormals[][][] = ater.getFaceNormals();
+		ArrayList<Boolean> collisions = new ArrayList<Boolean>();
+		int ncols = ater.getCols();
+		for (int r = n.getSRow(); r <= n.getERow(); r++) {
+			for (int c = n.getSCol(); c < n.getECol(); c++) {
+				int base = (r * ncols) + c;
+				// Extract vectors and scale to world size.
+				Vector3f v1 = vertices[base].mult(g.getWorldScale());
+				v1.addLocal(g.getWorldTranslation());
+				Vector3f v2 = vertices[base + 1].mult(g.getWorldScale());
+				v2.addLocal(g.getWorldTranslation());
+				Vector3f v3 = vertices[base + ncols].mult(g.getWorldScale());
+				v3.addLocal(g.getWorldTranslation());
+				Vector3f v4 = vertices[base + ncols + 1].mult(g.getWorldScale());
+				v4.addLocal(g.getWorldTranslation());
+				//System.out.println("v1: " + v1 + " v2: " + v2 + " v3: " + v3 + " v4: " + v4);
+				// Triangle 1
+				// Test for collision.
+				if (collideTriangle(p, t, v1, v2, v3, fnormals[r][c][0])) {
+					collisions.add(true);
+				}
+				// Triangle 2
+				if (collideTriangle(p, t, v3, v2, v4, fnormals[r][c][1])) {
+					collisions.add(true);
+				}
+			}
 		}
 		return collisions;
 	}
