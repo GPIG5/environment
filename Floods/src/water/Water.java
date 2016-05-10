@@ -17,8 +17,10 @@ import terrain.Terrain;
 ///https://github.com/benma/pysph/blob/master/src/sph/sph.py
 public class Water extends Node {
 	float viscosity = 250;
-	//
-	float k = 1000;
+	// rest density
+	float rest_density = 1000;
+	// gas constant
+	float k = 1.0f;
 	// Smoothing length
 	float h = 4.0f;
 	
@@ -87,6 +89,47 @@ public class Water extends Node {
 		return (float) (alphad * Math.exp((r*r)/(h*h)));
 	}
 	
+	// http://cg.informatik.uni-freiburg.de/intern/seminar/gridFluids_fluid-EulerParticle.pdf
+	// https://wiki.manchester.ac.uk/sphysics/images/SPHysics_v2.2.000_GUIDE.pdf
+	// https://www.cfa.harvard.edu/~pmocz/manuscripts/pmocz_sph.pdf
+	// https://github.com/cbeach/sph/blob/master/particle/sph.cpp
+	// https://github.com/finallyjustice/sphfluid/tree/master/SPH_CPU_3D_v1
+	// https://github.com/finallyjustice/sphfluid/blob/master/SPH_CPU_3D_v1/sph_system.cpp
+	// https://nccastaff.bournemouth.ac.uk/jmacey/MastersProjects/MSc2010/08ChrisPriscott/ChrisPriscott_THESIS.pdf
+	// Calculate the density and pressure of every particle.
+	public void calcDP() {
+		Particle pi;
+		float density;
+		// iterate over the children instead of rows.
+		for (Spatial s : this.children) {
+			density = 0.0f;
+			if (s instanceof Particle) {
+				pi = (Particle)s;
+				density = 0.0f;
+				Cell c = pi.getCell();
+				Vector3f pos = pi.getWorldTranslation();
+				// Consider 3 consecutive rows.
+				int crow = c.getRow();
+				int srow = crow <= 0 ? 0 : crow-1;
+				int erow = crow >= (nrows - 1) ? nrows - 1 : crow + 1;   
+				for (int r = srow; r <= erow; r++) {
+					for (Particle pj : rows[r]) {
+						float rij = pos.distance(pj.getWorldTranslation());	
+						float w = gaussianKernel(rij);
+						density += w * pj.getMass();
+					}
+				}
+				pi.setDensity(density);
+				pi.setPressure(k*(density - rest_density));	
+			}
+		}
+	}
+	
+	// Calculate viscosity, pressure, tension and gravity forces
+	public void calcVPTG() {
+		
+	}
+	
 	public void process() {
 		emitParticles();
 		ArrayList<Particle> lst;
@@ -96,6 +139,8 @@ public class Water extends Node {
 		// How much time this frame represents.
 		float t = ticks_now - ticks_last;
 		ticks_last = ticks_now;
+		calcDP();
+		// Final step.
 		for (int r = 0; r < nrows; r++) {
 			lst = rows[r];
 			// Each particle in row.

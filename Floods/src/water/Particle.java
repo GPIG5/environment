@@ -18,6 +18,13 @@ public class Particle extends Geometry {
 	// The number of ticks when this was last rendered.
 	long ticks_last;
 	
+	
+	float density;
+	float pressure;
+	
+	// 
+	final float mass = 1;
+	
 	public Particle(Vector3f pos, Vector3f v, Material mat, float r) {
 		super("Particle", new Sphere(4,4, r));
 		this.setMaterial(mat);
@@ -74,5 +81,25 @@ public class Particle extends Geometry {
 		}
 		// Are the two particles on parallel vectors?
 		return false;
+	}
+	
+	public float getMass() {
+		return mass;
+	}
+	
+	public void setDensity(float d) {
+		density = d;
+	}
+	
+	public float getDensity() {
+		return density;
+	}
+	
+	public void setPressure(float p) {
+		pressure = p;
+	}
+	
+	public float getPressure() {
+		return pressure;
 	}
 }
