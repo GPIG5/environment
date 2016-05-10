@@ -212,6 +212,7 @@ public class ASCTerrain extends Mesh{
 		setBuffer(VertexBuffer.Type.Index,    3, BufferUtils.createIntBuffer(indexes));
 		setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
 		updateBound();
+        System.out.println("NE corner: " + vertices[vertices.length - 1].mult(0.006f));
 	}
 	
 	private void downsample(int nsize) {

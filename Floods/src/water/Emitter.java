@@ -34,7 +34,7 @@ public class Emitter {
 			Vector3f pos = new Vector3f(bounds.getX() * rn.nextFloat(), 
 					bounds.getY() * rn.nextFloat(), bounds.getZ() * rn.nextFloat());
 			pos.addLocal(loc);
-			particles[n] = new Particle(pos, dir, mat, 0.05f);
+			particles[n] = new Particle(pos, dir, mat, 0.02f);
 			
 		}
 		return particles;

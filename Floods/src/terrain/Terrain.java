@@ -3,6 +3,8 @@ package terrain;
 
 import java.util.ArrayList;
 import com.jme3.material.Material;
+
+import water.CollisionResult;
 import water.Particle;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -11,7 +13,7 @@ import com.jme3.scene.Geometry;
 public class Terrain {
 	ASCTerrain ater;
 	Geometry g;
-	static final float scale = 0.005f;
+	static final float scale = 0.006f;
 	// Value for excluding almost parallel spheres.
 	static final float epsilon = 0.00005f;
 	
@@ -76,10 +78,10 @@ public class Terrain {
 	 * @return
 	 * ArrayList of collision results.
 	 */
-	public ArrayList<Boolean> collide(Particle p, float t, Neighbourhood n) {
+	public ArrayList<CollisionResult> collide(Particle p, float t, Neighbourhood n) {
 		Vector3f vertices[] = ater.getVertices();
 		Vector3f fnormals[][][] = ater.getFaceNormals();
-		ArrayList<Boolean> collisions = new ArrayList<Boolean>();
+		ArrayList<CollisionResult> collisions = new ArrayList<CollisionResult>();
 		int ncols = ater.getCols();
 		for (int r = n.getSRow(); r <= n.getERow(); r++) {
 			for (int c = n.getSCol(); c <= n.getECol(); c++) {
@@ -93,15 +95,14 @@ public class Terrain {
 				v3.addLocal(g.getWorldTranslation());
 				Vector3f v4 = vertices[base + ncols + 1].mult(g.getWorldScale());
 				v4.addLocal(g.getWorldTranslation());
-				//System.out.println("v1: " + v1 + " v2: " + v2 + " v3: " + v3 + " v4: " + v4);
-				// Triangle 1
 				// Test for collision.
-				if (collideTriangle(p, t, v1, v2, v3, fnormals[r][c][0])) {
-					collisions.add(true);
+				CollisionResult res1 = collideTriangle(p, t, v1, v2, v3, fnormals[r][c][0]);
+				if (res1 != null) {
+					collisions.add(res1);
 				}
-				// Triangle 2
-				if (collideTriangle(p, t, v3, v2, v4, fnormals[r][c][1])) {
-					collisions.add(true);
+				CollisionResult res2 = collideTriangle(p, t, v3, v2, v4, fnormals[r][c][1]);
+				if (res2 != null) {
+					collisions.add(res2);
 				}
 			}
 		}
@@ -127,8 +128,9 @@ public class Terrain {
 	 * @param norm
 	 * Normal of triangle.
 	 * @return
+	 * Null if no collision, CollisionResult otherwise.
 	 */
-	private boolean collideTriangle(Particle p, float tmax,
+	private CollisionResult collideTriangle(Particle p, float tmax,
 			Vector3f v0, Vector3f v1, Vector3f v2, Vector3f norm) {
 		Vector3f base = p.getWorldTranslation();
 		Vector3f vel = p.getVelocity();
@@ -145,23 +147,19 @@ public class Terrain {
         float dot = (a * vel.x + b * vel.y + c * vel.z) * invLen;
         // Nearly parallel.
         if (dot < epsilon && dot > -epsilon) {
-        	return false;
+        	return null;
         }
         float pt0 = (rad - signedDist)/dot;
         // Not in this time frame
         if (pt0 > tmax) {
-        	return false;
+        	return null;
         }
         float pt1 = (-rad - signedDist) / dot;
         float p0X = base.x - rad * a * invLen + vel.x * pt0;
         float p0Y = base.y - rad * b * invLen + vel.y * pt0;
         float p0Z = base.z - rad * c * invLen + vel.z * pt0;
         if (inTriangle(new Vector3f(p0X, p0Y, p0Z), v0, v10, v20)) {
-        	// pointAndTime.x = p0X;\
-        	// pointAndTime.y = p0Y;
-        	// pointAndTime.z = p0Z;
-            // pointAndTime.w = pt0;
-        	return true;
+        	return new CollisionResult(new Vector3f(p0X, p0Y, p0Z), pt0);
         }
         float t0 = tmax;
         float A = vel.lengthSquared();
@@ -172,12 +170,7 @@ public class Terrain {
         float C0 = centerV0.lengthSquared() - rad2;
         float root0 = getLowestRoot(A, B0, C0, t0);
         if (!Float.isNaN(root0) && root0 < t0) {
-//            pointAndTime.x = v0X;
-//            pointAndTime.y = v0Y;
-//            pointAndTime.z = v0Z;
-//            pointAndTime.w = root0;
-            t0 = root0;
-            return true;
+            return new CollisionResult(v0, root0);
         }
         // test against v1
         Vector3f centerV1 = base.subtract(v1);
@@ -186,12 +179,7 @@ public class Terrain {
         float C1 = centerV1Len - rad2;
         float root1 = getLowestRoot(A, B1, C1, t0);
         if (!Float.isNaN(root1) && root1 < t0) {
-//            pointAndTime.x = v1X;
-//            pointAndTime.y = v1Y;
-//            pointAndTime.z = v1Z;
-//            pointAndTime.w = root1;
-            t0 = root1;
-            return true;
+            return new CollisionResult(v1, root1);
         }
         // test against v2
         Vector3f centerV2 = base.subtract(v2);
@@ -199,12 +187,7 @@ public class Terrain {
         float C2 = centerV2.lengthSquared()- rad2;
         float root2 = getLowestRoot(A, B2, C2, t0);
         if (!Float.isNaN(root2) && root2 < t0) {
-//            pointAndTime.x = v2X;
-//            pointAndTime.y = v2Y;
-//            pointAndTime.z = v2Z;
-//            pointAndTime.w = root2;
-            t0 = root2;
-            return true;
+            return new CollisionResult(v2, root2);
         }
         float velLen = vel.lengthSquared();
         // test against edge10
@@ -220,12 +203,7 @@ public class Terrain {
         if (!Float.isNaN(root10)) {
 	        float f10 = (v10Vel * root10 - v10BaseTo0) / len10;
 	        if (f10 >= 0.0f && f10 <= 1.0f && root10 < t0) {
-//	            pointAndTime.x = v0X + f10 * v10X;
-//	            pointAndTime.y = v0Y + f10 * v10Y;
-//	            pointAndTime.z = v0Z + f10 * v10Z;
-//	            pointAndTime.w = root10;
-	            t0 = root10;
-	            return true;
+	            return new CollisionResult(v0.add(v10.mult(f10)), root10);
 	        }
         }
         // test against edge20
@@ -239,12 +217,7 @@ public class Terrain {
         if (!Float.isNaN(root20)) {
 	        float f20 = (v20Vel * root20 - v20BaseTo0) / len20;
 	        if (f20 >= 0.0f && f20 <= 1.0f && root20 < pt1) {
-//	            pointAndTime.x = v0X + f20 * v20X;
-//	            pointAndTime.y = v0Y + f20 * v20Y;
-//	            pointAndTime.z = v0Z + f20 * v20Z;
-//	            pointAndTime.w = root20;
-	            t0 = root20;
-	            return true;
+	            return new CollisionResult(v0.add(v20.mult(f20)), root20);
 	        }
         }
         // test against edge21
@@ -261,15 +234,10 @@ public class Terrain {
         if (!Float.isNaN(root21)) {
 	        float f21 = (v21Vel * root21 - v21BaseTo1) / len21;
 	        if (f21 >= 0.0f && f21 <= 1.0f && root21 < t0) {
-	//            pointAndTime.x = v1X + f21 * v21X;
-	//            pointAndTime.y = v1Y + f21 * v21Y;
-	//            pointAndTime.z = v1Z + f21 * v21Z;
-	//            pointAndTime.w = root21;
-	            t0 = root21;
-	            return true;
+	            return new CollisionResult(v1.add(v21.mult(f21)), root21);
 	        }
         }
-        return false;
+        return null;
 	}
 	
 	/**

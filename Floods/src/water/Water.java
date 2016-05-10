@@ -54,7 +54,8 @@ public class Water extends Node {
 				// Add to correct grid cell.
 				Cell c = terrain.getCell(p.getWorldTranslation());
 				if (c.isValid()) {
-					this.attachChild(p);
+					grid[c.getRow()][c.getCol()].add(p);
+					attachChild(p);
 				}
 			}
 		}
@@ -74,27 +75,45 @@ public class Water extends Node {
 	
 	public void process() {
 		emitParticles();
+		ArrayList<Particle> lst;
+		Particle p;
 		long ticks_now = System.currentTimeMillis();
 		// How much time this frame represents.
 		float t = ticks_now - ticks_last;
-		for (Spatial s : this.children) {
-			if (s instanceof Particle) {
-				Particle p = (Particle)s;
-				Cell c = terrain.getCell(p.getWorldTranslation());
-				if (!c.isValid() || p.getWorldTranslation().getY() < -2) {
-					// Cull first
-					p.removeFromParent();
-				}
-				else {
-					Neighbourhood n = terrain.getNeighbourhood(c, 3);
-					if (terrain.collide(p, t, n).size() == 0) {
-						p.move(t);
+		ticks_last = ticks_now;
+		for (int r = 0; r < nrows; r++) {
+			for (int c = 0; c < ncols; c++) {
+				Cell cell = new Cell(r, c);
+				Neighbourhood n = terrain.getNeighbourhood(cell, 3);
+				lst = grid[r][c];
+				// Each particle in cell.
+				for (int i = 0; i < lst.size(); i++) {
+					p = lst.get(i);
+					// only render if last render time was in the past.
+					if (p.getTicksLast() < ticks_now) {
+						// Do world collisions.
+						// Do particle collisions.
+						// Move cell.
+						if (terrain.collide(p, t, n).size() == 0) {
+							p.move(t);
+						}
+						// Is the cell still on the grid?
+						Cell nc = terrain.getCell(p.getWorldTranslation());
+						p.setTicksLast(ticks_now);
+						if (!cell.equals(nc)) {
+							lst.remove(i);
+							// i goes back one, because we just remove a particle.
+							i--;
+							if (nc.isValid() && p.getWorldTranslation().getY() > -2) {
+								grid[nc.getRow()][nc.getCol()].add(p);
+							}
+							else {
+								p.removeFromParent();
+							}
+						}
 					}
-					
-					// Has the particle moved cell.
 				}
 			}
 		}
-		ticks_last = ticks_now;
 	}
 }

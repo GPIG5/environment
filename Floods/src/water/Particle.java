@@ -8,6 +8,8 @@ import com.jme3.scene.shape.Sphere;
 public class Particle extends Geometry {
 	Vector3f velocity;
 	float radius;
+	// The number of ticks when this was last rendered.
+	long ticks_last;
 	
 	public Particle(Vector3f pos, Vector3f v, Material mat, float r) {
 		super("Particle", new Sphere(4,4, r));
@@ -15,6 +17,15 @@ public class Particle extends Geometry {
 		this.move(pos);
 		velocity = v;
 		radius = r;
+		ticks_last = -1;
+	}
+	
+	public long getTicksLast() {
+		return ticks_last;
+	}
+	
+	public void setTicksLast(long t) {
+		ticks_last = t;
 	}
 	
 	public void move(float t) {

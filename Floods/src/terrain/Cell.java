@@ -21,4 +21,8 @@ public class Cell {
 	public boolean isValid() {
 		return row != -1 && col != -1;
 	}
+	
+	public boolean equals(Cell c) {
+		return row == c.getRow() && col == c.getCol();
+	}
 }
