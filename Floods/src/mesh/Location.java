@@ -15,10 +15,6 @@ public class Location  {
         this.z = z;
     }
 
-    public boolean inRange(Location otherLoc) {
-        return true;
-    }
-
     public void setX(double x) {
         this.x = x;
     }
@@ -36,10 +32,10 @@ public class Location  {
     }
 
     public double getY() {
-        return x;
+        return y;
     }
 
     public double getZ() {
-        return x;
+        return z;
     }
 }

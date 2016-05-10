@@ -9,30 +9,30 @@ public class Mesh {
 
     public ConcurrentHashMap<Integer, Drone> drones = new ConcurrentHashMap<>();
 
-    public Mesh() {
-
-    }
 
     public void start() {
         Server server = new Server(this);
 
     }
 
-    public void messageSpecificDrone() {
-        ;
-    }
-
     /**
-     * Send a message to all drones except the one specified by txId
-     * @param txId  - null if *every* drone is to be messaged
+     * Send a message to all drones in range of tx. If tx is null send to all drones.
+     * @param tx  - null if *every* drone is to be messaged
      * @param msg   - the message
      */
-    public void messageGlobal(Integer txId, String msg) {
+    public void messageGlobal(Drone tx, String msg) {
         drones.forEach( (k,v) -> {
-            if (txId != null && (k != txId)) {
-                v.dataToSend.add(msg);
+            if (tx != null || (k != tx.getId() && inRange(v.getLocation(), tx.getLocation())) ) {
+                if (!v.dataToSend.offer(msg)) {
+                    System.err.println("Message queue for drone is full!");
+                }
             }
         });
+    }
+
+    private boolean inRange(Location loc1, Location loc2) {
+
+        return true;
     }
 
     public static void main(String[] args) {

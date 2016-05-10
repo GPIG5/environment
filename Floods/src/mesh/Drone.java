@@ -11,16 +11,15 @@ import com.google.gson.*;
 
 public class Drone implements Runnable {
 
+    public BlockingQueue<String> dataToSend = new ArrayBlockingQueue<>(20);
+
 	private final int sizeBytes = 4;
     private final Integer id;
-    private final int queueSize = 30;
 
     private Socket clientSoc;
     private Gson gson = new Gson();
     private Location location = new Location(0, 0, 0);
     private Mesh mesh;
-
-    public BlockingQueue<String> dataToSend = new ArrayBlockingQueue<>(queueSize);
 
 	public Drone(Socket clientSoc, Mesh mesh) throws IOException {
         this.clientSoc = clientSoc;
@@ -31,6 +30,44 @@ public class Drone implements Runnable {
             mesh.drones.put(id, this);
         }
 	}
+
+    @Override
+    public void run() {
+        try (BufferedInputStream in = new BufferedInputStream(clientSoc.getInputStream());
+             BufferedOutputStream out = new BufferedOutputStream(clientSoc.getOutputStream())) {
+            //Main loop
+            while (true) {
+                //Check if data to receive from actual drone
+                if (in.available() > 0) {
+                    String encodedStr = rxData(in);
+                    //do something with data
+                }
+
+                //Check if data to send from other drones
+                while (!dataToSend.isEmpty()) {
+                    String msgToSend = dataToSend.take();
+                    txData(out, msgToSend);
+                }
+
+            }
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            mesh.drones.remove(id);
+            try {
+                clientSoc.close();
+            } catch (IOException e) {
+                System.err.println("Could not close client socket");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void processRxData(String encodedStr) {
+
+
+
+    }
 
 	private String rxData(BufferedInputStream in) throws IOException {
         int size = 0;
@@ -80,35 +117,8 @@ public class Drone implements Runnable {
         }
     }
 
-	@Override
-	public void run() {
-        try (BufferedInputStream in = new BufferedInputStream(clientSoc.getInputStream());
-             BufferedOutputStream out = new BufferedOutputStream(clientSoc.getOutputStream())) {
-            //Main loop
-            while (true) {
-                //Check if data to receive from actual drone
-                if (in.available() > 0) {
-                    String encodedStr = rxData(in);
-                    //do something with data
-                }
+    public int getId() {
+        return id;
+    }
 
-                //Check if data to send from other drones
-                while (!dataToSend.isEmpty()) {
-                    String msgToSend = dataToSend.take();
-                    txData(out, msgToSend);
-                }
-
-            }
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-        } finally {
-            mesh.drones.remove(id);
-            try {
-                clientSoc.close();
-            } catch (IOException e) {
-                System.err.println("Could not close client socket");
-                e.printStackTrace();
-            }
-        }
-	}
 }
