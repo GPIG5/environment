@@ -3,11 +3,11 @@ package mesh;
 /**
  * Created by hm649 on 10/05/16.
  */
-public class DrowningPeople {
+public class PINOR {
 
     //map
 
-    public DrowningPeople(/*size of map*/) {
+    public PINOR(/*size of map*/) {
 
         //do some init of drowning people in given range
 
