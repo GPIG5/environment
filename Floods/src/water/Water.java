@@ -39,11 +39,7 @@ public class Water extends Node {
 				attachChild(grid[r][c]);
 			}
 		}
-	}
-	
-	// Add initial columns.
-	public void addWater(int r, int c, float h) {
-		
+		grid[0][0].setVoume(2);
 	}
 	
 	public void process() {
@@ -52,5 +48,15 @@ public class Water extends Node {
 		// How much time this frame represents.
 		float t = (ticks_now - ticks_last)/1000.0f;
 		ticks_last = ticks_now;
+		for (int r = 0; r < nrows-1; r++) {
+			for (int c = 0; c < ncols-1; c++) {
+				grid[r][c].process(t);
+			}
+		}
+		for (int r = 0; r < nrows-1; r++) {
+			for (int c = 0; c < ncols-1; c++) {
+				grid[r][c].redraw(t);
+			}
+		}
 	}
 }

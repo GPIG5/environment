@@ -1,9 +1,12 @@
 package water;
 
 import com.jme3.material.Material;
+import com.jme3.math.FastMath;
+import com.jme3.math.Plane;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Quad;
 
 // Hydrostatic pipe model.
 // Dynamic Simulation of Splashing Fluids - O'Brien and Hodgins
@@ -18,17 +21,20 @@ public class Cell extends Geometry {
 	private float basevol;
 	// The min height which rendering starts at.
 	private float minh;
-	// This is the rendered height.
-	private static float height = 4;
+	// This is the volume of water.
+	private float volume = 1;
+	// This is the height.
+	private float height;
 	// Gravity.
-	private static final float g = 0.0f;
+	private static final float g = 9.81f;
 	// Fluid density.
-	private static final float rho = 0.0f;
+	private static final float rho = 1.0f;
 	// Atmospheric pressure.
-	private static final float p0 = 0.0f;
+	private static final float p0 = 1f;
 	// pipe length.
 	private static final float l = 1f;
 	private static final float c = 1f;
+	private static final int flowLUT[] = {4,5,6,7,0,1,2,3}; 
 	// pipe cross sectional area
 	// centre x and z values;
 	private float avgx;
@@ -38,13 +44,13 @@ public class Cell extends Geometry {
 	
 	public Cell(Vector3f p0, Vector3f p1, Vector3f p2, Vector3f p3, float csize) {
 		// Rendering things.
-		Box b =  new Box(csize/2,0.4f,csize/2);
-		setMesh(b);
+		
+		setMesh(new Quad(csize, csize));
 		//this.scale(1,height,1);
 		// Everything important.
 		points = new Vector3f[] {p0, p1, p2, p3};
 		pipes = new Cell[8];
-		flows = new float[8];
+		flows = new float[]{0,0,0,0,0,0,0,0};
 		cellsize = csize;
 		float min0 = p0.y;
 		float max0 = p0.y;
@@ -76,12 +82,15 @@ public class Cell extends Geometry {
 		}
 		// Calc base vol.
 		basevol = (max0 - min0) + (max1 - min1);
-		basevol *= (csize * csize)/4;
+		basevol *= (csize * csize)/4.0f;
+		volume = basevol*2;
 		// Rendering things.
 		avgz = (p0.z + p1.z + p2.z + p3.z)/4;
 		avgx = (p0.x + p1.x + p2.x + p3.x)/4;
 		// this moves the centre.
-		this.move(new Vector3f(avgx, minh+0.4f, avgz));
+		height = calcHeight();
+		this.rotate(-FastMath.HALF_PI, 0, 0);
+		this.move(p1.x, height, p1.z);
 	}
 	
 	public void test() {
@@ -90,31 +99,66 @@ public class Cell extends Geometry {
 			setCullHint(CullHint.Always);
 		}
 	}
-	
-	public void calc() {
-		// static pressure
-		float h = (height * rho * g) + p0;
-		float volume = basevol + cellsize * cellsize * height;
+
+	// Calculate height from volume.
+	private float calcHeight() {
+		return ((volume - basevol)/(cellsize*cellsize)) + minh;
 	}
 	
 	public float getHeight() {
 		return height;
 	}
 	
-	public void render(float t) {
-		float pg = rho*g;
+	public void setVoume(float v) {
+		volume = v;
+	}
+	
+	// https://github.com/karhu/terrain-erosion/blob/master/Simulation/FluidSimulation.cpp
+	public void process(float t) {
+		float flowfactor = 0.00005f * t * g / l;
+		float pg = rho * g;
 		float pl = rho * l;
 		float sum = 0.0f;
 		for (int p = 0; p < 8; p++) {
 			if (pipes[p] != null) {
-				float a = (pg * (height - pipes[p].getHeight()))/pl;
-				float flow = flows[p] + t*c*a;
-				sum += (flow + flows[p])/2;
+				float newflow = flows[p] + flowfactor * (height - pipes[p].getHeight());
+				newflow = Float.max(0, newflow);
+				sum += newflow;
 				// Update previous flow.
-				flows[p] = flow;
+				flows[p] = newflow;
 			}
 		}
+		/*
+		//System.out.println("Sum: " + sum);
 		float deltav = t * sum;
+		volume += deltav;
+		// clamp volume
+		if (volume < 0) {
+			volume = 0.0f;
+		} */
+	}
+	
+	public float getFlow(int p) {
+		return flows[p];
+	}
+	
+	public void redraw(float t) {
+		float inflow = 0.0f;
+		float outflow = 0.0f;
+		//System.out.println("New height: " + nh);
+		for (int p = 0; p < 8; p++) {
+			if (pipes[p] != null) {
+				inflow += pipes[p].getFlow(flowLUT[p]);
+				outflow += flows[p];
+			}
+		}
+		float dv = t * (inflow-outflow);
+		volume += dv;
+		float nh = calcHeight();
+		if (Float.isFinite(nh)) {
+			move(0,nh-height,0);
+			height = nh;
+		}
 	}
 	
 	public void setPipes(Cell nw, Cell n, Cell ne, Cell e, Cell se, Cell s, Cell sw, Cell w) {

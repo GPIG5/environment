@@ -106,7 +106,7 @@ public class Floods extends SimpleApplication {
 		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 		//
 		water = new Water(terrain, mat);
-		water.addWater(0, 0, 20);
+		//water.addWater(0, 0, 20);
 		rootNode.attachChild(water);
 	}
 	
