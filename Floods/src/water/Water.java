@@ -23,7 +23,7 @@ public class Water extends Node {
 	// gas constant
 	final float k = 3f;
 	// Smoothing length/kernel
-	final float h = 0.04f;
+	final float h = 0.1f;
 	final float h2 = h*h;
 	
 	Vector3f gravity = new Vector3f(0,-9.8f,0);
@@ -238,6 +238,27 @@ public class Water extends Node {
 					p.move(temp);
 					p.setVelocity(vel.mult(0.5f));
 				}
+				if (p.getWorldTranslation().x < 10) {
+					Vector3f temp = new Vector3f(10-p.getLocalTranslation().x,0,0);
+					p.move(temp);
+					p.setVelocity(vel.mult(0.5f));
+				}
+				if (p.getWorldTranslation().x > 22) {
+					Vector3f temp = new Vector3f(p.getLocalTranslation().x-22,0,0);
+					p.move(temp);
+					p.setVelocity(vel.mult(0.5f));
+				}
+				if (p.getWorldTranslation().z < 25) {
+					Vector3f temp = new Vector3f(0,0,25-p.getLocalTranslation().z);
+					p.move(temp);
+					p.setVelocity(vel.mult(0.5f));
+				}
+				if (p.getWorldTranslation().z > 34) {
+					Vector3f temp = new Vector3f(0,0,p.getLocalTranslation().z-34);
+					p.move(temp);
+					p.setVelocity(vel.mult(0.5f));
+				}
+				
 				
 				p.updateCell(terrain);
 				c = p.getCell();
