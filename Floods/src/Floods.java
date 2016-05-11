@@ -91,7 +91,7 @@ public class Floods extends SimpleApplication {
         mat2.setFloat("Shininess", 32f); // [1,128] for shininess
         Texture gtex = assetManager.loadTexture("Textures/yorktex.jpg");
         gtex.setWrap(WrapMode.Repeat);
-        mat2.setTexture("DiffuseMap", gtex);
+        //mat2.setTexture("DiffuseMap", gtex);
        
         terrain = new Terrain(mat2);
         rootNode.attachChild(terrain.getGeometry());

@@ -191,9 +191,7 @@ public class ASCTerrain extends Mesh{
 			t.addLocal(fnormals[row][ncols-2][1]);
 			t.normalizeLocal();
 			normals[(row*ncols) + (ncols-1)] = t;
-		}
-		// Do centre
-		for (int row = 1; row < (nrows - 1); row++) {
+			// Centre cols
 			for (int col = 1; col < (ncols - 1); col++) {
 				t = fnormals[row-1][col-1][0].add(fnormals[row-1][col-1][1]);
 				t.addLocal(fnormals[row-1][col][0]);
