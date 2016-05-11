@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.PriorityQueue;
 
 import com.jme3.collision.CollisionResults;
+import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -23,14 +24,21 @@ public class Water extends Node {
 	int ncols;
 	
 	// https://wiki.manchester.ac.uk/sphysics/images/SPHysics_v2.2.000_GUIDE.pdf
-	public Water(Terrain t) {
+	public Water(Terrain t, Material mat) {
 		super.setName("Water Body");
 		// Params
 		ticks_last = System.currentTimeMillis();
 		terrain = t;
-		nrows =  terrain.getRows();
-		ncols =  terrain.getCols();
 		grid =  terrain.makeCells();
+		nrows = grid.length;
+		ncols = grid[0].length;
+		System.out.println("Adding water cells to scene...");
+		for (int r = 0; r < nrows-1; r++) {
+			for (int c = 0; c < ncols-1; c++) {
+				grid[r][c].setMaterial(mat);
+				attachChild(grid[r][c]);
+			}
+		}
 	}
 	
 	// Add initial columns.

@@ -16,6 +16,7 @@ import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.SpotLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.material.TechniqueDef.ShadowMode;
 import com.jme3.profile.AppStep;
 import com.jme3.renderer.RenderManager;
@@ -98,11 +99,13 @@ public class Floods extends SimpleApplication {
 	}
 	
 	private void makeWater() {
-		water = new Water(terrain);
 		Material mat = new Material(assetManager,
 		          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
-		mat.setColor("Color", ColorRGBA.Blue);   // set color of material to blue
-
+		ColorRGBA c = ColorRGBA.Blue;
+		mat.setColor("Color", new ColorRGBA(0,0,1,0.5f));   // set color of material to blue
+		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+		//
+		water = new Water(terrain, mat);
 		water.addWater(0, 0, 20);
 		rootNode.attachChild(water);
 	}

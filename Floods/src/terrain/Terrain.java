@@ -28,23 +28,26 @@ public class Terrain {
 	}
 
 	public Cell[][] makeCells() {
+		System.out.println("Making water cells...");
 		Vector3f vertices[] = ater.getVertices();
 		Cell[][] result =  new Cell[nrows-1][ncols-1];
-		float csize = ater.getCellsize();
+		float csize = ater.getCellsize() * scale;
 		for (int r = 0; r < nrows-1; r++) {
+			System.out.println("Row: " + r);
 			for (int c = 0; c < ncols-1; c++) {
 				int base = (r * ncols) + c;
-				Vector3f v1 = vertices[base].mult(g.getWorldScale());
+				Vector3f v1 = vertices[base].mult(scale);
 				v1.addLocal(g.getWorldTranslation());
-				Vector3f v2 = vertices[base + 1].mult(g.getWorldScale());
+				Vector3f v2 = vertices[base + 1].mult(scale);
 				v2.addLocal(g.getWorldTranslation());
-				Vector3f v3 = vertices[base + ncols].mult(g.getWorldScale());
+				Vector3f v3 = vertices[base + ncols].mult(scale);
 				v3.addLocal(g.getWorldTranslation());
-				Vector3f v4 = vertices[base + ncols + 1].mult(g.getWorldScale());
+				Vector3f v4 = vertices[base + ncols + 1].mult(scale);
 				v4.addLocal(g.getWorldTranslation());
 				result[r][c] = new Cell(v1, v2, v3, v4, csize);
 			}
 		}
+		System.out.println("Making pipes...");
 		// Run through again and set neighbours. 
 		// nw, n, ne, e, se, s, sw, w
 		// Do corners.
