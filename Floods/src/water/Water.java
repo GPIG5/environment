@@ -39,7 +39,7 @@ public class Water extends Node {
 				attachChild(grid[r][c]);
 			}
 		}
-		grid[0][0].setVoume(2);
+		//grid[0][0].setVoume(2);
 	}
 	
 	public void process() {

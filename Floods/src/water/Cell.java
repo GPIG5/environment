@@ -83,7 +83,7 @@ public class Cell extends Geometry {
 		// Calc base vol.
 		basevol = (max0 - min0) + (max1 - min1);
 		basevol *= (csize * csize)/4.0f;
-		volume = basevol*2;
+		volume = basevol;
 		// Rendering things.
 		avgz = (p0.z + p1.z + p2.z + p3.z)/4;
 		avgx = (p0.x + p1.x + p2.x + p3.x)/4;
@@ -155,10 +155,14 @@ public class Cell extends Geometry {
 		float dv = t * (inflow-outflow);
 		volume += dv;
 		float nh = calcHeight();
-		if (Float.isFinite(nh)) {
-			move(0,nh-height,0);
-			height = nh;
+		if (nh < minh) {
+			this.setCullHint(cullHint.Always);
 		}
+		else {
+			this.setCullHint(cullHint.Dynamic);
+		}
+		move(0,nh-height,0);
+		height = nh;
 	}
 	
 	public void setPipes(Cell nw, Cell n, Cell ne, Cell e, Cell se, Cell s, Cell sw, Cell w) {
