@@ -20,7 +20,7 @@ public class Drone implements Runnable {
 
     public BlockingQueue<String> dataToSend = new ArrayBlockingQueue<>(20);
 
-	private final int sizeBytes = 4;
+    private final int sizeBytes = 4;
     private final Integer uuid;
 
     private Socket clientSoc;
@@ -29,7 +29,7 @@ public class Drone implements Runnable {
     private Mesh mesh;
     private volatile boolean terminate = false;
 
-	public Drone(Socket clientSoc, Mesh mesh) throws IOException {
+    public Drone(Socket clientSoc, Mesh mesh) throws IOException {
         this.clientSoc = clientSoc;
         this.mesh = mesh;
         try (BufferedInputStream in = new BufferedInputStream(clientSoc.getInputStream())) {
@@ -45,7 +45,7 @@ public class Drone implements Runnable {
                 e.printStackTrace();
             }
         }
-	}
+    }
 
     @Override
     public void run() {
@@ -117,7 +117,7 @@ public class Drone implements Runnable {
         return gson.toJson(pj);
     }
 
-	private String rxData(BufferedInputStream in) throws IOException {
+    private String rxData(BufferedInputStream in) throws IOException {
         int size = 0;
         byte[] sizeBuf = new byte[sizeBytes];
         int bytesRead = in.read(sizeBuf, 0, sizeBytes);
@@ -135,9 +135,9 @@ public class Drone implements Runnable {
         }
 
         return new String(msgBuf, "UTF-8");
-	}
+    }
 
-	private void txData(BufferedOutputStream out, String toSend) throws IOException {
+    private void txData(BufferedOutputStream out, String toSend) throws IOException {
         byte[] strBytes = toSend.getBytes("UTF-8");
         int size = strBytes.length;
 
