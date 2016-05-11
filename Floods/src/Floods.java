@@ -34,7 +34,6 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 
 import terrain.Terrain;
-import water.Emitter;
 import water.Water;
 
 import com.jme3.math.ColorRGBA;
@@ -100,16 +99,11 @@ public class Floods extends SimpleApplication {
 	
 	private void makeWater() {
 		water = new Water(terrain);
-		
-		Vector3f loc = new Vector3f(17, 7, 32);
-		Vector3f a = new Vector3f(0, 0, 1f);
-		//Vector3f bounds = new Vector3f(40, 5, 50);
-		Vector3f bounds = new Vector3f(0.5f,1,0.5f);
 		Material mat = new Material(assetManager,
 		          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
 		mat.setColor("Color", ColorRGBA.Blue);   // set color of material to blue
-		Emitter e1 = new Emitter(loc, a, 10, bounds, mat);
-		water.addEmitter(e1);
+
+		water.addWater(0, 0, 20);
 		rootNode.attachChild(water);
 	}
 	
