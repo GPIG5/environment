@@ -180,7 +180,7 @@ public class Cells {
 	}
 	
 	public float[] getHeights() {
-		heights[1000] = 1000f;
+		heights[300] = 4f;
 		return heights;
 	}
 	

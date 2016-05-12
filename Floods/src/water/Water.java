@@ -176,37 +176,35 @@ public class Water extends Node {
 	
 	public void process() {
 		// water updates every 10 frames.
-		if ((fnum % 10) == 0) {
-			long ticks_now = System.currentTimeMillis();
-			// How much time this frame represents.
-			float t = (ticks_now - ticks_last)/1000.0f;
-			ticks_last = ticks_now;
-			calcFlow.setArg(0, t);
-			calcHeight.setArg(0, t);
-			// Run the specified number of work units using our OpenCL program kernel
-			CL10.clEnqueueNDRangeKernel(queue, calcFlow, 1, null, sBuff, null, null, null);
-			CL10.clFinish(queue);
-			CL10.clEnqueueNDRangeKernel(queue, calcHeight, 1, null, sBuff, null, null, null);
-			CL10.clFinish(queue);
-			// Read the new heights
-			rBuff.rewind();
-			CL10.clEnqueueReadBuffer(queue, hMem, CL10.CL_TRUE, 0, rBuff, null, null);
-			for (int i = 0; i < rBuff.capacity(); i++) {
-				planes[i].setLocalTranslation(points[i].x, rBuff.get(i) + tBuff.get(i), points[i].z);
-				// Cull until 0.001 surpassed.
-				if (rBuff.get(i) > 0.001) {
-					planes[i].setCullHint(cullHint.Dynamic);
-				}
+		long ticks_now = System.currentTimeMillis();
+		// How much time this frame represents.
+		float t = (ticks_now - ticks_last)/1000.0f;
+		ticks_last = ticks_now;
+		calcFlow.setArg(0, t);
+		calcHeight.setArg(0, t);
+		// Run the specified number of work units using our OpenCL program kernel
+		CL10.clEnqueueNDRangeKernel(queue, calcFlow, 1, null, sBuff, null, null, null);
+		CL10.clFinish(queue);
+		CL10.clEnqueueNDRangeKernel(queue, calcHeight, 1, null, sBuff, null, null, null);
+		CL10.clFinish(queue);
+		// Read the new heights
+		rBuff.rewind();
+		CL10.clEnqueueReadBuffer(queue, hMem, CL10.CL_FALSE, 0, rBuff, null, null);
+		
+		for (int i = 0; i < rBuff.capacity(); i++) {
+			planes[i].setLocalTranslation(points[i].x, rBuff.get(i) + tBuff.get(i), points[i].z);
+			// Cull until 0.001 surpassed.
+			if (rBuff.get(i) > 0.001) {
+				planes[i].setCullHint(cullHint.Dynamic);
 			}
-			/*
-			for (int c = 0; c < ncells; c++) {
-					grid[c].flow(t*20);
-			}
-			for (int c = 0; c < ncells; c++) {
-				grid[c].redraw(t*20);
-			}
-			*/
 		}
-		fnum++;
+		/*
+		for (int c = 0; c < ncells; c++) {
+				grid[c].flow(t*20);
+		}
+		for (int c = 0; c < ncells; c++) {
+			grid[c].redraw(t*20);
+		}
+		*/
 	}
 }

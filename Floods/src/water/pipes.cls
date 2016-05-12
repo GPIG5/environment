@@ -1,4 +1,4 @@
-__constant float FFLOW =  0.0005f * 9.81f / 1.0f;
+constant float FFLOW =  0.0005f * 9.81f / 1.0f;
 // https://software.intel.com/sites/default/files/managed/72/2c/gfxOptimizationGuide.pdf
 // https://www.khronos.org/registry/cl/specs/opencl-1.x-latest.pdf#page=168
 
@@ -10,10 +10,10 @@ float* flows - flows for each cell, 4 for each. (N,E,S,W)
 int* pipes - pipes id for each cell, 4 for each. (N,E,S,W)
 */
 kernel void flow(const float t, 
-				global const float* heights, 
-				global const float* theights,
+				constant float* heights, 
+				constant float* theights,
 				global float* const flows, 
-				global const int* pipes) {
+				constant int* pipes) {
 	int id = get_global_id(0) * NUM;
 	float flowf = t * FFLOW;
 	int i;
@@ -61,8 +61,8 @@ int* pipes - pipes id for each cell, 4 for each. (N,E,S,W)
 */
 kernel void height(const float t,
 				global float* const heights, 
-				global const float* flows, 
-				global const int* pipes) {
+				constant float* flows, 
+				constant int* pipes) {
 	int id = get_global_id(0) * NUM;
 	int i;
 	for (int c = 0; c < NUM; c++) {

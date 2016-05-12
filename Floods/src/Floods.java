@@ -44,8 +44,6 @@ import com.jme3.math.Vector3f;
  
 
 public class Floods extends SimpleApplication {
-	
-	SpotLight spot;
 	Water water;
 	Terrain terrain;
 	Geometry gter;
@@ -92,7 +90,7 @@ public class Floods extends SimpleApplication {
 		          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
 		ColorRGBA c = ColorRGBA.Blue;
 		mat.setColor("Color", new ColorRGBA(0,0,1,0.5f));   // set color of material to blue
-		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+		//mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 		//
 		water = new Water(terrain, mat);
 		//water.addWater(0, 0, 20);
@@ -118,15 +116,6 @@ public class Floods extends SimpleApplication {
 //        fpp.addFilter(dlsf);
 //        viewPort.addProcessor(fpp);
         
-        spot = new SpotLight();
-        spot.setSpotRange(100f);                           // distance
-        spot.setSpotInnerAngle(15f * FastMath.DEG_TO_RAD); // inner light cone (central beam)
-        spot.setSpotOuterAngle(35f * FastMath.DEG_TO_RAD); // outer light cone (edge of the light)
-        spot.setColor(ColorRGBA.White.mult(0.3f));         // light color
-        spot.setPosition(cam.getLocation());               // shine from camera loc
-        spot.setDirection(cam.getDirection());             // shine forward from camera loc
-        rootNode.addLight(spot);
-        
         AmbientLight al = new AmbientLight();
         al.setColor(ColorRGBA.White.mult(0.5f));
         rootNode.addLight(al);
@@ -134,8 +123,6 @@ public class Floods extends SimpleApplication {
 	
 	@Override
 	public void simpleUpdate(float tpf) {
-        spot.setPosition(cam.getLocation());               // shine from camera loc
-        spot.setDirection(cam.getDirection());             // shine forward from camera loc
         water.process();
 		super.simpleUpdate(tpf);
 	}
