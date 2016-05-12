@@ -36,7 +36,7 @@ public class Terrain {
 		Quad q = new Quad(csize, csize);
 		int i = 0;
 		for (int r = 0; r < nrows-1; r++) {
-			System.out.println("Row: " + r);
+			//System.out.println("Row: " + r);
 			for (int c = 0; c < ncols-1; c++) {
 				int base = (r * ncols) + c;
 				Vector3f v1 = vertices[base].mult(scale);
