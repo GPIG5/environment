@@ -90,7 +90,7 @@ public class ASCTerrain extends Mesh{
 	}
 	
 	private void process() {
-		downsample(8);
+		downsample(10);
 		vertices = new Vector3f[nrows*ncols];
 		texcoord = new Vector2f[nrows*ncols];
 		indexes = new int[6*(nrows-1)*(ncols-1)];

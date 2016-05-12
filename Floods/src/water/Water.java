@@ -39,13 +39,13 @@ public class Water extends Node {
 	}
 	
 	public void process() {
-		Vector3f vel;
+		grid[20000].add(0.1f);
 		long ticks_now = System.currentTimeMillis();
 		// How much time this frame represents.
 		float t = (ticks_now - ticks_last)/1000.0f;
 		ticks_last = ticks_now;
 		for (int c = 0; c < ncells; c++) {
-				grid[c].process(t);
+				grid[c].flow(t);
 		}
 		for (int c = 0; c < ncells; c++) {
 			grid[c].redraw(t);
