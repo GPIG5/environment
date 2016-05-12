@@ -84,12 +84,13 @@ public class Water extends Node {
 		planes = cells.getPlanes();
 		points = cells.getPoints();
 		System.out.println("Adding water cells to scene...");
+		/*
 		for (Geometry g : cells.getPlanes()) {
 			g.setMaterial(mat);
 			// Cull initially
 			attachChild(g);
 			g.setCullHint(cullHint.Always);
-		}
+		} */
 		// OpenCL
 		try {
 			CL.create();
@@ -106,7 +107,8 @@ public class Water extends Node {
 				Util.checkCLError(errorBuf.get(0)); 
 				// Build the OpenCL program, store it on the specified device
 				CLProgram prog = CL10.clCreateProgramWithSource(context, loadCLProgram(), null);
-				int error = CL10.clBuildProgram(prog, devices.get(0), "-DNUM="+cols+" -DCSIZE="+csize2, null);
+				String args = "-cl-single-precision-constant -cl-no-signed-zeros -cl-finite-math-only " + "-DNUM="+cols+" -DCSIZE="+csize2;
+				int error = CL10.clBuildProgram(prog, devices.get(0), args, null);
 				System.out.println(prog.getBuildInfoString(devices.get(0), CL_PROGRAM_BUILD_LOG));
 				// Check for any OpenCL errors
 				Util.checkCLError(error);
@@ -175,7 +177,6 @@ public class Water extends Node {
 	}
 	
 	public void process() {
-		// water updates every 10 frames.
 		long ticks_now = System.currentTimeMillis();
 		// How much time this frame represents.
 		float t = (ticks_now - ticks_last)/1000.0f;
@@ -190,14 +191,14 @@ public class Water extends Node {
 		// Read the new heights
 		rBuff.rewind();
 		CL10.clEnqueueReadBuffer(queue, hMem, CL10.CL_FALSE, 0, rBuff, null, null);
-		
+		/*
 		for (int i = 0; i < rBuff.capacity(); i++) {
 			planes[i].setLocalTranslation(points[i].x, rBuff.get(i) + tBuff.get(i), points[i].z);
 			// Cull until 0.001 surpassed.
 			if (rBuff.get(i) > 0.001) {
 				planes[i].setCullHint(cullHint.Dynamic);
 			}
-		}
+		}*/
 		/*
 		for (int c = 0; c < ncells; c++) {
 				grid[c].flow(t*20);
