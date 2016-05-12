@@ -17,11 +17,13 @@ public class Cells {
 	float csize;
 	float csize2;
 	Geometry[] planes;
+	int rows;
 	
 	public Cells(Vector3f[] vertices, int nrows, int ncols, float cellsize, float scale) {
 		System.out.println("Making water cells...");
 		// Some much used values.
 		int nr1 = nrows - 1;
+		rows = nr1;
 		int nc1 = ncols - 1;
 		
 		int nr2 = nrows - 2;
@@ -198,5 +200,9 @@ public class Cells {
 	
 	public float[] getTerHeights() {
 		return terhs;
+	}
+	
+	public int getRows() {
+		return rows;
 	}
 }
