@@ -64,6 +64,8 @@ public class Water extends Node {
 	FloatBuffer fBuff;
 	// Result buffer
 	FloatBuffer rBuff;
+	// Pointer work buffer
+	PointerBuffer sBuff;
 	
 	// https://github.com/LWJGL/lwjgl/blob/master/src/java/org/lwjgl/test/opencl/HelloOpenCL.java
 	public Water(Terrain t, Material mat) {
@@ -129,6 +131,18 @@ public class Water extends Node {
 				
 				rBuff = BufferUtils.createFloatBuffer(size);
 				
+				// Work size
+				sBuff = BufferUtils.createPointerBuffer(1);
+				sBuff.put(0, size);
+				
+				// Args
+				calcFlow.setArg(2, hMem);
+				calcFlow.setArg(3, tMem);
+				calcFlow.setArg(4, fMem);
+				calcFlow.setArg(5, pMem);
+				calcHeight.setArg(2, hMem);
+				calcHeight.setArg(3, fMem);
+				calcHeight.setArg(4, pMem);
 			}
 		} catch (LWJGLException e) {
 			// TODO Auto-generated catch block
@@ -162,22 +176,12 @@ public class Water extends Node {
 		ticks_last = ticks_now;
 		calcFlow.setArg(0, t);
 		calcFlow.setArg(1, csize2);
-		calcFlow.setArg(2, hMem);
-		calcFlow.setArg(3, tMem);
-		calcFlow.setArg(4, fMem);
-		calcFlow.setArg(5, pMem);
-		final int dimensions = 1; 
-		PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions);
-		globalWorkSize.put(0, size);
 		// Run the specified number of work units using our OpenCL program kernel
-		CL10.clEnqueueNDRangeKernel(queue, calcFlow, dimensions, null, globalWorkSize, null, null, null);
+		CL10.clEnqueueNDRangeKernel(queue, calcFlow, 1, null, sBuff, null, null, null);
 		CL10.clFinish(queue);
 		calcHeight.setArg(0, t);
 		calcHeight.setArg(1, csize2);
-		calcHeight.setArg(2, hMem);
-		calcHeight.setArg(3, fMem);
-		calcHeight.setArg(4, pMem);
-		CL10.clEnqueueNDRangeKernel(queue, calcHeight, dimensions, null, globalWorkSize, null, null, null);
+		CL10.clEnqueueNDRangeKernel(queue, calcHeight, 1, null, sBuff, null, null, null);
 		CL10.clFinish(queue);
 		// Read the new heights
 		rBuff.rewind();

@@ -1,4 +1,4 @@
-__constant float FFLOW =  0.00005f * 9.81f / 1.0f;
+__constant float FFLOW =  0.0005f * 9.81f / 1.0f;
 // https://software.intel.com/sites/default/files/managed/72/2c/gfxOptimizationGuide.pdf
 // https://www.khronos.org/registry/cl/specs/opencl-1.x-latest.pdf#page=168
 
