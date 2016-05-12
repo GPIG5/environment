@@ -18,6 +18,7 @@ public class Cells {
 	float csize2;
 	Geometry[] planes;
 	int rows;
+	int cols;
 	
 	public Cells(Vector3f[] vertices, int nrows, int ncols, float cellsize, float scale) {
 		System.out.println("Making water cells...");
@@ -25,6 +26,7 @@ public class Cells {
 		int nr1 = nrows - 1;
 		rows = nr1;
 		int nc1 = ncols - 1;
+		cols = nc1;
 		
 		int nr2 = nrows - 2;
 		int nc2 = ncols - 2;
@@ -204,5 +206,9 @@ public class Cells {
 	
 	public int getRows() {
 		return rows;
+	}
+	
+	public int getCols() {
+		return cols;
 	}
 }

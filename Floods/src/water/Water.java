@@ -38,6 +38,8 @@ public class Water extends Node {
 	Cells cells;
 	Terrain terrain;
 	int size;
+	int cols;
+	int rows;
 	float csize2;
 	Geometry[] planes;
 	Vector3f[] points;
@@ -75,6 +77,8 @@ public class Water extends Node {
 		terrain = t;
 		cells = terrain.makeCells();
 		size = cells.getSize();
+		cols = cells.getCols();
+		rows = cells.getRows();
 		csize2 = cells.getCsize2();
 		planes = cells.getPlanes();
 		points = cells.getPoints();
@@ -133,16 +137,18 @@ public class Water extends Node {
 				
 				// Work size
 				sBuff = BufferUtils.createPointerBuffer(1);
-				sBuff.put(0, size);
+				sBuff.put(0, rows);
 				
 				// Args
-				calcFlow.setArg(2, hMem);
-				calcFlow.setArg(3, tMem);
-				calcFlow.setArg(4, fMem);
-				calcFlow.setArg(5, pMem);
-				calcHeight.setArg(2, hMem);
-				calcHeight.setArg(3, fMem);
-				calcHeight.setArg(4, pMem);
+				calcFlow.setArg(0, cols);
+				calcFlow.setArg(3, hMem);
+				calcFlow.setArg(4, tMem);
+				calcFlow.setArg(5, fMem);
+				calcFlow.setArg(6, pMem);
+				calcHeight.setArg(0, cols);
+				calcHeight.setArg(3, hMem);
+				calcHeight.setArg(4, fMem);
+				calcHeight.setArg(5, pMem);
 			}
 		} catch (LWJGLException e) {
 			// TODO Auto-generated catch block
@@ -174,13 +180,13 @@ public class Water extends Node {
 		// How much time this frame represents.
 		float t = (ticks_now - ticks_last)/1000.0f;
 		ticks_last = ticks_now;
-		calcFlow.setArg(0, t);
-		calcFlow.setArg(1, csize2);
+		calcFlow.setArg(1, t);
+		calcFlow.setArg(2, csize2);
 		// Run the specified number of work units using our OpenCL program kernel
 		CL10.clEnqueueNDRangeKernel(queue, calcFlow, 1, null, sBuff, null, null, null);
 		CL10.clFinish(queue);
-		calcHeight.setArg(0, t);
-		calcHeight.setArg(1, csize2);
+		calcHeight.setArg(1, t);
+		calcHeight.setArg(2, csize2);
 		CL10.clEnqueueNDRangeKernel(queue, calcHeight, 1, null, sBuff, null, null, null);
 		CL10.clFinish(queue);
 		// Read the new heights

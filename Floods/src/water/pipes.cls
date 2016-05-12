@@ -21,12 +21,14 @@ kernel void flow(const int n,
 	int id = get_global_id(0) * n;
 	float flowf = t * FFLOW;
 	int c = 0;
+	int i;
 	for (; c < n; c++) {
-		float waterh = heights[id];
-		float h = waterh + theights[id];
+		i = id + c;
+		float waterh = heights[i];
+		float h = waterh + theights[i];
 		// Load vectors for pipes and flows.
-		int4 vpipes = vload4(id, pipes);
-		float4 vflows = vload4(id, flows);
+		int4 vpipes = vload4(i, pipes);
+		float4 vflows = vload4(i, flows);
 		if (vpipes.x != -1) {
 			vflows.x += flowf * (h - (theights[vpipes.x] + heights[vpipes.x]));
 			vflows.x = fmax(0.0f, vflows.x);
@@ -51,7 +53,7 @@ kernel void flow(const int n,
 	    vflows.z *= k;
 	    vflows.w *= k;
 		// Store results.
-		vstore4(vflows, id, flows);
+		vstore4(vflows, i, flows);
 	}
 }    
 
@@ -69,14 +71,16 @@ kernel void height(const int n,
 				global float* const heights, 
 				global const float* flows, 
 				global const int* pipes) {
-	const int id = get_global_id(0) * n;
+	int id = get_global_id(0) * n;
+	int i;
 	int c = 0;
 	for (;c < n; c++) {
+		i = id + c;
 		float inflow = 0;
 		float outflow = 0;
 		// Load vectors for pipes and flows.
-		int4 vpipes = vload4(id, pipes);
-		float4 vflows = vload4(id, flows);
+		int4 vpipes = vload4(i, pipes);
+		float4 vflows = vload4(i, flows);
 		if (vpipes.x != -1) {
 			// Flow from north neighbour in south direction.
 			inflow += flows[(vpipes.x<<2)+2];
@@ -98,8 +102,8 @@ kernel void height(const int n,
 			outflow += vflows.w;
 		}
 		float dv = t * (inflow-outflow);
-		float waterh = heights[id] + dv/(csize2);
-		heights[id] = fmax(0.0f, waterh);
+		float waterh = heights[i] + dv/(csize2);
+		heights[i] = fmax(0.0f, waterh);
 	}
 }
 
