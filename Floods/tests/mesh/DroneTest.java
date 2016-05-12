@@ -112,7 +112,7 @@ public class DroneTest {
         String test = gson.toJson(newLoc);
 
         String toSend = "{\"type\": \"direct\", \"data\": {\"datatype\": \"status\", " +
-                "\"location\": {\"x\": 50, \"y\": 40, \"z\": 30}}}";
+                "\"location\": {\"y\": 40, \"z\": 30, \"x\": 50}}}";
         txData(toSend, socs.out);
 
         //consume data

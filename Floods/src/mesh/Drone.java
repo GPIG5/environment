@@ -37,7 +37,10 @@ public class Drone implements Runnable {
             String encodedStr = rxData();
             JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
             uuid = jobj.get("uuid").getAsString();
-            mesh.drones.put(uuid, this);
+            Drone value = mesh.drones.put(uuid, this);
+            if (value != null) {
+                throw new IllegalStateException("Drone with uuid already exists");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             closeResources();
