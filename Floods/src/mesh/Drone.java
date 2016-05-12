@@ -1,61 +1,60 @@
 package mesh;
 
-import java.awt.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.*;
+import java.security.spec.ECField;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import com.google.gson.*;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 
 public class Drone implements Runnable {
 
-    //TODO add watchdog timer
+    //TODO add watchdog timer 2000
 
     public BlockingQueue<String> dataToSend = new ArrayBlockingQueue<>(20);
 
-    private final int sizeBytes = 4;
-    private final Integer uuid;
+    public  final static int SIZE_BYTES = 4;
+    private final String uuid;
 
     private Socket clientSoc;
+    private BufferedInputStream in;
+    private BufferedOutputStream out;
     private Gson gson = new Gson();
-    private Vector3f location = new Vector3f(0, 20, 0);
+    private Vector3f location = new Vector3f(0, 0, 0);
     private Mesh mesh;
     private volatile boolean terminate = false;
 
     public Drone(Socket clientSoc, Mesh mesh) throws IOException {
         this.clientSoc = clientSoc;
         this.mesh = mesh;
-        try (BufferedInputStream in = new BufferedInputStream(clientSoc.getInputStream())) {
-            String encodedStr = rxData(in);
+        try {
+            in = new BufferedInputStream(clientSoc.getInputStream());
+            out = new BufferedOutputStream(clientSoc.getOutputStream());
+            String encodedStr = rxData();
             JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
-            uuid = jobj.get("uuid").getAsInt();
+            uuid = jobj.get("uuid").getAsString();
             mesh.drones.put(uuid, this);
-        } finally {
-            try {
-                clientSoc.close();
-            } catch (IOException e) {
-                System.err.println("Could not close client socket");
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            closeResources();
+            //rethrow back to whoever called
+            throw e;
         }
     }
 
     @Override
     public void run() {
-        try (BufferedInputStream in = new BufferedInputStream(clientSoc.getInputStream());
-             BufferedOutputStream out = new BufferedOutputStream(clientSoc.getOutputStream())) {
+        try {
             //Main loop
             while (!terminate) {
                 //Check if data to receive from actual drone
                 if (in.available() > 0) {
-                    String encodedStr = rxData(in);
+                    String encodedStr = rxData();
                     processRxMsg(encodedStr, out);
                 }
 
@@ -66,16 +65,12 @@ public class Drone implements Runnable {
                 }
 
             }
-        } catch (InterruptedException | IOException | IllegalStateException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             mesh.drones.remove(uuid);
-            try {
-                clientSoc.close();
-            } catch (IOException e) {
-                System.err.println("Could not close client socket");
-                e.printStackTrace();
-            }
+            closeResources();
+            System.out.println("Drone disconnected");
         }
     }
 
@@ -89,8 +84,7 @@ public class Drone implements Runnable {
                 mesh.messageGlobal(this, encodedStr);
                 return;
             case "direct":
-                jobj = gson.fromJson(encodedStr, JsonObject.class);
-                String dataType = jobj.get("datatype").getAsString();
+                String dataType = jobj.getAsJsonObject("data").get("datatype").getAsString();
                 switch (dataType) {
                     case "status":
                         String toSend = processStatusMsg(encodedStr);
@@ -106,31 +100,36 @@ public class Drone implements Runnable {
 
     private String processStatusMsg(String encodedStr) {
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
-        JsonElement locationJE = jobj.get("location");
-        Vector2f newLocation = gson.fromJson(locationJE, Vector2f.class);
+        JsonElement locationJE = jobj.getAsJsonObject("data").get("location");
+        Vector3f newLocation = gson.fromJson(locationJE, Vector3f.class);
         setLocation(newLocation);
 
-        List<Vector2f> PINORLocs = mesh.checkForPINOR(location);
+        List<Vector3f> PINORLocs = mesh.checkForPINOR(location);
 
         PINORJSON pj = new PINORJSON(PINORLocs);
 
         return gson.toJson(pj);
     }
 
-    private String rxData(BufferedInputStream in) throws IOException {
+    private String rxData() throws IOException {
         int size = 0;
-        byte[] sizeBuf = new byte[sizeBytes];
-        int bytesRead = in.read(sizeBuf, 0, sizeBytes);
-        if (bytesRead != sizeBytes) {
+        byte[] sizeBuf = new byte[SIZE_BYTES];
+        int bytesRead = in.read(sizeBuf, 0, SIZE_BYTES);
+
+        if (bytesRead != SIZE_BYTES) {
             throw new IOException("Did not read the correct amount of size bytes");
         }
-        for (int i = 0; i != sizeBytes; ++i) {
-            size |= sizeBuf[i] << 8 * (sizeBytes - i - 1);
+        for (int i = 0; i != SIZE_BYTES; ++i) {
+            size |= ((int) (0xFF & sizeBuf[i]) << 8 * (SIZE_BYTES - i - 1));
+        }
+
+        if (size <= 0) {
+            throw new IllegalStateException("message length was zero or below");
         }
 
         byte[] msgBuf = new byte[size];
         bytesRead = in.read(msgBuf, 0, size);
-        if (bytesRead != sizeBytes) {
+        if (bytesRead != size) {
             throw new IOException("Did not read the correct amount of message bytes");
         }
 
@@ -141,21 +140,21 @@ public class Drone implements Runnable {
         byte[] strBytes = toSend.getBytes("UTF-8");
         int size = strBytes.length;
 
-        if (size > (2 ^ (8 * sizeBytes))) {
-            throw new IllegalStateException("Tried to encode message with size larger than sizeBytes");
+        if (size > (2 ^ (8 * SIZE_BYTES))) {
+            throw new IllegalStateException("Tried to encode message with size larger than SIZE_BYTES");
         }
 
-        for (int i = 0; i != sizeBytes; ++i) {
-            out.write(size >>> 8 * (sizeBytes - i - 1));
+        for (int i = 0; i != SIZE_BYTES; ++i) {
+            out.write(size >>> 8 * (SIZE_BYTES - i - 1));
         }
         out.write(strBytes, 0, size);
+        out.flush();
     }
 
-    private void setLocation(Vector2f newLocation) {
+    private void setLocation(Vector3f newLocation) {
         synchronized (location) {
             //stupid 3D map
-            location.setZ(newLocation.getX());
-            location.setX(newLocation.getY());
+            location.set(newLocation);
         }
     }
 
@@ -165,19 +164,49 @@ public class Drone implements Runnable {
         }
     }
 
+    void closeResources() {
+        //The internet tells me the order is important
+        if (out != null) {
+            try {
+                out.close();
+            } catch (IOException e) {
+                System.err.println("Could not close output stream");
+                e.printStackTrace();
+            }
+        }
+
+        if (in != null) {
+            try {
+                in.close();
+            } catch (IOException e) {
+                System.err.println("Could not close input stream");
+                e.printStackTrace();
+            }
+        }
+
+        if (clientSoc != null && !clientSoc.isClosed()) {
+            try {
+                clientSoc.close();
+            } catch (IOException e) {
+                System.err.println("Could not close client socket");
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void terminate() {
         terminate = true;
     }
 
-    public int getUuid() {
+    public String getUuid() {
         return uuid;
     }
 
     private class PINORJSON {
         final String datatype = "pinor";
-        final List<Vector2f> PINOR;
+        final List<Vector3f> PINOR;
 
-        private PINORJSON(List<Vector2f> PINORLocs) {
+        private PINORJSON(List<Vector3f> PINORLocs) {
             PINOR = PINORLocs;
         }
 

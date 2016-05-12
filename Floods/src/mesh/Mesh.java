@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
  */
 public class Mesh {
 
-    public ConcurrentHashMap<Integer, Drone> drones = new ConcurrentHashMap<>();
+    public ConcurrentHashMap<String, Drone> drones = new ConcurrentHashMap<>();
 
     private final int range = 40;
 
@@ -37,20 +37,19 @@ public class Mesh {
         });
     }
 
-    public List<Vector2f> checkForPINOR(Vector3f location) {
+    public List<Vector3f> checkForPINOR(Vector3f location) {
 
-        List<Vector2f> PINORLocs = new ArrayList<>();
+        List<Vector3f> PINORLocs = new ArrayList<>();
 
         return PINORLocs;
     }
 
     private boolean inRange(Vector3f loc1, Vector3f loc2) {
-        return loc1.distance(loc2) < range;
+        return true;
+        //return loc1.distance(loc2) < range;
     }
-
     public static void main(String[] args) {
-        Mesh m = new Mesh();
-        m.start();
+        Mesh mesh = new Mesh();
+        mesh.start();
     }
-
 }

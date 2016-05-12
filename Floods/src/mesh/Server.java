@@ -29,6 +29,7 @@ public class Server implements Runnable {
                 //Drone takes care of closing clientSoc
                 Socket clientSoc = serverSoc.accept();
                 threadPool.submit(new Drone(clientSoc, mesh));
+                System.out.println("new drone connected");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -38,4 +39,5 @@ public class Server implements Runnable {
     public void terminate() {
         terminate = true;
     }
+
 }
