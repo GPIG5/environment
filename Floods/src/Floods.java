@@ -91,7 +91,6 @@ public class Floods extends SimpleApplication {
 		ColorRGBA c = ColorRGBA.Blue;
 		mat.setColor("Color", new ColorRGBA(0,0,1,0.5f));   // set color of material to blue
 		//mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-		//
 		water = new Water(terrain, mat);
 		//water.addWater(0, 0, 20);
 		rootNode.attachChild(water);
@@ -102,20 +101,7 @@ public class Floods extends SimpleApplication {
         sun.setColor(ColorRGBA.Orange);
         sun.setDirection(new Vector3f(-.5f,-.5f,-.5f).normalizeLocal());
         rootNode.addLight(sun);
-        
-//        final int SHADOWMAP_SIZE=1024;
-//        DirectionalLightShadowRenderer dlsr = new DirectionalLightShadowRenderer(assetManager, SHADOWMAP_SIZE, 3);
-        //dlsr.setLight(sun);
-       // viewPort.addProcessor(dlsr);
         viewPort.setBackgroundColor(ColorRGBA.LightGray);
- 
-//        DirectionalLightShadowFilter dlsf = new DirectionalLightShadowFilter(assetManager, SHADOWMAP_SIZE, 3);
-//        dlsf.setLight(sun);
-//        dlsf.setEnabled(true);
-//        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-//        fpp.addFilter(dlsf);
-//        viewPort.addProcessor(fpp);
-        
         AmbientLight al = new AmbientLight();
         al.setColor(ColorRGBA.White.mult(0.5f));
         rootNode.addLight(al);
