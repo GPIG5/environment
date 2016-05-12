@@ -106,8 +106,8 @@ public class DroneTest {
         Vector3f newLoc = new Vector3f(50, 40, 30);
         String test = gson.toJson(newLoc);
 
-        String toSend = "{\"type\": \"direct\",\"datatype\": \"status\",\"location\": {\"x\": 50, \"y\": 40," +
-                "\"z\": 30}}";
+        String toSend = "{\"type\": \"direct\", \"data\": {\"datatype\": \"status\", " +
+                "\"location\": {\"x\": 50, \"y\": 40, \"z\": 30}}}";
         txData(toSend, socs.out);
 
         //consume data
