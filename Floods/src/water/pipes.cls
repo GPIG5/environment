@@ -3,26 +3,21 @@ __constant float FFLOW =  0.0005f * 9.81f / 1.0f;
 // https://www.khronos.org/registry/cl/specs/opencl-1.x-latest.pdf#page=168
 
 /* The flow kernel. Processes one row.
-int n - the number of columns in a row.
 float t -  time since last frame.
-float csize2 - cellsize * cellsize (area).
 float* heights - heights for every cell in water.
 float* theights - heights for terrain.
 float* flows - flows for each cell, 4 for each. (N,E,S,W)
 int* pipes - pipes id for each cell, 4 for each. (N,E,S,W)
 */
-kernel void flow(const int n,
-				const float t, 
-				const float csize2,
+kernel void flow(const float t, 
 				global const float* heights, 
 				global const float* theights,
 				global float* const flows, 
 				global const int* pipes) {
-	int id = get_global_id(0) * n;
+	int id = get_global_id(0) * NUM;
 	float flowf = t * FFLOW;
-	int c = 0;
 	int i;
-	for (; c < n; c++) {
+	for (int c = 0; c < NUM; c++) {
 		i = id + c;
 		float waterh = heights[i];
 		float h = waterh + theights[i];
@@ -47,7 +42,7 @@ kernel void flow(const int n,
 		}
 		// scaling
 		float sum = vflows.x + vflows.y + vflows.z + vflows.w;
-	    float k = fmin((float)1.0, (float)((waterh*csize2)/(sum*t)));
+	    float k = fmin((float)1.0, (float)((waterh*CSIZE)/(sum*t)));
 	    vflows.x *= k;
 	   	vflows.y *= k;
 	    vflows.z *= k;
@@ -60,21 +55,17 @@ kernel void flow(const int n,
 /* Height calculation kernel. Processes one row.
 int n - the number of columns in a row.
 float t - time since last frame.
-float csize2 - cellsize * cellsize (area).
 float* heights - heights for every cell in water.
 float* flows - flows for each cell, 4 for each. (N,E,S,W)
 int* pipes - pipes id for each cell, 4 for each. (N,E,S,W)
 */
-kernel void height(const int n,
-				const float t,
-				const float csize2,
+kernel void height(const float t,
 				global float* const heights, 
 				global const float* flows, 
 				global const int* pipes) {
-	int id = get_global_id(0) * n;
+	int id = get_global_id(0) * NUM;
 	int i;
-	int c = 0;
-	for (;c < n; c++) {
+	for (int c = 0; c < NUM; c++) {
 		i = id + c;
 		float inflow = 0;
 		float outflow = 0;
@@ -102,7 +93,7 @@ kernel void height(const int n,
 			outflow += vflows.w;
 		}
 		float dv = t * (inflow-outflow);
-		float waterh = heights[i] + dv/(csize2);
+		float waterh = heights[i] + dv/(CSIZE);
 		heights[i] = fmax(0.0f, waterh);
 	}
 }

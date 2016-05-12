@@ -40,6 +40,7 @@ public class Water extends Node {
 	int size;
 	int cols;
 	int rows;
+	long fnum = 0;
 	float csize2;
 	Geometry[] planes;
 	Vector3f[] points;
@@ -105,7 +106,7 @@ public class Water extends Node {
 				Util.checkCLError(errorBuf.get(0)); 
 				// Build the OpenCL program, store it on the specified device
 				CLProgram prog = CL10.clCreateProgramWithSource(context, loadCLProgram(), null);
-				int error = CL10.clBuildProgram(prog, devices.get(0), "", null);
+				int error = CL10.clBuildProgram(prog, devices.get(0), "-DNUM="+cols+" -DCSIZE="+csize2, null);
 				System.out.println(prog.getBuildInfoString(devices.get(0), CL_PROGRAM_BUILD_LOG));
 				// Check for any OpenCL errors
 				Util.checkCLError(error);
@@ -140,15 +141,13 @@ public class Water extends Node {
 				sBuff.put(0, rows);
 				
 				// Args
-				calcFlow.setArg(0, cols);
-				calcFlow.setArg(3, hMem);
-				calcFlow.setArg(4, tMem);
-				calcFlow.setArg(5, fMem);
-				calcFlow.setArg(6, pMem);
-				calcHeight.setArg(0, cols);
-				calcHeight.setArg(3, hMem);
-				calcHeight.setArg(4, fMem);
-				calcHeight.setArg(5, pMem);
+				calcFlow.setArg(1, hMem);
+				calcFlow.setArg(2, tMem);
+				calcFlow.setArg(3, fMem);
+				calcFlow.setArg(4, pMem);
+				calcHeight.setArg(1, hMem);
+				calcHeight.setArg(2, fMem);
+				calcHeight.setArg(3, pMem);
 			}
 		} catch (LWJGLException e) {
 			// TODO Auto-generated catch block
@@ -176,36 +175,38 @@ public class Water extends Node {
 	}
 	
 	public void process() {
-		long ticks_now = System.currentTimeMillis();
-		// How much time this frame represents.
-		float t = (ticks_now - ticks_last)/1000.0f;
-		ticks_last = ticks_now;
-		calcFlow.setArg(1, t);
-		calcFlow.setArg(2, csize2);
-		// Run the specified number of work units using our OpenCL program kernel
-		CL10.clEnqueueNDRangeKernel(queue, calcFlow, 1, null, sBuff, null, null, null);
-		CL10.clFinish(queue);
-		calcHeight.setArg(1, t);
-		calcHeight.setArg(2, csize2);
-		CL10.clEnqueueNDRangeKernel(queue, calcHeight, 1, null, sBuff, null, null, null);
-		CL10.clFinish(queue);
-		// Read the new heights
-		rBuff.rewind();
-		CL10.clEnqueueReadBuffer(queue, hMem, CL10.CL_TRUE, 0, rBuff, null, null);
-		for (int i = 0; i < rBuff.capacity(); i++) {
-			planes[i].setLocalTranslation(points[i].x, rBuff.get(i) + tBuff.get(i), points[i].z);
-			// Cull until 0.001 surpassed.
-			if (rBuff.get(i) > 0.001) {
-				planes[i].setCullHint(cullHint.Dynamic);
+		// water updates every 10 frames.
+		if ((fnum % 10) == 0) {
+			long ticks_now = System.currentTimeMillis();
+			// How much time this frame represents.
+			float t = (ticks_now - ticks_last)/1000.0f;
+			ticks_last = ticks_now;
+			calcFlow.setArg(0, t);
+			calcHeight.setArg(0, t);
+			// Run the specified number of work units using our OpenCL program kernel
+			CL10.clEnqueueNDRangeKernel(queue, calcFlow, 1, null, sBuff, null, null, null);
+			CL10.clFinish(queue);
+			CL10.clEnqueueNDRangeKernel(queue, calcHeight, 1, null, sBuff, null, null, null);
+			CL10.clFinish(queue);
+			// Read the new heights
+			rBuff.rewind();
+			CL10.clEnqueueReadBuffer(queue, hMem, CL10.CL_TRUE, 0, rBuff, null, null);
+			for (int i = 0; i < rBuff.capacity(); i++) {
+				planes[i].setLocalTranslation(points[i].x, rBuff.get(i) + tBuff.get(i), points[i].z);
+				// Cull until 0.001 surpassed.
+				if (rBuff.get(i) > 0.001) {
+					planes[i].setCullHint(cullHint.Dynamic);
+				}
 			}
+			/*
+			for (int c = 0; c < ncells; c++) {
+					grid[c].flow(t*20);
+			}
+			for (int c = 0; c < ncells; c++) {
+				grid[c].redraw(t*20);
+			}
+			*/
 		}
-		/*
-		for (int c = 0; c < ncells; c++) {
-				grid[c].flow(t*20);
-		}
-		for (int c = 0; c < ncells; c++) {
-			grid[c].redraw(t*20);
-		}
-		*/
+		fnum++;
 	}
 }
