@@ -1,20 +1,16 @@
 package water;
 
-import com.jme3.material.Material;
 import com.jme3.math.FastMath;
-import com.jme3.math.Plane;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Quad;
 
 // Hydrostatic pipe model.
 // Dynamic Simulation of Splashing Fluids - O'Brien and Hodgins
 // Interactive Terrain Modeling Using Hydraulic Erosion - Stava, Benes, Brisbin
-
+// http://wiki.lwjgl.org/wiki/OpenCL_in_LWJGL
 public class Cell extends Geometry {
 	// Each cell has pipes diagonally vertically and horizontally.
-	// These are clockwise from NW
+	// These are clockwise from N
 	private Cell[] pipes;
 	private Vector3f[] points;
 	// Volume of the base
@@ -34,7 +30,9 @@ public class Cell extends Geometry {
 	// pipe length.
 	private static final float l = 1f;
 	private static final float c = 1f;
-	private static final int flowLUT[] = {4,5,6,7,0,1,2,3}; 
+	// flow factor
+	private static final float flowf = 0.00005f * g / l;
+	private static final int flowLUT[] = {2,3,0,1}; 
 	// pipe cross sectional area
 	// centre x and z values;
 	private float avgx;
@@ -44,13 +42,11 @@ public class Cell extends Geometry {
 	
 	public Cell(Vector3f p0, Vector3f p1, Vector3f p2, Vector3f p3, float csize) {
 		// Rendering things.
-		
-		setMesh(new Quad(csize, csize));
 		//this.scale(1,height,1);
 		// Everything important.
 		points = new Vector3f[] {p0, p1, p2, p3};
-		pipes = new Cell[8];
-		flows = new float[]{0,0,0,0,0,0,0,0};
+		pipes = new Cell[4];
+		flows = new float[]{0,0,0,0};
 		cellsize = csize;
 		float min0 = p0.y;
 		float max0 = p0.y;
@@ -83,7 +79,7 @@ public class Cell extends Geometry {
 		// Calc base vol.
 		basevol = (max0 - min0) + (max1 - min1);
 		basevol *= (csize * csize)/4.0f;
-		volume = basevol;
+		volume = basevol*0.25f;
 		// Rendering things.
 		avgz = (p0.z + p1.z + p2.z + p3.z)/4;
 		avgx = (p0.x + p1.x + p2.x + p3.x)/4;
@@ -115,18 +111,45 @@ public class Cell extends Geometry {
 	
 	// https://github.com/karhu/terrain-erosion/blob/master/Simulation/FluidSimulation.cpp
 	public void process(float t) {
-		float flowfactor = 0.00005f * t * g / l;
-		float pg = rho * g;
-		float pl = rho * l;
+		float flowfactor = t * flowf;
 		float sum = 0.0f;
-		for (int p = 0; p < 8; p++) {
-			if (pipes[p] != null) {
-				float newflow = flows[p] + flowfactor * (height - pipes[p].getHeight());
-				newflow = Float.max(0, newflow);
-				sum += newflow;
-				// Update previous flow.
-				flows[p] = newflow;
+		float nflow;
+		
+		// n
+		if (pipes[0] != null) {
+			nflow = flows[0] + flowfactor * (height - pipes[0].getHeight());
+			if (nflow < 0) {
+				nflow = 0;
 			}
+			flows[0] = nflow;
+			sum += nflow;
+		}
+		// e
+		if (pipes[1] != null) {
+			nflow = flows[1] + flowfactor * (height - pipes[1].getHeight());
+			if (nflow < 0) {
+				nflow = 0;
+			}
+			flows[1] = nflow;
+			sum += nflow;
+		}
+		// s
+		if (pipes[2] != null) {
+			nflow = flows[2] + flowfactor * (height - pipes[2].getHeight());
+			if (nflow < 0) {
+				nflow = 0;
+			}
+			flows[2] = nflow;
+			sum += nflow;
+		}
+		// w
+		if (pipes[3] != null) {
+			nflow = flows[3] + flowfactor * (height - pipes[3].getHeight());
+			if (nflow < 0) {
+				nflow = 0;
+			}
+			flows[3] = nflow;
+			sum += nflow;
 		}
 		/*
 		//System.out.println("Sum: " + sum);
@@ -145,12 +168,25 @@ public class Cell extends Geometry {
 	public void redraw(float t) {
 		float inflow = 0.0f;
 		float outflow = 0.0f;
-		//System.out.println("New height: " + nh);
-		for (int p = 0; p < 8; p++) {
-			if (pipes[p] != null) {
-				inflow += pipes[p].getFlow(flowLUT[p]);
-				outflow += flows[p];
-			}
+		// n
+		if (pipes[0] != null) {
+			inflow += pipes[0].getFlow(2);
+			outflow += flows[0];
+		}
+		// e
+		if (pipes[1] != null) {
+			inflow += pipes[1].getFlow(3);
+			outflow += flows[1];
+		}
+		// s
+		if (pipes[2] != null) {
+			inflow += pipes[2].getFlow(0);
+			outflow += flows[2];
+		}
+		// w
+		if (pipes[3] != null) {
+			inflow += pipes[3].getFlow(1);
+			outflow += flows[3];
 		}
 		float dv = t * (inflow-outflow);
 		volume += dv;
@@ -165,14 +201,10 @@ public class Cell extends Geometry {
 		height = nh;
 	}
 	
-	public void setPipes(Cell nw, Cell n, Cell ne, Cell e, Cell se, Cell s, Cell sw, Cell w) {
-		pipes[0] = nw;
-		pipes[1] = n;
-		pipes[2] = ne;
-		pipes[3] = e;
-		pipes[4] = se;
-		pipes[5] = s;
-		pipes[6] = sw;
-		pipes[7] = w;
+	public void setPipes(Cell n, Cell e, Cell s, Cell w) {
+		pipes[0] = n;
+		pipes[1] = e;
+		pipes[2] = s;
+		pipes[3] = w;
 	}
 }

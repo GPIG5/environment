@@ -59,17 +59,6 @@ public class Floods extends SimpleApplication {
 	public void simpleInitApp() {
 		assetManager.registerLocator("assets", ClasspathLocator.class);
 		System.out.print(JmeSystem.getPlatformAssetConfigURL());
-        Box b = new Box(1, 1, 1); // create cube shape
-        Geometry geom = new Geometry("Box", b);  // create cube geometry from the shape
-        Material mat = new Material(assetManager,
-          "Common/MatDefs/Light/Lighting.j3md");  // create a simple material
-        mat.setBoolean("UseMaterialColors",true);    
-        mat.setColor("Diffuse",ColorRGBA.White);  // minimum material color
-        mat.setColor("Specular",ColorRGBA.White); // for shininess
-        mat.setFloat("Shininess", 64f); // [1,128] for shininess
-        mat.setTexture("DiffuseMap", assetManager.loadTexture("Textures/Pond.jpg"));
-        geom.setMaterial(mat);                   // set the cube's material
-        rootNode.attachChild(geom);              // make the cube appear in the scene
         makeTerrain();
         makeWater();
         cam.setLocation(new Vector3f(0.0f, 5.0f, 0.0f));
@@ -92,7 +81,7 @@ public class Floods extends SimpleApplication {
         mat2.setFloat("Shininess", 32f); // [1,128] for shininess
         Texture gtex = assetManager.loadTexture("Textures/yorktex.jpg");
         gtex.setWrap(WrapMode.Repeat);
-        //mat2.setTexture("DiffuseMap", gtex);
+        mat2.setTexture("DiffuseMap", gtex);
        
         terrain = new Terrain(mat2);
         rootNode.attachChild(terrain.getGeometry());

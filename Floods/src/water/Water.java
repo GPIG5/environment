@@ -18,10 +18,9 @@ import terrain.Terrain;
 public class Water extends Node {
 	long ticks_last;
 	// Group particles by the row they occupy.
-	Cell[][] grid;
+	Cell[] grid;
 	Terrain terrain;
-	int nrows;
-	int ncols;
+	int ncells;
 	
 	// https://wiki.manchester.ac.uk/sphysics/images/SPHysics_v2.2.000_GUIDE.pdf
 	public Water(Terrain t, Material mat) {
@@ -29,17 +28,14 @@ public class Water extends Node {
 		// Params
 		ticks_last = System.currentTimeMillis();
 		terrain = t;
-		grid =  terrain.makeCells();
-		nrows = grid.length;
-		ncols = grid[0].length;
+		grid = terrain.makeCells();
+		ncells = grid.length;
 		System.out.println("Adding water cells to scene...");
-		for (int r = 0; r < nrows-1; r++) {
-			for (int c = 0; c < ncols-1; c++) {
-				grid[r][c].setMaterial(mat);
-				attachChild(grid[r][c]);
-			}
+		for (int c = 0; c < ncells; c++) {
+			grid[c].setMaterial(mat);
+			attachChild(grid[c]);
 		}
-		//grid[0][0].setVoume(2);
+		//grid[20][20].setVoume(1);
 	}
 	
 	public void process() {
@@ -48,15 +44,11 @@ public class Water extends Node {
 		// How much time this frame represents.
 		float t = (ticks_now - ticks_last)/1000.0f;
 		ticks_last = ticks_now;
-		for (int r = 0; r < nrows-1; r++) {
-			for (int c = 0; c < ncols-1; c++) {
-				grid[r][c].process(t);
-			}
+		for (int c = 0; c < ncells; c++) {
+				grid[c].process(t);
 		}
-		for (int r = 0; r < nrows-1; r++) {
-			for (int c = 0; c < ncols-1; c++) {
-				grid[r][c].redraw(t);
-			}
+		for (int c = 0; c < ncells; c++) {
+			grid[c].redraw(t);
 		}
 	}
 }
