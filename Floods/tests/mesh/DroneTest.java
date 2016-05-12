@@ -74,14 +74,16 @@ public class DroneTest {
         DroneSockets socs1 = createSockets();
         Drone drone1 = connectDrone(socs1);
         assertTrue(drone1.getUuid().equals("4c9c12ed-947a-4fcf-8c3a-c82214234600"));
-        drone1.closeResources();
 
         DroneSockets socs2 = createSockets();
         Drone drone2 = connectDrone(socs2);
         assertTrue(drone2.getUuid().equals("4c9c12ed-947a-4fcf-8c3a-c82214234601"));
+
+        //drone thread never starts so clear stuff manually
+        drone1.closeResources();
         drone2.closeResources();
-
-
+        mesh.drones.remove(drone1.getUuid());
+        mesh.drones.remove(drone2.getUuid());
     }
 
     @Test

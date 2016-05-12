@@ -30,9 +30,10 @@ public class Server implements Runnable {
                 try {
                     Socket clientSoc = serverSoc.accept();
                     System.out.println("new drone connected");
-                    threadPool.submit(new Drone(clientSoc, mesh));
+                    Drone drone = new Drone(clientSoc, mesh);
+                    threadPool.submit(drone);
                 } catch (Exception e) {
-                    //Don't do anything when the drone constructor fails
+                    //Don't do anything when an individual socket or drone fails
                 }
             }
         } catch (IOException e) {
