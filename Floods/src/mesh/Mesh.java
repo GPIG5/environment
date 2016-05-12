@@ -29,7 +29,7 @@ public class Mesh {
      */
     public void messageGlobal(Drone tx, String msg) {
         drones.forEach( (k,v) -> {
-            if (tx != null || (k != tx.getUuid() && inRange(v.getLocation(), tx.getLocation())) ) {
+            if (tx != null && k != tx.getUuid() && inRange(v.getLocation(), tx.getLocation())) {
                 if (!v.dataToSend.offer(msg)) {
                     System.err.println("Message queue for drone is full!");
                 }

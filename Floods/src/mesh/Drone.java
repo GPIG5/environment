@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.security.spec.ECField;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -106,7 +105,7 @@ public class Drone implements Runnable {
 
         List<Vector3f> PINORLocs = mesh.checkForPINOR(location);
 
-        PINORJSON pj = new PINORJSON(PINORLocs);
+        DirectPINORMessage pj = new DirectPINORMessage(PINORLocs);
 
         return gson.toJson(pj);
     }
@@ -120,7 +119,7 @@ public class Drone implements Runnable {
             throw new IOException("Did not read the correct amount of size bytes");
         }
         for (int i = 0; i != SIZE_BYTES; ++i) {
-            size |= ((int) (0xFF & sizeBuf[i]) << 8 * (SIZE_BYTES - i - 1));
+            size |= ( Byte.toUnsignedInt(sizeBuf[i]) << 8 * (SIZE_BYTES - i - 1));
         }
 
         if (size <= 0) {
@@ -140,13 +139,10 @@ public class Drone implements Runnable {
         byte[] strBytes = toSend.getBytes("UTF-8");
         int size = strBytes.length;
 
-        if (size > (2 ^ (8 * SIZE_BYTES))) {
-            throw new IllegalStateException("Tried to encode message with size larger than SIZE_BYTES");
-        }
-
         for (int i = 0; i != SIZE_BYTES; ++i) {
             out.write(size >>> 8 * (SIZE_BYTES - i - 1));
         }
+
         out.write(strBytes, 0, size);
         out.flush();
     }
@@ -202,14 +198,24 @@ public class Drone implements Runnable {
         return uuid;
     }
 
-    private class PINORJSON {
+    private class DirectPINORMessage {
+        final String uuid = getUuid();
+        final String type = "direct";
+        final PINORData data;
+
+        private DirectPINORMessage(List<Vector3f> PINORLocs) {
+            data = new PINORData(PINORLocs);
+        }
+
+    }
+
+    private class PINORData {
         final String datatype = "pinor";
         final List<Vector3f> PINOR;
 
-        private PINORJSON(List<Vector3f> PINORLocs) {
+        private PINORData(List<Vector3f> PINORLocs) {
             PINOR = PINORLocs;
         }
-
     }
 
 }

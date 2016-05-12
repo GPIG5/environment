@@ -27,9 +27,13 @@ public class Server implements Runnable {
         try (ServerSocket serverSoc = new ServerSocket(PORT)) {
             while (!terminate) {
                 //Drone takes care of closing clientSoc
-                Socket clientSoc = serverSoc.accept();
-                threadPool.submit(new Drone(clientSoc, mesh));
-                System.out.println("new drone connected");
+                try {
+                    Socket clientSoc = serverSoc.accept();
+                    System.out.println("new drone connected");
+                    threadPool.submit(new Drone(clientSoc, mesh));
+                } catch (Exception e) {
+                    //Don't do anything when the drone constructor fails
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

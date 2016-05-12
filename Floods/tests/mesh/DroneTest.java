@@ -65,6 +65,8 @@ public class DroneTest {
 
         droneThreadPool.shutdownNow();
         assertTrue(droneThreadPool.awaitTermination(50, TimeUnit.MILLISECONDS));
+
+        assertTrue(mesh.drones.isEmpty());
     }
 
     @Test
@@ -86,7 +88,7 @@ public class DroneTest {
     public void droneStatusUpdateTest() throws Exception {
         DroneSockets socs = createSockets();
         Drone drone = connectDrone(socs);
-        droneThreadPool.submit(drone);
+        Future<?> droneF = droneThreadPool.submit(drone);
 
         txData( "{\"data\": {\"location\": {\"y\": 0, \"x\": 0, \"z\": 0}, \"datatype\": \"status\", " +
                 "\"battery\": 1799.998011066}, \"uuid\": \"1ca1ee1e-b717-43de-9011-87df0a9d8aaf\", \"type\": " +
@@ -95,13 +97,14 @@ public class DroneTest {
         rxData(socs.in);
 
         drone.terminate();
+        droneF.get(20, TimeUnit.MILLISECONDS);
     }
 
     @Test
     public void locationUpdateTest() throws Exception {
         DroneSockets socs = createSockets();
         Drone drone = connectDrone(socs);
-        droneThreadPool.submit(drone);
+        Future<?> droneF = droneThreadPool.submit(drone);
 
         Vector3f newLoc = new Vector3f(50, 40, 30);
         String test = gson.toJson(newLoc);
@@ -116,6 +119,22 @@ public class DroneTest {
 
         assertTrue(droneLocation.equals(newLoc));
         drone.terminate();
+        droneF.get(20, TimeUnit.MILLISECONDS);
+    }
+
+    @Test
+    public void meshMessageTest() throws Exception {
+        DroneSockets socs = createSockets();
+        Drone drone = connectDrone(socs);
+        Future<?> droneF = droneThreadPool.submit(drone);
+
+        txData( "{\"data\": {\"location\": {\"y\": 0, \"x\": 0, \"z\": 0}, \"datatype\": \"status\", " +
+                "\"battery\": 1799.998011066}, \"uuid\": \"1ca1ee1e-b717-43de-9011-87df0a9d8aaf\", \"type\": " +
+                "\"mesh\"}", socs.out);
+
+        drone.terminate();
+        droneF.get(20, TimeUnit.MILLISECONDS);
+
     }
 
     private Drone connectDrone(DroneSockets socs) throws Exception {
@@ -152,7 +171,7 @@ public class DroneTest {
         in.read(sizeBuf, 0, SIZE_BYTES);
 
         for (int i = 0; i != SIZE_BYTES; ++i) {
-            size |= sizeBuf[i] << 8 * (SIZE_BYTES - i - 1);
+            size |= Byte.toUnsignedInt(sizeBuf[i]) << 8 * (SIZE_BYTES - i - 1);
         }
 
         byte[] msgBuf = new byte[size];
@@ -166,8 +185,9 @@ public class DroneTest {
         int size = strBytes.length;
 
         for (int i = 0; i != SIZE_BYTES; ++i) {
-            out.write(size >>> 8 * (SIZE_BYTES - i - 1));
+            out.write(size >> 8 * (SIZE_BYTES - i - 1));
         }
+
         out.write(strBytes, 0, size);
         out.flush();
     }
