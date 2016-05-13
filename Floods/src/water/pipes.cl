@@ -98,10 +98,7 @@ kernel void height(const float t,
 		heights[i] = nh;
 		// Update ys.
 		float nheight = theights[i] + nh;
-		vertices[i*12+1] = nheight;
-		vertices[i*12+4] = nheight;
-		vertices[i*12+7] = nheight;
-		vertices[i*12+10] = nheight;
+		vertices[(i<<1)+i+1] = nheight;
 	}
 }
 

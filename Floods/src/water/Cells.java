@@ -41,7 +41,7 @@ public class Cells {
 		csize2 = csize * csize;
 		// Make arrays.
 		vbuffer = BufferUtils.createFloatBuffer(4*3*nr1*nc1);
-		ebuffer = BufferUtils.createIntBuffer(6*nr1*nc1);
+		ebuffer = BufferUtils.createIntBuffer(6*nr2*nc2);
 		basevols = new float[nr1*nc1];
 		terhs =  new float[nr1*nc1];
 		heights = new float[nr1*nc1];
@@ -99,34 +99,27 @@ public class Cells {
 				// Calc base vol.
 				basevols[i] = (max0 - min0) + (max1 - min1);
 				basevols[i] *= csize2/4.0f;
-//				avg = p0.add(p1);
-//				avg.addLocal(p2);
-//				avg.addLocal(p3);
-//				avg.multLocal(0.25f);
-				vbuffer.put(p0.x);
+				avg = p0.add(p1);
+				avg.addLocal(p2);
+				avg.addLocal(p3);
+				avg.multLocal(0.25f);
+				vbuffer.put(avg.x);
 				vbuffer.put(terhs[i]);
-				vbuffer.put(p0.z);
-				
-				vbuffer.put(p1.x);
-				vbuffer.put(terhs[i]);
-				vbuffer.put(p1.z);
-				
-				vbuffer.put(p2.x);
-				vbuffer.put(terhs[i]);
-				vbuffer.put(p2.z);
-				
-				vbuffer.put(p3.x);
-				vbuffer.put(terhs[i]);
-				vbuffer.put(p3.z);
-				
-				ebuffer.put((i<<2));
-				ebuffer.put((i<<2) + 1);
-				ebuffer.put((i<<2) + 2);
-				
-				ebuffer.put((i<<2) + 1);
-				ebuffer.put((i<<2) + 3);
-				ebuffer.put((i<<2) + 2);
+				vbuffer.put(avg.z);
 				i++;
+			}
+		}
+		System.out.println("Making edges...");
+		for (int r = 0; r < nr2; r++) {
+			for (int c = 0; c < nc2; c++) {
+				int base = (r * nc1) + c;
+				ebuffer.put(base);
+				ebuffer.put(base + 1);
+				ebuffer.put(base + nc1);
+				
+				ebuffer.put(base + 1);
+				ebuffer.put(base + nc1 + 1);
+				ebuffer.put(base + nc1);
 			}
 		}
 		System.out.println("Making pipes...");
@@ -204,7 +197,7 @@ public class Cells {
 	}
 	
 	public float[] getHeights() {
-		heights[300] = 20f;
+		heights[300] = 2000f;
 		return heights;
 	}
 	

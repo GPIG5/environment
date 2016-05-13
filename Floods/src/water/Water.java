@@ -117,6 +117,7 @@ public class Water extends Mesh {
 			Util.checkCLError(eBuff.get(0)); 
 			// Build the OpenCL program, store it on the specified device
 			CLProgram prog = CL10.clCreateProgramWithSource(context, loadCLProgram(), null);
+			// Each kernel will do HALF a row.
 			String args = "-cl-single-precision-constant -cl-no-signed-zeros -cl-finite-math-only -DNUM="+cols+" -DCSIZE="+cells.getCsize2()+"f";
 			System.out.println("ARGS" + args);
 			int error = CL10.clBuildProgram(prog, devices.get(0), args, null);
@@ -148,9 +149,7 @@ public class Water extends Mesh {
 			fBuff.rewind();
 			fMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR, fBuff, eBuff);
 			// Vertex memory
-			System.out.println("Create from GL buffer...");
 			vMem = CL10GL.clCreateFromGLBuffer(context, CL10.CL_MEM_READ_WRITE, vid, eBuff);
-			System.out.println(eBuff.get(0));
 			
 			rBuff = BufferUtils.createFloatBuffer(size);
 			
@@ -173,7 +172,7 @@ public class Water extends Mesh {
 	}
 	
 	private String loadCLProgram() {
-		InputStream is = Water.class.getResourceAsStream("/water/pipes.cls");
+		InputStream is = Water.class.getResourceAsStream("/water/pipes.cl");
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		StringBuilder sb = new StringBuilder();
 		try {

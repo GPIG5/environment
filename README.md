@@ -3,7 +3,7 @@
 Environment server for GPIG module, uses LiDAR data of York (from the Environment Agency) and jMonkeyEngine
 
 ## Run Configuration
-Requires considerable memory, set '-Xms4096m' and '-Xmx4096m' in run configuration.
+Requires considerable memory, set `-Xms4096m' and `-Xmx4096m' in run configuration.
 
 ## Nvidia OpenCL Profiling
 Water simulation (hydrostratic pipe model) uses OpenCL for many performances, you can profile this [see here.](http://uob-hpc.github.io/2015/05/27/nvvp-import-opencl/)

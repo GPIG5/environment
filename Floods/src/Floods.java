@@ -92,7 +92,7 @@ public class Floods extends SimpleApplication {
 		          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
 		ColorRGBA c = ColorRGBA.Blue;
 		mat.setColor("Color", new ColorRGBA(0,0,1,0.5f));   // set color of material to blue
-		//mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 		water = new Water(terrain, Display.getDrawable());
 		Geometry g = new Geometry("Water", water);
         g.setMaterial(mat);
