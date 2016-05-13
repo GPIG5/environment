@@ -14,6 +14,7 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.VertexBuffer.Type;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
@@ -29,7 +30,6 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.List;
-
 import static org.lwjgl.opencl.CL10.*;
 
 import terrain.Terrain;
@@ -83,18 +83,18 @@ public class Water extends Mesh {
 		cols = cells.getCols();
 		rows = cells.getRows();
 		System.out.println("Adding water cells to scene...");
-		this.setMode(Mode.Points);
+		//this.setMode(Mode.Points);
 		vertBuff = BufferUtils.createFloatBuffer(3*size);
 		vertBuff.put(cells.getVertices());
 		vertBuff.rewind();
-		setBuffer(VertexBuffer.Type.Position, 3, vertBuff);
+		setBuffer(Type.Position, 3, vertBuff);
 		updateBound();
 	}
 	
-	private void initOpenCL() {
+	public void initOpenCL() {
 		try {
 			CL.create();
-			int vId = getBuffer(VertexBuffer.Type.Position).getId();
+			int vId = this.getBuffer(Type.Position).getId();
 			vertBuff.rewind();
 			IntBuffer errorBuf = BufferUtils.createIntBuffer(1);
 			final List<CLPlatform> platforms = CLPlatform.getPlatforms();
@@ -186,10 +186,6 @@ public class Water extends Mesh {
 	}
 	
 	public void process() {
-		if (!init) {
-			initOpenCL();
-			init = true;
-		}
 		long ticks_now = System.currentTimeMillis();
 		// How much time this frame represents.
 		float t = (ticks_now - ticks_last)/1000.0f;
@@ -197,6 +193,7 @@ public class Water extends Mesh {
 		calcFlow.setArg(0, t);
 		CL10.clEnqueueNDRangeKernel(queue, calcFlow, 1, null, sBuff, null, null, null);
 		CL10.clFinish(queue);
+		
 		calcHeight.setArg(0, t);
 		// We need the vertex buffer now.
 		CL10GL.clEnqueueAcquireGLObjects(queue, vMem, null, null);

@@ -96,7 +96,7 @@ public class Floods extends SimpleApplication {
         g.setMaterial(mat);
 		//water.addWater(0, 0, 20);
 		rootNode.attachChild(g);
-		//water.initOpenCL();
+		water.initOpenCL();
 	}
 	
 	private void addLights() {
