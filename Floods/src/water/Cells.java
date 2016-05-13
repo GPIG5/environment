@@ -1,5 +1,10 @@
 package water;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
+import org.lwjgl.BufferUtils;
+
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -11,7 +16,8 @@ public class Cells {
 	float[] terhs;
 	float[] heights;
 	float[] flows;
-	float[] vertices;
+	FloatBuffer vbuffer;
+	IntBuffer ebuffer;
 	int[] pipes;
 	float csize;
 	float csize2;
@@ -34,7 +40,8 @@ public class Cells {
 		csize = cellsize * scale;
 		csize2 = csize * csize;
 		// Make arrays.
-		this.vertices =  new float[3*nr1*nc1];
+		vbuffer = BufferUtils.createFloatBuffer(4*3*nr1*nc1);
+		ebuffer = BufferUtils.createIntBuffer(6*nr1*nc1);
 		basevols = new float[nr1*nc1];
 		terhs =  new float[nr1*nc1];
 		heights = new float[nr1*nc1];
@@ -82,23 +89,43 @@ public class Cells {
 				}
 				// terrain height is height of max point.
 				//points[i] = new Vector3f(p1.x, 0, p1.z);
-				if (max0 > max1) {
-					terhs[i] = max0;
+				if (min0 < min1) {
+					terhs[i] = min0;
 				}
 				else {
-					terhs[i] = max1;
+					terhs[i] = min1;
 				}
 				//points[i].y = terhs[i];
 				// Calc base vol.
 				basevols[i] = (max0 - min0) + (max1 - min1);
 				basevols[i] *= csize2/4.0f;
-				avg = p0.add(p1);
-				avg.addLocal(p2);
-				avg.addLocal(p3);
-				avg.multLocal(0.25f);
-				this.vertices[(i<<1) + i] = avg.x;
-				this.vertices[(i<<1) + i + 1] = terhs[i];
-				this.vertices[(i<<1) + i + 2] = avg.z;
+//				avg = p0.add(p1);
+//				avg.addLocal(p2);
+//				avg.addLocal(p3);
+//				avg.multLocal(0.25f);
+				vbuffer.put(p0.x);
+				vbuffer.put(terhs[i]);
+				vbuffer.put(p0.z);
+				
+				vbuffer.put(p1.x);
+				vbuffer.put(terhs[i]);
+				vbuffer.put(p1.z);
+				
+				vbuffer.put(p2.x);
+				vbuffer.put(terhs[i]);
+				vbuffer.put(p2.z);
+				
+				vbuffer.put(p3.x);
+				vbuffer.put(terhs[i]);
+				vbuffer.put(p3.z);
+				
+				ebuffer.put((i<<2));
+				ebuffer.put((i<<2) + 1);
+				ebuffer.put((i<<2) + 2);
+				
+				ebuffer.put((i<<2) + 1);
+				ebuffer.put((i<<2) + 3);
+				ebuffer.put((i<<2) + 2);
 				i++;
 			}
 		}
@@ -168,6 +195,8 @@ public class Cells {
 				pipes[idx+3] = nc1*r + c - 1;
 			}
 		}
+		vbuffer.rewind();
+		ebuffer.rewind();
 	}
 	
 	public int getSize() {
@@ -175,7 +204,7 @@ public class Cells {
 	}
 	
 	public float[] getHeights() {
-		heights[300] = 3f;
+		heights[300] = 20f;
 		return heights;
 	}
 	
@@ -203,7 +232,11 @@ public class Cells {
 		return cols;
 	}
 	
-	public float[] getVertices() {
-		return vertices;
+	public FloatBuffer getVertices() {
+		return vbuffer;
+	}
+	
+	public IntBuffer getEdges() {
+		return ebuffer;
 	}
 }

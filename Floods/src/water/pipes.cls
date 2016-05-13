@@ -94,9 +94,14 @@ kernel void height(const float t,
 		}
 		float dv = t * (inflow-outflow);
 		float waterh = heights[i] + dv/(CSIZE);
-		heights[i] = fmax(0.0f, waterh);
-		// Update y.
-		vertices[(i<<1)+i+1] = theights[i] + heights[i];
+		float nh = fmax(0.0f, waterh);
+		heights[i] = nh;
+		// Update ys.
+		float nheight = theights[i] + nh;
+		vertices[i*12+1] = nheight;
+		vertices[i*12+4] = nheight;
+		vertices[i*12+7] = nheight;
+		vertices[i*12+10] = nheight;
 	}
 }
 

@@ -1,3 +1,5 @@
+import org.lwjgl.opengl.Display;
+
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.FlyCamAppState;
 import com.jme3.app.LegacyApplication;
@@ -91,12 +93,12 @@ public class Floods extends SimpleApplication {
 		ColorRGBA c = ColorRGBA.Blue;
 		mat.setColor("Color", new ColorRGBA(0,0,1,0.5f));   // set color of material to blue
 		//mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-		water = new Water(terrain);
+		water = new Water(terrain, Display.getDrawable());
 		Geometry g = new Geometry("Water", water);
         g.setMaterial(mat);
 		//water.addWater(0, 0, 20);
 		rootNode.attachChild(g);
-		water.initOpenCL();
+		//water.initOpenCL();
 	}
 	
 	private void addLights() {
