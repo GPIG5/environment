@@ -54,7 +54,6 @@ public class Water extends Mesh {
 	public static CLKernel calcFlow;
 	public static CLKernel calcHeight;
 	private static CLMem hMem;
-	private static CLMem pMem;
 	private static CLMem fMem;
 	private static CLMem tMem;
 	private static CLMem vMem;
@@ -64,8 +63,6 @@ public class Water extends Mesh {
 	FloatBuffer hBuff;
 	// Terrain height buffer
 	FloatBuffer tBuff;
-	// Pipes buffer
-	IntBuffer pBuff;
 	// Error buffer
 	IntBuffer eBuff;
 	// Flows buffer
@@ -118,8 +115,9 @@ public class Water extends Mesh {
 			// Build the OpenCL program, store it on the specified device
 			CLProgram prog = CL10.clCreateProgramWithSource(context, loadCLProgram(), null);
 			// Each kernel will do HALF a row.
-			String args = "-cl-single-precision-constant -cl-no-signed-zeros -cl-finite-math-only -DNUM="+cols+" -DCSIZE="+cells.getCsize2()+"f";
-			System.out.println("ARGS" + args);
+			String args = "-cl-single-precision-constant -cl-no-signed-zeros -cl-finite-math-only";
+			args += " -DNROWS="+rows+" -DNCOLS="+cols+" -DCSIZE="+cells.getCsize2()+"f";
+			System.out.println("OpenCL build args: " + args);
 			int error = CL10.clBuildProgram(prog, devices.get(0), args, null);
 			System.out.println(prog.getBuildInfoString(devices.get(0), CL_PROGRAM_BUILD_LOG));
 			// Check for any OpenCL errors
@@ -139,11 +137,6 @@ public class Water extends Mesh {
 			tBuff.rewind();
 			tMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_COPY_HOST_PTR, tBuff, eBuff);
 			
-			pBuff = BufferUtils.createIntBuffer(size<<2);
-			pBuff.put(cells.getPipes());
-			pBuff.rewind();
-			pMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_COPY_HOST_PTR, pBuff, eBuff);
-			
 			fBuff = BufferUtils.createFloatBuffer(size<<2);
 			fBuff.put(cells.getFlows());
 			fBuff.rewind();
@@ -161,12 +154,10 @@ public class Water extends Mesh {
 			calcFlow.setArg(1, hMem);
 			calcFlow.setArg(2, tMem);
 			calcFlow.setArg(3, fMem);
-			calcFlow.setArg(4, pMem);
 			calcHeight.setArg(1, hMem);
 			calcHeight.setArg(2, fMem);
-			calcHeight.setArg(3, pMem);
-			calcHeight.setArg(4, tMem);
-			calcHeight.setArg(5, vMem);
+			calcHeight.setArg(3, tMem);
+			calcHeight.setArg(4, vMem);
 			cl_initd = true;
 		}
 	}

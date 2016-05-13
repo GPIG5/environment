@@ -22,7 +22,6 @@ public class Cells {
 	float[] flows;
 	FloatBuffer vbuffer;
 	IntBuffer ebuffer;
-	int[] pipes;
 	float csize;
 	float csize2;
 	int rows;
@@ -38,8 +37,6 @@ public class Cells {
 		cols = nc1;
 		int nr2 = nrows - 2;
 		int nc2 = ncols - 2;
-		int nr3 = nrows - 3;
-		int nc3 = ncols - 3;
 		csize = cellsize * scale;
 		csize2 = csize * csize;
 		// Make arrays.
@@ -50,7 +47,6 @@ public class Cells {
 		heights = new float[nr1*nc1];
 		// 4 flows and pipes per cell.
 		flows = new float[nr1*nc1*4];
-		pipes = new int[nr1*nc1*4];
 		// Load water height map + process
 		try {
 			BufferedImage img = ImageIO.read(Cells.class.getResourceAsStream("/assets/Textures/mask.png"));
@@ -146,72 +142,6 @@ public class Cells {
 				ebuffer.put(base + nc1);
 			}
 		}
-		System.out.println("Making pipes...");
-		int idx;
-		// Run through again and set neighbours/pipes. 
-		// n, e, s, w
-		// Do corners.
-		// TL (0,0)
-		pipes[0] = -1;
-		pipes[1] = 1;
-		pipes[2] = nc1;
-		pipes[3] = -1;
-		// TR
-		idx = (nc2)<<2;
-		pipes[idx] = -1;
-		pipes[idx+1] = -1;
-		pipes[idx+2] = nc1 + nc2;
-		pipes[idx+3] = nc3;
-		// BL
-		idx = (nc1*nr2)<<2;
-		pipes[idx] = nc1*nr3;
-		pipes[idx+1] = nc1*nr3+1;
-		pipes[idx+2] = -1;
-		pipes[idx+3] = -1;
-		// BR
-		idx = (nc1*nr2 + nc2)<<2;
-		pipes[idx] = nc1*nr3 + nc2;
-		pipes[idx+1] = -1;
-		pipes[idx+2] = -1;
-		pipes[idx+3] = nc1*nr2 + nc3;
-		// First + last row (not corners)
-		for (int c = 1; c < nc2; c++) {
-			// First row
-			idx = c<<2;
-			pipes[idx] = -1;
-			pipes[idx+1] = c+1;
-			pipes[idx+2] = nc1 + c;
-			pipes[idx+3] = c-1;
-			// Last row
-			idx = (nc1*nr2 + c)<<2;
-			pipes[idx] = nc1*nr3 + c;
-			pipes[idx+1] = nc1*nr2 + c + 1;
-			pipes[idx+2] = -1;
-			pipes[idx+3] = nc1*nr2 + c - 1;
-		}
-		// First + last column (not corners)
-		for (int r = 1; r < nr2; r++) {
-			// First col
-			idx = (nc1*r)<<2;
-			pipes[idx] = nc1*(r-1);
-			pipes[idx+1] = nc1*r + 1;
-			pipes[idx+2] = nc1*(r+1);
-			pipes[idx+3] = -1;
-			// Last col
-			idx = (nc1*r + nc2)<<2;
-			pipes[idx] = nc1*(r-1) + nc2;
-			pipes[idx+1] = -1;
-			pipes[idx+2] = nc1*(r+1) + nc2;
-			pipes[idx+3] = nc1*r + nc3;
-			// Do centre.
-			for (int c = 1; c < nc2; c++) {
-				idx = (nc1*r + c)<<2;
-				pipes[idx] = nc1*(r-1) + c;
-				pipes[idx+1] = nc1*r + c + 1;
-				pipes[idx+2] = nc1*(r+1) + c;
-				pipes[idx+3] = nc1*r + c - 1;
-			}
-		}
 		vbuffer.rewind();
 		ebuffer.rewind();
 	}
@@ -222,10 +152,6 @@ public class Cells {
 	
 	public float[] getHeights() {
 		return heights;
-	}
-	
-	public int[] getPipes() {
-		return pipes;
 	}
 	
 	public float[] getFlows() {

@@ -7,37 +7,38 @@ float t -  time since last frame.
 float* heights - heights for every cell in water.
 float* theights - heights for terrain.
 float* flows - flows for each cell, 4 for each. (N,E,S,W)
-int* pipes - pipes id for each cell, 4 for each. (N,E,S,W)
 */
 kernel void flow(const float t, 
 				global const float* heights, 
 				global const float* theights,
-				global float* flows, 
-				global const int* pipes) {
-	int id = get_global_id(0) * (NUM);
-	float flowf = t * FFLOW;
-	int i;
-	for (int c = 0; c < (NUM); c++) {
-		i = id + c;
-		float waterh = heights[i];
-		float h = waterh + theights[i];
-		// Load vectors for pipes and flows.
-		int4 vpipes = vload4(i, pipes);
-		float4 vflows = vload4(i, flows);
-		if (vpipes.x != -1) {
-			vflows.x += flowf * (h - (theights[vpipes.x] + heights[vpipes.x]));
+				global float* flows) {
+	int r = get_global_id(0);
+	int offset = r * (NCOLS);
+	float flowf = t * (FFLOW);
+	// NOTE: number of columns MUST be divisible by 4.
+	for (int c = 0; c < (NCOLS); c++, offset++) {
+		float waterh = heights[offset];
+		float h = waterh + theights[offset];
+		// Load vectors flows.
+		float4 vflows = vload4(offset, flows);
+		// N
+		if (r != 0) {
+			vflows.x += flowf * (h - (theights[offset - (NCOLS)] + heights[offset - (NCOLS)]));
 			vflows.x = fmax(0.0f, vflows.x);
 		}
-		if (vpipes.y != -1) {
-			vflows.y += flowf * (h - (theights[vpipes.y] + heights[vpipes.y]));
+		// E
+		if (c != (NCOLS-1)) {
+			vflows.y += flowf * (h - (theights[offset + 1] + heights[offset + 1]));
 			vflows.y = fmax(0.0f, vflows.y);
 		}
-		if (vpipes.z != -1) {
-			vflows.z += flowf * (h - (theights[vpipes.z] + heights[vpipes.z]));
+		// S
+		if (r != (NROWS-1)) {
+			vflows.z += flowf * (h - (theights[offset + (NCOLS)] + heights[offset + (NCOLS)]));
 			vflows.z = fmax(0.0f, vflows.z);
 		}
-		if (vpipes.w != -1) {
-			vflows.w += flowf * (h - (theights[vpipes.w] + heights[vpipes.w]));
+		// W
+		if (c != 0) {
+			vflows.w += flowf * (h - (theights[offset - 1] + heights[offset - 1]));
 			vflows.w = fmax(0.0f, vflows.w);
 		}
 		// scaling
@@ -45,12 +46,11 @@ kernel void flow(const float t,
 	    float k = fmin(1.0f, (float)((waterh*(CSIZE))/(sum*t)));
 	    vflows *= k;
 		// Store results.
-		vstore4(vflows, i, flows);
+		vstore4(vflows, offset, flows);
 	}
 }
 
 /* Height calculation kernel. Processes one row.
-int n - the number of columns in a row.
 float t - time since last frame.
 float* heights - heights for every cell in water.
 float* flows - flows for each cell, 4 for each. (N,E,S,W)
@@ -60,45 +60,46 @@ flaot vertices - the vertices that make up the scene.
 kernel void height(const float t,
 				global float* heights, 
 				global const float* flows, 
-				global const int* pipes,
 				global const float* theights,
 				global float* vertices) {
-	int id = get_global_id(0) * (NUM);
-	int i;
-	for (int c = 0; c < (NUM); c++) {
-		i = id + c;
+	int r = get_global_id(0);
+	int offset = r * (NCOLS);
+	for (int c = 0; c < (NCOLS); c++, offset++) {
 		float inflow = 0;
 		float outflow = 0;
-		// Load vectors for pipes and flows.
-		int4 vpipes = vload4(i, pipes);
-		float4 vflows = vload4(i, flows);
-		if (vpipes.x != -1) {
+		// Load vector for flows.
+		float4 vflows = vload4(offset, flows);
+		// N
+		if (r != 0) {
 			// Flow from north neighbour in south direction.
-			inflow += flows[(vpipes.x<<2)+2];
+			inflow += flows[((offset - (NCOLS))<<2)+2];
 			outflow += vflows.x;
 		}
-		if (vpipes.y != -1) {
+		// E
+		if (c != (NCOLS-1)) {
 			// Flow from east neighbour in west direction.
-			inflow += flows[(vpipes.y<<2)+3];
+			inflow += flows[((offset + 1)<<2)+3];
 			outflow += vflows.y;
 		}
-		if (vpipes.z != -1) {
+		// S
+		if (r != (NROWS-1)) {
 			// Flow from south neighbour in north direction.
-			inflow += flows[vpipes.z<<2];
+			inflow += flows[(offset + (NCOLS))<<2];
 			outflow += vflows.z;
 		}
-		if (vpipes.w != -1) {
+		// W
+		if (c != 0) {
 			// Flow from west neighbour in east direction.
-			inflow += flows[(vpipes.w<<2)+1];
+			inflow += flows[((offset-1)<<2)+1];
 			outflow += vflows.w;
 		}
 		float dv = t * (inflow-outflow);
-		float waterh = heights[i] + dv/(CSIZE);
+		float waterh = heights[offset] + dv/(CSIZE);
 		float nh = fmax(0.0f, waterh);
-		heights[i] = nh;
-		// Update ys.
-		float nheight = theights[i] + nh;
-		vertices[(i<<1)+i+1] = nheight;
+		heights[offset] = nh;
+		// Update vertex buffer.
+		float nheight = theights[offset] + nh;
+		vertices[(offset<<1)+offset+1] = nheight;
 	}
 }
 
