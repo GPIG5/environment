@@ -91,9 +91,12 @@ public class Floods extends SimpleApplication {
 		ColorRGBA c = ColorRGBA.Blue;
 		mat.setColor("Color", new ColorRGBA(0,0,1,0.5f));   // set color of material to blue
 		//mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-		water = new Water(terrain, mat);
+		water = new Water(terrain);
+		Geometry g = new Geometry("Water", water);
+        g.setMaterial(mat);
 		//water.addWater(0, 0, 20);
-		rootNode.attachChild(water);
+		rootNode.attachChild(g);
+		//water.initOpenCL();
 	}
 	
 	private void addLights() {

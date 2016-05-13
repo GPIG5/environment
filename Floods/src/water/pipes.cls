@@ -55,11 +55,14 @@ float t - time since last frame.
 float* heights - heights for every cell in water.
 float* flows - flows for each cell, 4 for each. (N,E,S,W)
 int* pipes - pipes id for each cell, 4 for each. (N,E,S,W)
+flaot vertices - the vertices that make up the scene.
 */
 kernel void height(const float t,
 				global float* heights, 
 				global const float* flows, 
-				global const int* pipes) {
+				global const int* pipes,
+				global const float* theights,
+				global float* vertices) {
 	int id = get_global_id(0) * (NUM);
 	int i;
 	for (int c = 0; c < (NUM); c++) {
@@ -92,6 +95,8 @@ kernel void height(const float t,
 		float dv = t * (inflow-outflow);
 		float waterh = heights[i] + dv/(CSIZE);
 		heights[i] = fmax(0.0f, waterh);
+		// Update y.
+		vertices[(i<<1)+i+1] = theights[i] + heights[i];
 	}
 }
 

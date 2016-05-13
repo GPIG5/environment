@@ -9,6 +9,7 @@ import com.jme3.material.Material;
 import water.Cells;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.shape.Quad;
 
 //http://environment.data.gov.uk/ds/survey/index.jsp
@@ -24,6 +25,7 @@ public class Terrain {
 		g = new Geometry("Terrain", ater);
         g.setMaterial(mat);
         g.scale(scale, scale, scale);
+        g.setCullHint(CullHint.Never);
         nrows = ater.getRows();
         ncols = ater.getCols();
 	}

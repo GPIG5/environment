@@ -7,27 +7,25 @@ import com.jme3.scene.shape.Quad;
 
 // Wrapper class for cell things.
 public class Cells {
-	
-	Vector3f points[];
 	float[] basevols;
 	float[] terhs;
 	float[] heights;
 	float[] flows;
+	float[] vertices;
 	int[] pipes;
 	float csize;
 	float csize2;
-	Geometry[] planes;
 	int rows;
 	int cols;
 	
 	public Cells(Vector3f[] vertices, int nrows, int ncols, float cellsize, float scale) {
 		System.out.println("Making water cells...");
 		// Some much used values.
+		Vector3f avg;
 		int nr1 = nrows - 1;
 		rows = nr1;
 		int nc1 = ncols - 1;
 		cols = nc1;
-		
 		int nr2 = nrows - 2;
 		int nc2 = ncols - 2;
 		
@@ -35,17 +33,14 @@ public class Cells {
 		int nc3 = ncols - 3;
 		csize = cellsize * scale;
 		csize2 = csize * csize;
-		Quad q = new Quad(csize, csize);
 		// Make arrays.
-		points =  new Vector3f[nr1*nc1];
+		this.vertices =  new float[3*nr1*nc1];
 		basevols = new float[nr1*nc1];
 		terhs =  new float[nr1*nc1];
 		heights = new float[nr1*nc1];
 		// 4 flows and pipes per cell.
 		flows = new float[nr1*nc1*4];
 		pipes = new int[nr1*nc1*4];
-		// Planes to be rendered.
-		planes = new Geometry[nr1*nc1];
 		// Make planes
 		int i = 0;
 		for (int r = 0; r < nr1; r++) {
@@ -86,20 +81,24 @@ public class Cells {
 					max1 = p3.y;
 				}
 				// terrain height is height of max point.
-				points[i] = new Vector3f(p1.x, 0, p1.z);
+				//points[i] = new Vector3f(p1.x, 0, p1.z);
 				if (max0 > max1) {
 					terhs[i] = max0;
 				}
 				else {
 					terhs[i] = max1;
 				}
-				points[i].y = terhs[i];
+				//points[i].y = terhs[i];
 				// Calc base vol.
 				basevols[i] = (max0 - min0) + (max1 - min1);
 				basevols[i] *= csize2/4.0f;
-				planes[i] = new Geometry("Cell", q);
-				planes[i].rotate(-FastMath.HALF_PI, 0, 0);
-				planes[i].setLocalTranslation(points[i]);
+				avg = p0.add(p1);
+				avg.addLocal(p2);
+				avg.addLocal(p3);
+				avg.multLocal(0.25f);
+				this.vertices[(i<<1) + i] = avg.x;
+				this.vertices[(i<<1) + i + 1] = terhs[i];
+				this.vertices[(i<<1) + i + 2] = avg.z;
 				i++;
 			}
 		}
@@ -175,17 +174,9 @@ public class Cells {
 		return heights.length;
 	}
 	
-	public Geometry[] getPlanes() {
-		return planes;
-	}
-	
 	public float[] getHeights() {
 		heights[300] = 3f;
 		return heights;
-	}
-	
-	public Vector3f[] getPoints() {
-		return points;
 	}
 	
 	public int[] getPipes() {
@@ -210,5 +201,9 @@ public class Cells {
 	
 	public int getCols() {
 		return cols;
+	}
+	
+	public float[] getVertices() {
+		return vertices;
 	}
 }
