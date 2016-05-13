@@ -96,9 +96,8 @@ public class Floods extends SimpleApplication {
 		water = new Water(terrain, Display.getDrawable());
 		Geometry g = new Geometry("Water", water);
         g.setMaterial(mat);
-		//water.addWater(0, 0, 20);
+        g.setCullHint(CullHint.Never);
 		rootNode.attachChild(g);
-		//water.initOpenCL();
 	}
 	
 	private void addLights() {
