@@ -40,8 +40,6 @@ public class Water extends Node {
 	int size;
 	int cols;
 	int rows;
-	long fnum = 0;
-	float csize2;
 	Geometry[] planes;
 	Vector3f[] points;
 	// OpenCL variables
@@ -80,7 +78,6 @@ public class Water extends Node {
 		size = cells.getSize();
 		cols = cells.getCols();
 		rows = cells.getRows();
-		csize2 = cells.getCsize2();
 		planes = cells.getPlanes();
 		points = cells.getPoints();
 		System.out.println("Adding water cells to scene...");
@@ -88,7 +85,7 @@ public class Water extends Node {
 			g.setMaterial(mat);
 			// Cull initially
 			attachChild(g);
-			g.setCullHint(cullHint.Always);
+			g.setCullHint(CullHint.Always);
 		}
 		// OpenCL
 		try {
@@ -106,14 +103,16 @@ public class Water extends Node {
 				Util.checkCLError(errorBuf.get(0)); 
 				// Build the OpenCL program, store it on the specified device
 				CLProgram prog = CL10.clCreateProgramWithSource(context, loadCLProgram(), null);
-				String args = "-cl-single-precision-constant -cl-no-signed-zeros -cl-finite-math-only -DNUM="+cols+" -DCSIZE="+csize2;
+				String args = "-cl-single-precision-constant -cl-no-signed-zeros -cl-finite-math-only -DNUM="+cols+" -DCSIZE="+cells.getCsize2();
+				System.out.println("ARGS" + args);
 				int error = CL10.clBuildProgram(prog, devices.get(0), args, null);
 				System.out.println(prog.getBuildInfoString(devices.get(0), CL_PROGRAM_BUILD_LOG));
 				// Check for any OpenCL errors
 				Util.checkCLError(error);
 				// Kernels
 				calcFlow = CL10.clCreateKernel(prog, "flow", null);
-				calcHeight = CL10.clCreateKernel(prog, "height", null);
+				calcHeight = CL10.clCreateKernel(prog, "height", errorBuf);
+				System.out.println(errorBuf.get(0));
 				// Memory
 				hBuff = BufferUtils.createFloatBuffer(size);
 				hBuff.put(cells.getHeights());
@@ -181,29 +180,20 @@ public class Water extends Node {
 		float t = (ticks_now - ticks_last)/1000.0f;
 		ticks_last = ticks_now;
 		calcFlow.setArg(0, t);
-		calcHeight.setArg(0, t);
-		// Run the specified number of work units using our OpenCL program kernel
 		CL10.clEnqueueNDRangeKernel(queue, calcFlow, 1, null, sBuff, null, null, null);
 		CL10.clFinish(queue);
+		calcHeight.setArg(0, t);
 		CL10.clEnqueueNDRangeKernel(queue, calcHeight, 1, null, sBuff, null, null, null);
 		CL10.clFinish(queue);
 		// Read the new heights
 		rBuff.rewind();
 		CL10.clEnqueueReadBuffer(queue, hMem, CL10.CL_TRUE, 0, rBuff, null, null);
 		for (int i = 0; i < rBuff.capacity(); i++) {
-			planes[i].setLocalTranslation(points[i].x, rBuff.get(i) + tBuff.get(i), points[i].z);
 			// Cull until 0.001 surpassed.
-			if (rBuff.get(i) > 0.001) {
-				planes[i].setCullHint(cullHint.Dynamic);
+			if (rBuff.get(i) > 0.0f) {
+				planes[i].setCullHint(CullHint.Dynamic);
+				planes[i].setLocalTranslation(points[i].x, rBuff.get(i) + tBuff.get(i), points[i].z);
 			}
 		}
-		/*
-		for (int c = 0; c < ncells; c++) {
-				grid[c].flow(t*20);
-		}
-		for (int c = 0; c < ncells; c++) {
-			grid[c].redraw(t*20);
-		}
-		*/
 	}
 }

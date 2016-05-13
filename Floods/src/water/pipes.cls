@@ -10,14 +10,14 @@ float* flows - flows for each cell, 4 for each. (N,E,S,W)
 int* pipes - pipes id for each cell, 4 for each. (N,E,S,W)
 */
 kernel void flow(const float t, 
-				constant float* heights, 
-				constant float* theights,
-				global float* const flows, 
-				constant int* pipes) {
-	int id = get_global_id(0) * NUM;
+				global const float* heights, 
+				global const float* theights,
+				global float* flows, 
+				global const int* pipes) {
+	int id = get_global_id(0) * (NUM);
 	float flowf = t * FFLOW;
 	int i;
-	for (int c = 0; c < NUM; c++) {
+	for (int c = 0; c < (NUM); c++) {
 		i = id + c;
 		float waterh = heights[i];
 		float h = waterh + theights[i];
@@ -42,15 +42,12 @@ kernel void flow(const float t,
 		}
 		// scaling
 		float sum = vflows.x + vflows.y + vflows.z + vflows.w;
-	    float k = fmin((float)1.0, (float)((waterh*CSIZE)/(sum*t)));
-	    vflows.x *= k;
-	   	vflows.y *= k;
-	    vflows.z *= k;
-	    vflows.w *= k;
+	    float k = fmin(1.0f, (float)((waterh*(CSIZE))/(sum*t)));
+	    vflows *= k;
 		// Store results.
 		vstore4(vflows, i, flows);
 	}
-}    
+}
 
 /* Height calculation kernel. Processes one row.
 int n - the number of columns in a row.
@@ -60,12 +57,12 @@ float* flows - flows for each cell, 4 for each. (N,E,S,W)
 int* pipes - pipes id for each cell, 4 for each. (N,E,S,W)
 */
 kernel void height(const float t,
-				global float* const heights, 
-				constant float* flows, 
-				constant int* pipes) {
-	int id = get_global_id(0) * NUM;
+				global float* heights, 
+				global const float* flows, 
+				global const int* pipes) {
+	int id = get_global_id(0) * (NUM);
 	int i;
-	for (int c = 0; c < NUM; c++) {
+	for (int c = 0; c < (NUM); c++) {
 		i = id + c;
 		float inflow = 0;
 		float outflow = 0;
@@ -97,4 +94,5 @@ kernel void height(const float t,
 		heights[i] = fmax(0.0f, waterh);
 	}
 }
+
 
