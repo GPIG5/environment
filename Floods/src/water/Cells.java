@@ -16,10 +16,9 @@ import com.jme3.scene.shape.Quad;
 
 // Wrapper class for cell things.
 public class Cells {
-	float[] basevols;
-	float[] terhs;
-	float[] heights;
-	float[] flows;
+	FloatBuffer terhs;
+	FloatBuffer heights;
+	FloatBuffer flows;
 	FloatBuffer vbuffer;
 	IntBuffer ebuffer;
 	float csize;
@@ -42,11 +41,10 @@ public class Cells {
 		// Make arrays.
 		vbuffer = BufferUtils.createFloatBuffer(4*3*nr1*nc1);
 		ebuffer = BufferUtils.createIntBuffer(6*nr2*nc2);
-		basevols = new float[nr1*nc1];
-		terhs =  new float[nr1*nc1];
-		heights = new float[nr1*nc1];
+		terhs =  BufferUtils.createFloatBuffer(nr1*nc1);
+		heights = BufferUtils.createFloatBuffer(nr1*nc1);
 		// 4 flows and pipes per cell.
-		flows = new float[nr1*nc1*4];
+		flows = BufferUtils.createFloatBuffer(nr1*nc1*4);
 		// Load water height map + process
 		try {
 			BufferedImage img = ImageIO.read(Cells.class.getResourceAsStream("/assets/Textures/mask.png"));
@@ -63,6 +61,7 @@ public class Cells {
 					Vector3f p3 = vertices[base + ncols + 1].mult(scale);
 					float min0 = p0.y;
 					float max0 = p0.y;
+					float terh;
 					if (p1.y < min0) {
 						min0 = p1.y;
 					}
@@ -93,34 +92,33 @@ public class Cells {
 					// terrain height is height of max point.
 					//points[i] = new Vector3f(p1.x, 0, p1.z);
 					if (min0 < min1) {
-						terhs[i] = min0;
+						terh = min0;
 					}
 					else {
-						terhs[i] = min1;
+						terh = min1;
 					}
 					//points[i].y = terhs[i];
 					// Calc base vol.
-					basevols[i] = (max0 - min0) + (max1 - min1);
-					basevols[i] *= csize2/4.0f;
 					avg = p0.add(p1);
 					avg.addLocal(p2);
 					avg.addLocal(p3);
 					avg.multLocal(0.25f);
 					vbuffer.put(avg.x);
-					vbuffer.put(terhs[i]);
+					vbuffer.put(terh);
 					vbuffer.put(avg.z);
+					terhs.put(terh);
 					// Water heights
 					int color = img.getRGB(c, nr2-r);
 					if ((color & 0xFF0000) != 0) {
 						// Red - depest
-						heights[i] = 0.07f;
+						heights.put(i, 0.07f);
 					}
 					else if ((color & 0xFF00) != 0) {
 						// Green
-						heights[i]= 0.02f;
+						heights.put(i, 0.02f);
 					}
 					else if ((color & 0xFF) != 0) {
-						heights[i] = 0.005f;
+						heights.put(i, 0.005f);
 					}
 					i++;
 				}
@@ -147,14 +145,14 @@ public class Cells {
 	}
 	
 	public int getSize() {
-		return heights.length;
+		return heights.capacity();
 	}
 	
-	public float[] getHeights() {
+	public FloatBuffer getHeights() {
 		return heights;
 	}
 	
-	public float[] getFlows() {
+	public FloatBuffer getFlows() {
 		return flows;
 	}
 	
@@ -162,7 +160,7 @@ public class Cells {
 		return csize2;
 	}
 	
-	public float[] getTerHeights() {
+	public FloatBuffer getTerHeights() {
 		return terhs;
 	}
 	

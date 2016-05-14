@@ -127,18 +127,15 @@ public class Water extends Mesh {
 			calcHeight = CL10.clCreateKernel(prog, "height", eBuff);
 			System.out.println(eBuff.get(0));
 			// Memory
-			hBuff = BufferUtils.createFloatBuffer(size);
-			hBuff.put(cells.getHeights());
+			hBuff = cells.getHeights();
 			hBuff.rewind();
 			hMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_WRITE | CL10.CL_MEM_COPY_HOST_PTR, hBuff, eBuff);
 			
-			tBuff = BufferUtils.createFloatBuffer(size);
-			tBuff.put(cells.getTerHeights());
+			tBuff = cells.getTerHeights();
 			tBuff.rewind();
 			tMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_COPY_HOST_PTR, tBuff, eBuff);
 			
-			fBuff = BufferUtils.createFloatBuffer(size<<2);
-			fBuff.put(cells.getFlows());
+			fBuff = cells.getFlows();
 			fBuff.rewind();
 			fMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR, fBuff, eBuff);
 			// Vertex memory
