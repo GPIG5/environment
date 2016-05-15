@@ -9,12 +9,11 @@ import javax.imageio.ImageIO;
 
 import org.lwjgl.BufferUtils;
 
-import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Quad;
 
-// Wrapper class for cell things.
+/**
+ * Processes terrain vertices into cell data required for water simulation.
+ */
 public class Cells {
 	FloatBuffer terhs;
 	FloatBuffer heights;
@@ -26,7 +25,7 @@ public class Cells {
 	int rows;
 	int cols;
 	
-	public Cells(Vector3f[] vertices, int nrows, int ncols, float cellsize, float scale) {
+	public Cells(Vector3f[] vertices, int nrows, int ncols, float cellsize, float scale, String heightmap) {
 		System.out.println("Making water cells...");
 		// Some much used values.
 		Vector3f avg;
