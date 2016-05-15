@@ -7,7 +7,7 @@ Environment server for GPIG module, uses LiDAR data of York from the [Environmen
 * Efficient Animation of Water Flow on Irregular Terrains  - Maes et al. (2006)
 
 ## Run Configuration
-Requires considerable memory, set `-Xms4096m` and `-Xmx4096m` in run configuration. Also needs a graphics card (and driver) supporting OpenCL-OpenGL interop, `cl_khr_gl_sharing/cl_APPLE_gl_sharing'. Frame rate is approximately 70fps on a GTX 970 under Ubuntu Linux (yet 40fps in Windows 10) or 16fps on an Intel Iris in OS X.
+Requires considerable memory, set `-Xms4096m` and `-Xmx4096m` in run configuration. Also needs a graphics card (and driver) supporting OpenCL-OpenGL interop, `cl_khr_gl_sharing/cl_APPLE_gl_sharing`. Frame rate is approximately 70fps on a GTX 970 under Ubuntu Linux (yet 40fps in Windows 10) or 16fps on an Intel Iris in OS X.
 
 
 ## Nvidia OpenCL Profiling
