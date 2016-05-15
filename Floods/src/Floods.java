@@ -1,14 +1,4 @@
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferInt;
-import java.awt.image.Raster;
-import java.awt.image.SampleModel;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import javax.imageio.ImageIO;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.lwjgl.opengl.Display;
 
@@ -25,13 +15,8 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
-import com.jme3.light.SpotLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
-import com.jme3.profile.AppStep;
-import com.jme3.renderer.Camera;
-import com.jme3.renderer.RenderManager;
-import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial.CullHint;
@@ -45,6 +30,8 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import com.jme3.util.BufferUtils;
 
+import drones.CamRequest;
+import drones.DroneCam;
 import terrain.Terrain;
 import water.Water;
 
@@ -58,11 +45,7 @@ public class Floods extends SimpleApplication {
 	Water water;
 	Terrain terrain;
 	Geometry gter;
-	Camera droneCam;
-	FrameBuffer droneFb;
-	ViewPort droneVp;
-	Texture droneTex;
-    private final ByteBuffer cpuBuf = BufferUtils.createByteBuffer(480 * 640 * 4);
+	DroneCam dronecamera;
 
 	public static void main(String[] args) {
 		Floods app = new Floods();
@@ -79,27 +62,11 @@ public class Floods extends SimpleApplication {
         cam.setAxes(new Quaternion(0.0f, 1.0f, 0.0f, 1.0f));
         flyCam.setMoveSpeed(4.0f);
         addLights();
-        testCamera();
-	}
-	
-	private void testCamera() {
-		// https://github.com/Suinos/heaven-rts-jmegame/blob/d67c84fe3081c1101699b50a101ee07c7588891e/src/rts/ui/MiniView.java
-		// https://github.com/cosmolev/ComoFlyer/blob/73a7f5963037e59a7400a64f8210d025f17608db/src/comoflyer/OffscreenComoFlyer.java
-		droneCam = new Camera(640, 480);
-		droneCam.setFrustumPerspective(45f, 640.0f / 480.0f, 1f, 1000f);
-		droneCam.setLocation(new Vector3f(10f, 20f, 10f));
-		droneCam.lookAt(new Vector3f(10f, 0f, 10f), Vector3f.UNIT_Y);
-		droneVp = renderManager.createPostView("Default", droneCam);
-		droneVp.setClearFlags(true, true, true);
-		droneVp.attachScene(rootNode);
-		droneFb = new FrameBuffer(640, 480, 1);
-		droneFb.setDepthBuffer(Format.Depth);
-		droneFb.setColorBuffer(Format.ARGB8);
-		droneVp.setOutputFrameBuffer(droneFb);
-	}
-	
-	private void loadScreen() {
-		
+        dronecamera = new DroneCam(renderManager, rootNode);
+        ConcurrentLinkedQueue<CamRequest> requests = dronecamera.getRequestQueue();
+        requests.add(new CamRequest(10, 10));
+        requests.add(new CamRequest(60, 70));
+        requests.add(new CamRequest(0, 70));
 	}
 
 	private void makeTerrain() {
@@ -145,29 +112,8 @@ public class Floods extends SimpleApplication {
 	@Override
 	public void simpleUpdate(float tpf) {
         water.process();
-        // Do drone stuff.
-        cpuBuf.clear();
-        renderer.readFrameBuffer(droneFb, cpuBuf);
-       BufferedImage bi = new BufferedImage(640, 480, BufferedImage.TYPE_INT_ARGB);
-       cpuBuf.rewind();
-       int[] data = new int[640*480];
-       for (int i = 0; i < (640*480); i++) {
-    	   // Note: Framebuffer is rgba
-    	   int r = 0xFF & cpuBuf.get();
-    	   int g = 0xFF & cpuBuf.get();
-    	   int b = 0xFF & cpuBuf.get();
-    	   int a = 0xFF & cpuBuf.get();
-    	   data[i] = (a << 24) | (r << 16) | (g << 8) | b;
-       }
-       bi.getRaster().setDataElements(0, 0, 640, 480, data);
-       /*
-       try {
-    	   ImageIO.write(bi, "png", new File("/tmp/out.png"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} */
-		super.simpleUpdate(tpf);
+        super.simpleUpdate(tpf);
+        dronecamera.process(tpf);
 	}
 
 }
