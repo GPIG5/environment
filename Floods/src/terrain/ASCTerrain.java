@@ -94,7 +94,6 @@ public class ASCTerrain extends Mesh{
 		vertices = new Vector3f[nrows*ncols];
 		texcoord = BufferUtils.createFloatBuffer(2*nrows*ncols);
 		indexes = BufferUtils.createIntBuffer(6*(nrows-1)*(ncols-1));
-		//faces = new Triangle[nrows - 1][ncols-1][2];
 		fnormals = new Vector3f[nrows-1][ncols-1][2];
 		normals = new Vector3f[nrows*ncols];
 		float x, z;
