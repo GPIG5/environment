@@ -20,13 +20,17 @@ public class ASCTerrain extends Mesh{
 	float nodata, cellsize;
 	float data[][];
 	Triangle faces[][][];
-	Vector3f fnormals[][][];
 	// Actual data
 	Vector3f normals[];
 	Vector3f vertices[];
 	FloatBuffer texcoord;
 	IntBuffer indexes;
 	
+	/**
+	 * Constructs a new ASCTerrain, extends Mesh. Performs downsampling and generation of normals.
+	 * @param zfile
+	 * The zip file containing the ASC (ARC/INFO ASCII Grid) file for height map data.
+	 */
 	public ASCTerrain(String zfile) {
 		int count;
 		try {
@@ -35,6 +39,7 @@ public class ASCTerrain extends Mesh{
 			System.out.println("Opening file: " + ze.getName());
 			byte[] asc = new byte[(int) ze.getSize()];
 			count = 0;
+			// Read the entire data for the file.
 			while (count < ze.getSize()) {
 				count += zis.read(asc, count, (int) (ze.getSize() - count));
 			}
@@ -42,13 +47,19 @@ public class ASCTerrain extends Mesh{
 			zis.closeEntry();
 			zis.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
+	/**
+	 * Read and parse ASC grid data (in data).
+	 * @param data
+	 * ASC (ARC/INFO ASCII Grid) file contents.
+	 * @return
+	 * ArrayList of every point in data, row-by-row.
+	 */
 	private ArrayList<Float> readFile(byte[] data) {
 		int pStart = 0;
 		int xllcorner = -1, yllcorner = -1;
@@ -89,13 +100,18 @@ public class ASCTerrain extends Mesh{
 		return points;
 	}
 	
+	/**
+	 * Process the points read from the ASC file into vertices, normals and edges for mesh, also generates texture coordinates.
+	 * @param points
+	 * The row-by-row points for the height map for which the mesh is to be created from.
+	 */
 	private void process(ArrayList<Float> points) {
 		downsample(3, points);
 		vertices = new Vector3f[nrows*ncols];
 		texcoord = BufferUtils.createFloatBuffer(2*nrows*ncols);
 		indexes = BufferUtils.createIntBuffer(6*(nrows-1)*(ncols-1));
 		//faces = new Triangle[nrows - 1][ncols-1][2];
-		fnormals = new Vector3f[nrows-1][ncols-1][2];
+		Vector3f[][][] fnormals = new Vector3f[nrows-1][ncols-1][2];
 		normals = new Vector3f[nrows*ncols];
 		float x, z;
 		
@@ -215,6 +231,13 @@ public class ASCTerrain extends Mesh{
         this.setStatic();
 	}
 	
+	/**
+	 * Downsample the point data using average over a neighbourhood.
+	 * @param nsize
+	 * Size of the neighbourhood to use.
+	 * @param points
+	 * Row-by-row point data.
+	 */
 	private void downsample(int nsize, ArrayList<Float> points) {
 		cellsize = cellsize * nsize;
 		int newrows = nrows / nsize;
@@ -239,14 +262,12 @@ public class ASCTerrain extends Mesh{
 		ncols = newcols;
 	}
 	
+	// Vertex normals
 	public Vector3f[] getNormals() {
 		return normals;
 	}
 	
-	public Vector3f[][][] getFaceNormals() {
-		return fnormals;
-	}
-	
+	// Vertices
 	public Vector3f[] getVertices() {
 		return vertices;
 	}
