@@ -30,7 +30,7 @@ public class ASCTerrain extends Mesh{
 	public ASCTerrain(String zfile) {
 		int count;
 		try {
-			ZipInputStream zis = new ZipInputStream(ASCTerrain.class.getResourceAsStream("/data/"+zfile));
+			ZipInputStream zis = new ZipInputStream(ASCTerrain.class.getResourceAsStream("/assets/Terrain/"+zfile));
 			ZipEntry ze = zis.getNextEntry();
 			System.out.println("Opening file: " + ze.getName());
 			byte[] asc = new byte[(int) ze.getSize()];
@@ -94,12 +94,11 @@ public class ASCTerrain extends Mesh{
 		vertices = new Vector3f[nrows*ncols];
 		texcoord = new Vector2f[nrows*ncols];
 		indexes = new int[6*(nrows-1)*(ncols-1)];
-		//faces = new Triangle[nrows - 1][ncols-1][2];
 		fnormals = new Vector3f[nrows-1][ncols-1][2];
 		normals = new Vector3f[nrows*ncols];
 		float x, z;
 		
-		System.out.println("Processing " + nrows + "x" + ncols + " terrain.");
+		System.out.println("Processing " + nrows + "x" + ncols + " terrain...");
 		
 		// First make vertices + texcoords
 		x = 0.0f;
@@ -211,6 +210,7 @@ public class ASCTerrain extends Mesh{
 		setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
 		updateBound();
         System.out.println("NE corner: " + vertices[vertices.length - 1].mult(0.006f));
+        // Hint to renderer that we don't plan on modifying the terrain.
         this.setStatic();
 	}
 	

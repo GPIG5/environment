@@ -1,4 +1,3 @@
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
@@ -15,14 +14,11 @@ import org.lwjgl.opengl.Display;
 
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.FlyCamAppState;
-import com.jme3.app.LegacyApplication;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.app.state.AppState;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.audio.AudioListenerState;
-import com.jme3.font.BitmapFont;
-import com.jme3.font.BitmapText;
 import com.jme3.input.FlyByCamera;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
@@ -32,19 +28,13 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.light.SpotLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
-import com.jme3.material.TechniqueDef.ShadowMode;
 import com.jme3.profile.AppStep;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
-import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial.CullHint;
-import com.jme3.scene.shape.Box;
-import com.jme3.shadow.DirectionalLightShadowFilter;
-import com.jme3.shadow.DirectionalLightShadowRenderer;
-import com.jme3.shadow.SpotLightShadowFilter;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext.Type;
 import com.jme3.system.JmeSystem;
@@ -99,7 +89,7 @@ public class Floods extends SimpleApplication {
 		droneCam.setFrustumPerspective(45f, 640.0f / 480.0f, 1f, 1000f);
 		droneCam.setLocation(new Vector3f(10f, 20f, 10f));
 		droneCam.lookAt(new Vector3f(10f, 0f, 10f), Vector3f.UNIT_Y);
-		droneVp = renderManager.createPreView("Default", droneCam);
+		droneVp = renderManager.createPostView("Default", droneCam);
 		droneVp.setClearFlags(true, true, true);
 		droneVp.attachScene(rootNode);
 		droneFb = new FrameBuffer(640, 480, 1);
@@ -124,7 +114,7 @@ public class Floods extends SimpleApplication {
         gtex.setWrap(WrapMode.Repeat);
         mat2.setTexture("DiffuseMap", gtex);
        
-        terrain = new Terrain(mat2);
+        terrain = new Terrain(mat2, "lidar.zip");
         rootNode.attachChild(terrain.getGeometry());
 	}
 	
@@ -134,7 +124,7 @@ public class Floods extends SimpleApplication {
 		ColorRGBA c = ColorRGBA.Blue;
 		mat.setColor("Color", new ColorRGBA(0,0,1,0.5f));   // set color of material to blue
 		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-		water = new Water(terrain, Display.getDrawable());
+		water = new Water(terrain, Display.getDrawable(), "");
 		Geometry g = new Geometry("Water", water);
         g.setMaterial(mat);
         g.setCullHint(CullHint.Never);
@@ -162,6 +152,7 @@ public class Floods extends SimpleApplication {
        cpuBuf.rewind();
        int[] data = new int[640*480];
        for (int i = 0; i < (640*480); i++) {
+    	   // Note: Framebuffer is rgba
     	   int r = 0xFF & cpuBuf.get();
     	   int g = 0xFF & cpuBuf.get();
     	   int b = 0xFF & cpuBuf.get();
@@ -169,12 +160,13 @@ public class Floods extends SimpleApplication {
     	   data[i] = (a << 24) | (r << 16) | (g << 8) | b;
        }
        bi.getRaster().setDataElements(0, 0, 640, 480, data);
+       /*
        try {
     	   ImageIO.write(bi, "png", new File("/tmp/out.png"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} */
 		super.simpleUpdate(tpf);
 	}
 
