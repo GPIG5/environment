@@ -67,8 +67,8 @@ public class DroneCam {
 			// Render
 			vp.setOutputFrameBuffer(fb);
 			root.updateGeometricState();
-			rm.setForcedTechnique(null);
 			rm.renderViewPort(vp, tpf);
+			cpubuffer.rewind();
 			// Read framebuffer
 			rend.readFrameBuffer(fb, cpubuffer);
 			// Make BufferedImage

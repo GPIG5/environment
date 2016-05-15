@@ -65,8 +65,8 @@ public class Floods extends SimpleApplication {
         dronecamera = new DroneCam(renderManager, rootNode);
         ConcurrentLinkedQueue<CamRequest> requests = dronecamera.getRequestQueue();
         requests.add(new CamRequest(10, 10));
-        requests.add(new CamRequest(60, 70));
-        requests.add(new CamRequest(0, 70));
+        requests.add(new CamRequest(30, 40));
+        requests.add(new CamRequest(10, 40));
 	}
 
 	private void makeTerrain() {
