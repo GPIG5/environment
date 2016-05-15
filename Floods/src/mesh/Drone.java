@@ -37,9 +37,12 @@ public class Drone implements Runnable {
             String encodedStr = rxData();
             JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
             uuid = jobj.get("uuid").getAsString();
-            Drone value = mesh.drones.put(uuid, this);
-            if (value != null) {
+            //as object is not locked on reads another drone may put the same UUID in just after this check
+            //but what are the chances...
+            if (mesh.drones.containsKey(uuid)) {
                 throw new IllegalStateException("Drone with uuid already exists");
+            } else {
+                mesh.drones.put(uuid, this);
             }
         } catch (Exception e) {
             e.printStackTrace();
