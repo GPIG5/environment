@@ -30,9 +30,8 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import com.jme3.util.BufferUtils;
 
-import drones.CamRequest;
-import drones.DroneCam;
 import mesh.Mesh;
+import services.DroneCam;
 import terrain.Terrain;
 import utility.ServiceInterface;
 import water.Water;
@@ -42,18 +41,16 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
-public class Floods extends SimpleApplication {
+public class Simulation extends SimpleApplication {
 	Water water;
 	Terrain terrain;
 	Geometry gter;
 	DroneCam dronecamera;
-
-	public static void main(String[] args) {
-		ServiceInterface si = new ServiceInterface();
-		// Mesh mesh = new Mesh();
-		// mesh.start();
-		Floods app = new Floods();
-		app.start();
+	ServiceInterface si;
+	
+	public void start(ServiceInterface si) {
+		this.si = si;
+		super.start();
 	}
 
 	@Override
@@ -67,39 +64,28 @@ public class Floods extends SimpleApplication {
 		flyCam.setMoveSpeed(4.0f);
 		addLights();
 		dronecamera = new DroneCam(renderManager, rootNode);
-		ConcurrentLinkedQueue<CamRequest> requests = dronecamera.getRequestQueue();
-		requests.add(new CamRequest(10, 10));
-		requests.add(new CamRequest(30, 40));
-		requests.add(new CamRequest(10, 40));
+//		ConcurrentLinkedQueue<CamRequest> requests = dronecamera.getRequestQueue();
+//		requests.add(new CamRequest(10, 10));
+//		requests.add(new CamRequest(30, 40));
+//		requests.add(new CamRequest(10, 40));
 	}
 
 	private void makeTerrain() {
-		Material mat2 = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md"); // create
-																							// a
-																							// simple
-																							// material
-
-		// mat2.setBoolean("UseMaterialColors",true); - This breaks things
+		Material mat2 = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		mat2.setColor("Diffuse", ColorRGBA.White); // minimum material color
 		mat2.setColor("Specular", ColorRGBA.LightGray); // for shininess
 		mat2.setFloat("Shininess", 32f); // [1,128] for shininess
 		Texture gtex = assetManager.loadTexture("Textures/yorktex.jpg");
 		gtex.setWrap(WrapMode.Repeat);
 		mat2.setTexture("DiffuseMap", gtex);
-
 		terrain = new Terrain(mat2, "lidar.zip");
 		rootNode.attachChild(terrain.getGeometry());
 	}
 
 	private void makeWater() {
-		Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"); // create
-																						// a
-																						// simple
-																						// material
+		Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 		ColorRGBA c = ColorRGBA.Blue;
-		mat.setColor("Color", new ColorRGBA(0, 0, 1, 0.5f)); // set color of
-																// material to
-																// blue
+		mat.setColor("Color", new ColorRGBA(0, 0, 1, 0.5f));
 		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 		water = new Water(terrain, Display.getDrawable(), "");
 		Geometry g = new Geometry("Water", water);
@@ -123,7 +109,7 @@ public class Floods extends SimpleApplication {
 	public void simpleUpdate(float tpf) {
 		water.process();
 		super.simpleUpdate(tpf);
-		dronecamera.process(tpf);
+		//dronecamera.process(tpf);
 	}
 
 }
