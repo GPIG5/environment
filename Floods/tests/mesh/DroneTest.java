@@ -92,7 +92,7 @@ public class DroneTest {
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
 
-        txData( "{\"data\": {\"location\": {\"y\": 0, \"x\": 0, \"z\": 0}, \"datatype\": \"status\", " +
+        txData( "{\"data\": {\"location\": {\"lat\": 0, \"lon\": 0, \"alt\": 0}, \"datatype\": \"status\", " +
                 "\"battery\": 1799.998011066}, \"uuid\": \"1ca1ee1e-b717-43de-9011-87df0a9d8aaf\", \"type\": " +
                 "\"direct\"}", socs.out);
 
@@ -108,11 +108,11 @@ public class DroneTest {
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
 
-        Location newLoc = new Location(50, 40, 30);
+        Location newLoc = new Location(50, 30, 50);
         String test = gson.toJson(newLoc);
 
         String toSend = "{\"type\": \"direct\", \"data\": {\"datatype\": \"status\", " +
-                "\"location\": {\"y\": 40, \"z\": 30, \"x\": 50}}}";
+                "\"location\": {\"lat\": 50, \"lon\": 30, \"alt\": 50}}}";
         txData(toSend, socs.out);
 
         //consume data
@@ -130,7 +130,7 @@ public class DroneTest {
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
 
-        txData( "{\"data\": {\"location\": {\"y\": 0, \"x\": 0, \"z\": 0}, \"datatype\": \"status\", " +
+        txData( "{\"data\": {\"location\": {\"lat\": 0, \"lon\": 0, \"alt\": 0}, \"datatype\": \"status\", " +
                 "\"battery\": 1799.998011066}, \"uuid\": \"1ca1ee1e-b717-43de-9011-87df0a9d8aaf\", \"type\": " +
                 "\"mesh\"}", socs.out);
 

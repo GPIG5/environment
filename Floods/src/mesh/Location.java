@@ -15,6 +15,21 @@ public class Location {
         this.alt = alt;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if ( !(obj instanceof Location)) {
+            return false;
+        }
+
+        Location otherObj = (Location) obj;
+
+        if (otherObj == this) {
+            return true;
+        }
+
+        return otherObj.alt == this.alt && otherObj.lon == this.lon && otherObj.lat == this.lat;
+    }
+
     public float getLat() {
         return lat;
     }

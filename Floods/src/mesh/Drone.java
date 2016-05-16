@@ -7,6 +7,8 @@ import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.google.gson.*;
 import com.jme3.math.Vector3f;
@@ -14,7 +16,7 @@ import com.jme3.math.Vector3f;
 public class Drone implements Runnable {
 
     
-    public BlockingQueue<String> dataToSend = new ArrayBlockingQueue<>(20);
+    public ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
 
     public  final static int SIZE_BYTES = 4;
     private final String uuid;
@@ -63,11 +65,10 @@ public class Drone implements Runnable {
                 }
 
                 //Check if data to send from other drones
-                while (!dataToSend.isEmpty()) {
-                    String msgToSend = dataToSend.take();
+                String msgToSend = dataToSend.poll();
+                if (msgToSend == null) {
                     txData(out, msgToSend);
                 }
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -216,10 +217,10 @@ public class Drone implements Runnable {
 
     private class PINORData {
         final String datatype = "pinor";
-        final List<Location> PINOR;
+        final List<Location> pinor;
 
         private PINORData(List<Location> PINORLocs) {
-            PINOR = PINORLocs;
+            pinor = PINORLocs;
         }
     }
 
