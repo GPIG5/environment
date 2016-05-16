@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 import com.google.gson.*;
 
@@ -22,6 +23,8 @@ public class Drone implements Runnable {
 
     public final static int SIZE_BYTES = 4;
     private final String uuid;
+    //in milliseconds
+    private final long timeOut = 2000;
 
     private Socket clientSoc;
     private BufferedInputStream in;
@@ -48,7 +51,7 @@ public class Drone implements Runnable {
                 mesh.drones.put(uuid, this);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
             closeResources();
             //rethrow back to whoever called
             throw e;
@@ -58,12 +61,16 @@ public class Drone implements Runnable {
     @Override
     public void run() {
         try {
+            long lastRx = System.nanoTime();
             //Main loop
             while (!terminate) {
                 //Check if data to receive from actual drone
                 if (in.available() > 0) {
+                    lastRx = System.nanoTime();
                     String encodedStr = rxData();
                     processRxMsg(encodedStr, out);
+                } else if ((lastRx + TimeUnit.MILLISECONDS.toNanos(timeOut)) <= System.nanoTime()) {
+                    throw new IllegalStateException("Drone timed out");
                 }
 
                 //Check if data to send from other drones
@@ -71,12 +78,9 @@ public class Drone implements Runnable {
                 if (msgToSend != null) {
                     txData(out, msgToSend);
                 }
-
-                //check if socket is dead
-
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         } finally {
             mesh.drones.remove(uuid);
             closeResources();

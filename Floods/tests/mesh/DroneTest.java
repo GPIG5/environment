@@ -134,7 +134,7 @@ public class DroneTest {
                 "\"mesh\"}", socs.out);
 
         drone.terminate();
-        droneF.get(20, TimeUnit.MILLISECONDS);
+        droneF.get(40, TimeUnit.MILLISECONDS);
 
     }
 
