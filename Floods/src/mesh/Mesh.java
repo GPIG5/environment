@@ -21,10 +21,15 @@ public class Mesh {
     public ConcurrentHashMap<String, Drone> drones = new ConcurrentHashMap<>();
 
     private final int range = 40;
+    private Server server;
+
+    public Mesh() {
+        this.server = new Server(this);
+    }
 
 
     public void start(ServiceInterface si) {
-        Executors.newSingleThreadExecutor().submit(new Server(this));
+        Executors.newSingleThreadExecutor().submit(server);
     }
 
     /**
@@ -45,6 +50,10 @@ public class Mesh {
         ServiceResponse test = new ServiceResponse(drone.getUuid(), new ArrayList<Location>(), null);
 
         return test;
+    }
+
+    public void terminate() {
+        server.terminate();
     }
 
     private boolean inRange(Location loc1, Location loc2) {
