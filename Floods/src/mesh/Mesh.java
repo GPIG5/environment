@@ -2,7 +2,12 @@ package mesh;
 
 import utility.ServiceInterface;
 import utility.Location;
+import utility.ServiceResponse;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,11 +40,11 @@ public class Mesh {
         });
     }
 
-    public List<Location> checkForPINOR(Location location) {
+    public ServiceResponse checkForPINOR(Drone drone, Location location) {
 
-        List<Location> PINORLocs = new ArrayList<>();
+        ServiceResponse test = new ServiceResponse(drone.getUuid(), new ArrayList<Location>(), null);
 
-        return PINORLocs;
+        return test;
     }
 
     private boolean inRange(Location loc1, Location loc2) {
