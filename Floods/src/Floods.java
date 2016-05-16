@@ -32,6 +32,8 @@ import com.jme3.util.BufferUtils;
 
 import drones.CamRequest;
 import drones.DroneCam;
+import mesh.Mesh;
+import services.ServiceInterface;
 import terrain.Terrain;
 import water.Water;
 
@@ -48,6 +50,9 @@ public class Floods extends SimpleApplication {
 	DroneCam dronecamera;
 
 	public static void main(String[] args) {
+		ServiceInterface si;
+//        Mesh mesh = new Mesh();
+//        mesh.start();
 		Floods app = new Floods();
 		app.start();
 	}
