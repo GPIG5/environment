@@ -2,6 +2,8 @@ package terrain;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -16,44 +18,51 @@ import com.jme3.util.BufferUtils;
 public class ASCTerrain extends Mesh{
 	int ncols, nrows;
 	float nodata, cellsize;
-	ArrayList<Float> points;
-	
 	float data[][];
-	Triangle faces[][][];
-	Vector3f fnormals[][][];
 	// Actual data
 	Vector3f normals[];
 	Vector3f vertices[];
-	Vector2f texcoord[];
-	int indexes[];
+	FloatBuffer texcoord;
+	IntBuffer indexes;
 	
+	/**
+	 * Constructs a new ASCTerrain, extends Mesh. Performs downsampling and generation of normals.
+	 * @param zfile
+	 * The zip file containing the ASC (ARC/INFO ASCII Grid) file for height map data.
+	 */
 	public ASCTerrain(String zfile) {
 		int count;
 		try {
-			ZipInputStream zis = new ZipInputStream(ASCTerrain.class.getResourceAsStream("/data/"+zfile));
+			ZipInputStream zis = new ZipInputStream(ASCTerrain.class.getResourceAsStream("/assets/Terrain/"+zfile));
 			ZipEntry ze = zis.getNextEntry();
 			System.out.println("Opening file: " + ze.getName());
 			byte[] asc = new byte[(int) ze.getSize()];
 			count = 0;
+			// Read the entire data for the file.
 			while (count < ze.getSize()) {
 				count += zis.read(asc, count, (int) (ze.getSize() - count));
 			}
-			readFile(asc);
+			process(readFile(asc));
 			zis.closeEntry();
 			zis.close();
-			process();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private void readFile(byte[] data) {
+	/**
+	 * Read and parse ASC grid data (in data).
+	 * @param data
+	 * ASC (ARC/INFO ASCII Grid) file contents.
+	 * @return
+	 * ArrayList of every point in data, row-by-row.
+	 */
+	private ArrayList<Float> readFile(byte[] data) {
 		int pStart = 0;
 		int xllcorner = -1, yllcorner = -1;
-		points =  new ArrayList<Float>();
+		ArrayList<Float> points =  new ArrayList<Float>();
 		
 		for (int pEnd = 0; pEnd < data.length; pEnd++) {
 			if (data[pEnd] == '\n' || pEnd == (data.length - 1)) {
@@ -87,19 +96,24 @@ public class ASCTerrain extends Mesh{
 				pStart = pEnd + 1;
 			}
 		}
+		return points;
 	}
 	
-	private void process() {
-		downsample(3);
+	/**
+	 * Process the points read from the ASC file into vertices, normals and edges for mesh, also generates texture coordinates.
+	 * @param points
+	 * The row-by-row points for the height map for which the mesh is to be created from.
+	 */
+	private void process(ArrayList<Float> points) {
+		downsample(3, points);
 		vertices = new Vector3f[nrows*ncols];
-		texcoord = new Vector2f[nrows*ncols];
-		indexes = new int[6*(nrows-1)*(ncols-1)];
-		//faces = new Triangle[nrows - 1][ncols-1][2];
-		fnormals = new Vector3f[nrows-1][ncols-1][2];
+		texcoord = BufferUtils.createFloatBuffer(2*nrows*ncols);
+		indexes = BufferUtils.createIntBuffer(6*(nrows-1)*(ncols-1));
+		Vector3f[][][] fnormals = new Vector3f[nrows-1][ncols-1][2];
 		normals = new Vector3f[nrows*ncols];
 		float x, z;
 		
-		System.out.println("Processing " + nrows + "x" + ncols + " terrain.");
+		System.out.println("Processing " + nrows + "x" + ncols + " terrain...");
 		
 		// First make vertices + texcoords
 		x = 0.0f;
@@ -107,7 +121,8 @@ public class ASCTerrain extends Mesh{
 			z = 0.0f;
 			for (int col = 0; col < ncols; col++) {
 				vertices[(row * ncols) + col] = new Vector3f(x, data[row][col], z);
-				texcoord[(row * ncols) + col] = new Vector2f(col/(float)ncols, row/(float)nrows);
+				texcoord.put(col/(float)ncols);
+				texcoord.put(row/(float)nrows);
 				z += cellsize;
 			}
 			x += cellsize;
@@ -118,13 +133,13 @@ public class ASCTerrain extends Mesh{
 			for (int col = 0; col < (ncols - 1); col++) {
 					int base = 6*((row*(ncols-1)) + col);
 					// Triangle 1
-					indexes[base] = (row * ncols) + col; //a
-					indexes[base+1] = (row * ncols) + col + 1; //b
-					indexes[base+2] = ((row+1) * ncols) + col; //c
+					indexes.put((row * ncols) + col); //a
+					indexes.put((row * ncols) + col + 1); //b
+					indexes.put(((row+1) * ncols) + col); //c
 					// Triangle 2
-					indexes[base+3] = ((row+1) * ncols) + col; //c
-					indexes[base+4] = (row * ncols) + col + 1; //b
-					indexes[base+5] = ((row+1) * ncols) + col + 1; //d
+					indexes.put(((row+1) * ncols) + col); //c
+					indexes.put((row * ncols) + col + 1); //b
+					indexes.put(((row+1) * ncols) + col + 1); //d
 					// Faces
 					base = (row * ncols) + col;
 					Vector3f a = vertices[base];
@@ -191,9 +206,7 @@ public class ASCTerrain extends Mesh{
 			t.addLocal(fnormals[row][ncols-2][1]);
 			t.normalizeLocal();
 			normals[(row*ncols) + (ncols-1)] = t;
-		}
-		// Do centre
-		for (int row = 1; row < (nrows - 1); row++) {
+			// Centre cols
 			for (int col = 1; col < (ncols - 1); col++) {
 				t = fnormals[row-1][col-1][0].add(fnormals[row-1][col-1][1]);
 				t.addLocal(fnormals[row-1][col][0]);
@@ -208,13 +221,23 @@ public class ASCTerrain extends Mesh{
 		}
 		System.out.println("Processing finished...");
 		setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
-		setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(texcoord));
-		setBuffer(VertexBuffer.Type.Index,    3, BufferUtils.createIntBuffer(indexes));
+		setBuffer(VertexBuffer.Type.TexCoord, 2, texcoord);
+		setBuffer(VertexBuffer.Type.Index,    3, indexes);
 		setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
 		updateBound();
+        System.out.println("NE corner: " + vertices[vertices.length - 1].mult(0.006f));
+        // Hint to renderer that we don't plan on modifying the terrain.
+        this.setStatic();
 	}
 	
-	private void downsample(int nsize) {
+	/**
+	 * Downsample the point data using average over a neighbourhood.
+	 * @param nsize
+	 * Size of the neighbourhood to use.
+	 * @param points
+	 * Row-by-row point data.
+	 */
+	private void downsample(int nsize, ArrayList<Float> points) {
 		cellsize = cellsize * nsize;
 		int newrows = nrows / nsize;
 		int newcols = ncols / nsize;
@@ -238,25 +261,14 @@ public class ASCTerrain extends Mesh{
 		ncols = newcols;
 	}
 	
+	// Vertex normals
 	public Vector3f[] getNormals() {
 		return normals;
 	}
 	
-	public Vector3f[][][] getFaceNormals() {
-		return fnormals;
-	}
-	
+	// Vertices
 	public Vector3f[] getVertices() {
 		return vertices;
-	}
-	
-	public Vector2f[] getTextureMapping() {
-		return texcoord;
-	}
-	
-	// Counter-clockwise!
-	public int[] getIndexes() {
-		return indexes;
 	}
 	
 	public int getCols() {
