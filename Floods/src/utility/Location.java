@@ -1,4 +1,4 @@
-package mesh;
+package utility;
 
 /**
  * Created by hm649 on 16/05/16.

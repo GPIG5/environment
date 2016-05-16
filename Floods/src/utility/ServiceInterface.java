@@ -1,4 +1,4 @@
-package services;
+package utility;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ServiceInterface {

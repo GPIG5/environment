@@ -1,4 +1,4 @@
-package services;
+package utility;
 
 public class ServiceResponse extends Message {
 
