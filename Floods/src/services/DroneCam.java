@@ -1,12 +1,7 @@
-package drones;
+package services;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import javax.imageio.ImageIO;
 
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
@@ -18,16 +13,14 @@ import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image.Format;
 import com.jme3.util.BufferUtils;
 
+import utility.Location;
+
 //https://github.com/Suinos/heaven-rts-jmegame/blob/d67c84fe3081c1101699b50a101ee07c7588891e/src/rts/ui/MiniView.java
 // https://github.com/cosmolev/ComoFlyer/blob/73a7f5963037e59a7400a64f8210d025f17608db/src/comoflyer/OffscreenComoFlyer.java
 
 public class DroneCam {
 	static final int width = 640;
 	static final int height = 480;
-
-	ConcurrentLinkedQueue<CamRequest> requests;
-	ConcurrentLinkedQueue<CamResult> results;
-
 	int i = 0;
 	Camera cam;
 	ViewPort vp;
@@ -38,9 +31,6 @@ public class DroneCam {
 	private final ByteBuffer cpubuffer = BufferUtils.createByteBuffer(width * height * 4);
 
 	public DroneCam(RenderManager renderman, Node root) {
-		// Setup queues
-		requests = new ConcurrentLinkedQueue<CamRequest>();
-		results = new ConcurrentLinkedQueue<CamResult>();
 		// Setup camera
 		this.root = root;
 		rm = renderman;
@@ -57,13 +47,11 @@ public class DroneCam {
 		rend = rm.getRenderer();
 	}
 
-	public void process(float tpf) {
-		// TODO actual processing.
-		CamRequest req = requests.poll();
-		if (req != null) {
+	public BufferedImage process(float tpf, Location loc) {
+		if (loc != null) {
 			// Move the camera
-			cam.setLocation(new Vector3f(req.getLatitude(), 20f, req.getLongitude()));
-			cam.lookAt(new Vector3f(req.getLatitude(), 0f, req.getLongitude()), Vector3f.UNIT_Y);
+			cam.setLocation(new Vector3f(loc.getLon(), loc.getAlt(), loc.getLat()));
+			cam.lookAt(new Vector3f(loc.getLon(), 0f, loc.getLat()), Vector3f.UNIT_Y);
 			// Render
 			vp.setOutputFrameBuffer(fb);
 			root.updateGeometricState();
@@ -84,21 +72,9 @@ public class DroneCam {
 				data[i] = (a << 24) | (r << 16) | (g << 8) | b;
 			}
 			bi.getRaster().setDataElements(0, 0, width, height, data);
-			try {
-				ImageIO.write(bi, "png", new File("/tmp/out" + (i++) + ".png"));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			return bi;
 		}
-	}
-
-	public ConcurrentLinkedQueue<CamRequest> getRequestQueue() {
-		return requests;
-	}
-
-	public ConcurrentLinkedQueue<CamResult> getResultQueue() {
-		return results;
+		return null;
 	}
 
 }
