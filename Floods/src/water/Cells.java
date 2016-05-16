@@ -24,7 +24,7 @@ public class Cells {
 	float csize2;
 	int rows;
 	int cols;
-	
+
 	public Cells(Vector3f[] vertices, int nrows, int ncols, float cellsize, float scale, String heightmap) {
 		System.out.println("Making water cells...");
 		// Some much used values.
@@ -38,20 +38,20 @@ public class Cells {
 		csize = cellsize * scale;
 		csize2 = csize * csize;
 		// Make arrays.
-		vbuffer = BufferUtils.createFloatBuffer(4*3*nr1*nc1);
-		ebuffer = BufferUtils.createIntBuffer(6*nr2*nc2);
-		terhs =  BufferUtils.createFloatBuffer(nr1*nc1);
-		heights = BufferUtils.createFloatBuffer(nr1*nc1);
+		vbuffer = BufferUtils.createFloatBuffer(4 * 3 * nr1 * nc1);
+		ebuffer = BufferUtils.createIntBuffer(6 * nr2 * nc2);
+		terhs = BufferUtils.createFloatBuffer(nr1 * nc1);
+		heights = BufferUtils.createFloatBuffer(nr1 * nc1);
 		// 4 flows and pipes per cell.
-		flows = BufferUtils.createFloatBuffer(nr1*nc1*4);
+		flows = BufferUtils.createFloatBuffer(nr1 * nc1 * 4);
 		// Load water height map + process
 		try {
 			BufferedImage img = ImageIO.read(Cells.class.getResourceAsStream("/assets/Textures/mask.png"));
 			// Make planes
 			int i = 0;
-			System.out.println("Water is : "+nr1+"x"+nc1);
+			System.out.println("Water is : " + nr1 + "x" + nc1);
 			for (int r = 0; r < nr1; r++) {
-				//System.out.println("Row: " + r);
+				// System.out.println("Row: " + r);
 				for (int c = 0; c < nc1; c++) {
 					int base = (r * ncols) + c;
 					Vector3f p0 = vertices[base].mult(scale);
@@ -89,14 +89,13 @@ public class Cells {
 						max1 = p3.y;
 					}
 					// terrain height is height of max point.
-					//points[i] = new Vector3f(p1.x, 0, p1.z);
+					// points[i] = new Vector3f(p1.x, 0, p1.z);
 					if (min0 < min1) {
 						terh = min0;
-					}
-					else {
+					} else {
 						terh = min1;
 					}
-					//points[i].y = terhs[i];
+					// points[i].y = terhs[i];
 					// Calc base vol.
 					avg = p0.add(p1);
 					avg.addLocal(p2);
@@ -107,16 +106,14 @@ public class Cells {
 					vbuffer.put(avg.z);
 					terhs.put(terh);
 					// Water heights
-					int color = img.getRGB(c, nr2-r);
+					int color = img.getRGB(c, nr2 - r);
 					if ((color & 0xFF0000) != 0) {
 						// Red - depest
 						heights.put(i, 0.07f);
-					}
-					else if ((color & 0xFF00) != 0) {
+					} else if ((color & 0xFF00) != 0) {
 						// Green
 						heights.put(i, 0.02f);
-					}
-					else if ((color & 0xFF) != 0) {
+					} else if ((color & 0xFF) != 0) {
 						heights.put(i, 0.005f);
 					}
 					i++;
@@ -133,7 +130,7 @@ public class Cells {
 				ebuffer.put(base);
 				ebuffer.put(base + 1);
 				ebuffer.put(base + nc1);
-				
+
 				ebuffer.put(base + 1);
 				ebuffer.put(base + nc1 + 1);
 				ebuffer.put(base + nc1);
@@ -142,39 +139,39 @@ public class Cells {
 		vbuffer.rewind();
 		ebuffer.rewind();
 	}
-	
+
 	public int getSize() {
 		return heights.capacity();
 	}
-	
+
 	public FloatBuffer getHeights() {
 		return heights;
 	}
-	
+
 	public FloatBuffer getFlows() {
 		return flows;
 	}
-	
+
 	public float getCsize2() {
 		return csize2;
 	}
-	
+
 	public FloatBuffer getTerHeights() {
 		return terhs;
 	}
-	
+
 	public int getRows() {
 		return rows;
 	}
-	
+
 	public int getCols() {
 		return cols;
 	}
-	
+
 	public FloatBuffer getVertices() {
 		return vbuffer;
 	}
-	
+
 	public IntBuffer getEdges() {
 		return ebuffer;
 	}

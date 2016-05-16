@@ -5,24 +5,20 @@ package mesh;
  */
 public class PINOR {
 
-    //map
+	// map
 
-    public PINOR(/*size of map*/) {
+	public PINOR(/* size of map */) {
 
-        //do some init of drowning people in given range
+		// do some init of drowning people in given range
 
-    }
+	}
 
-    public boolean checkLocation(/*coords*/) {
+	public boolean checkLocation(/* coords */) {
 
-        return Math.random() > 0.8;
-        /*
-        if (map[coord]) {
-            return  true;
-        } else {
-            return false;
-        }
-        */
-    }
+		return Math.random() > 0.8;
+		/*
+		 * if (map[coord]) { return true; } else { return false; }
+		 */
+	}
 
 }

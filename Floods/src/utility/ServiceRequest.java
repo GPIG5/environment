@@ -1,8 +1,12 @@
 package utility;
 
 public class ServiceRequest extends Message {
-	public ServiceRequest(String uuid) {
+	Location loc;
+	boolean removed;
+	
+	public ServiceRequest(String uuid, Location loc, boolean removed) {
 		super(uuid);
-		// TODO Auto-generated constructor stub
+		this.loc = loc;
+		this.removed = removed;
 	}
 }
