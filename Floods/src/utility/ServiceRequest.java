@@ -9,4 +9,12 @@ public class ServiceRequest extends Message {
 		this.loc = loc;
 		this.removed = removed;
 	}
+	
+	public Location getLocation() {
+		return loc;
+	}
+	
+	public boolean isRemoved() {
+		return removed;
+	}
 }
