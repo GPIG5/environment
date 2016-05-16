@@ -1,9 +1,8 @@
 package mesh;
 
 import com.google.gson.Gson;
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
 import org.junit.*;
+import utility.Location;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

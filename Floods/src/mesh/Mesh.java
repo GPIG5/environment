@@ -1,14 +1,10 @@
 package mesh;
 
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
-import services.ServiceInterface;
-
+import utility.ServiceInterface;
 import utility.Location;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 

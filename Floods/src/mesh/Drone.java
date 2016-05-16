@@ -5,13 +5,9 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.google.gson.*;
-import com.jme3.math.Vector3f;
 
 import utility.Location;
 
@@ -68,7 +64,7 @@ public class Drone implements Runnable {
 
                 //Check if data to send from other drones
                 String msgToSend = dataToSend.poll();
-                if (msgToSend == null) {
+                if (msgToSend != null) {
                     txData(out, msgToSend);
                 }
             }
@@ -157,7 +153,6 @@ public class Drone implements Runnable {
 
     private void setLocation(Location newLocation) {
         synchronized (location) {
-            //stupid 3D map
             location = newLocation;
         }
     }
