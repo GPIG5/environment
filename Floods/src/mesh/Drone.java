@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import com.google.gson.*;
 import com.jme3.math.Vector3f;
 
+import utility.Location;
+
 public class Drone implements Runnable {
 
     

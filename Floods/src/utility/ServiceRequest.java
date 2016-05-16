@@ -1,4 +1,4 @@
-package services;
+package utility;
 
 public class ServiceRequest extends Message {
 	public ServiceRequest(String uuid) {

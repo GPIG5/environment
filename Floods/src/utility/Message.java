@@ -1,4 +1,4 @@
-package services;
+package utility;
 
 public abstract class Message {
 	private String uuid;
