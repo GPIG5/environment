@@ -27,16 +27,16 @@ import terrain.Terrain;
 public class Water extends Mesh {
 	// The system ticks for which the last water simulation was performed.
 	long ticks_last;
-	
+
 	Cells cells;
 	Terrain terrain;
 	int size;
 	int cols;
 	int rows;
 
-	 // Has OpenCL been successfully initialised?
+	// Has OpenCL been successfully initialised?
 	boolean cl_initd = false;
-	
+
 	// OpenCL variables
 	public static CLContext context;
 	public static CLPlatform platform;
@@ -44,7 +44,7 @@ public class Water extends Mesh {
 	public static CLCommandQueue queue;
 	public static CLKernel calcFlow;
 	public static CLKernel calcHeight;
-	
+
 	// OpenCL memory pointers.
 	private static CLMem hMem;
 	private static CLMem fMem;
@@ -65,18 +65,19 @@ public class Water extends Mesh {
 	PointerBuffer sBuff;
 	// Vertex buffer
 	FloatBuffer vertBuff;
-	
+
 	// https://github.com/LWJGL/lwjgl/blob/master/src/java/org/lwjgl/test/opencl/HelloOpenCL.java
 	// https://github.com/riccardobl/JMEOpenCL
-	
+
 	/**
 	 * Water constructor, creates initial mesh.
+	 * 
 	 * @param terrain
-	 * The terrain in use for which water is to be generated for.
+	 *            The terrain in use for which water is to be generated for.
 	 * @param drawable
-	 * Drawable associated with display, for OpenCL-OpenGL interop.
+	 *            Drawable associated with display, for OpenCL-OpenGL interop.
 	 * @param heightmap
-	 * The image file containing the height map for seeding water.
+	 *            The image file containing the height map for seeding water.
 	 */
 	public Water(Terrain terrain, Drawable drawable, String heightmap) {
 		// First step is to init OpenCL context.
@@ -85,10 +86,11 @@ public class Water extends Mesh {
 			eBuff = BufferUtils.createIntBuffer(1);
 			final List<CLPlatform> platforms = CLPlatform.getPlatforms();
 			if (platforms != null) {
-				platform = CLPlatform.getPlatforms().get(0); 
+				platform = CLPlatform.getPlatforms().get(0);
 				// Run our program on the GPU
 				devices = platform.getDevices(CL10.CL_DEVICE_TYPE_GPU);
-				// Create an OpenCL context, this is where we could create an OpenCL-OpenGL compatible context
+				// Create an OpenCL context, this is where we could create an
+				// OpenCL-OpenGL compatible context
 				context = CLContext.create(platform, devices, null, drawable, eBuff);
 			}
 		} catch (LWJGLException e) {
@@ -109,24 +111,25 @@ public class Water extends Mesh {
 		setBuffer(Type.Index, 3, cells.getEdges());
 		updateBound();
 	}
-	
+
 	/**
 	 * Attempt to setup OpenCL kernels and memory for water simulation.
+	 * 
 	 * @param vid
-	 * The id of the OpenGL vertex buffer for the water mesh. Must not be -1.
-	 * @return
-	 * True if OpenCL setup was completed, false otherwise.
+	 *            The id of the OpenGL vertex buffer for the water mesh. Must
+	 *            not be -1.
+	 * @return True if OpenCL setup was completed, false otherwise.
 	 */
 	private boolean setupOpenCL(int vid) {
 		if (context != null) {
 			// Create a command queue
 			queue = CL10.clCreateCommandQueue(context, devices.get(0), CL10.CL_QUEUE_PROFILING_ENABLE, eBuff);
-			Util.checkCLError(eBuff.get(0)); 
+			Util.checkCLError(eBuff.get(0));
 			// Build the OpenCL program, store it on the specified device
 			CLProgram prog = CL10.clCreateProgramWithSource(context, loadCLProgram(), null);
 			// Each kernel will do HALF a row.
 			String args = "-cl-single-precision-constant -cl-no-signed-zeros -cl-finite-math-only";
-			args += " -DNROWS="+rows+" -DNCOLS="+cols+" -DCSIZE="+cells.getCsize2()+"f";
+			args += " -DNROWS=" + rows + " -DNCOLS=" + cols + " -DCSIZE=" + cells.getCsize2() + "f";
 			System.out.println("OpenCL build args: " + args);
 			int error = CL10.clBuildProgram(prog, devices.get(0), args, null);
 			System.out.println(prog.getBuildInfoString(devices.get(0), CL_PROGRAM_BUILD_LOG));
@@ -139,23 +142,23 @@ public class Water extends Mesh {
 			hBuff = cells.getHeights();
 			hBuff.rewind();
 			hMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_WRITE | CL10.CL_MEM_COPY_HOST_PTR, hBuff, eBuff);
-			
+
 			tBuff = cells.getTerHeights();
 			tBuff.rewind();
 			tMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_COPY_HOST_PTR, tBuff, eBuff);
-			
+
 			fBuff = cells.getFlows();
 			fBuff.rewind();
 			fMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_COPY_HOST_PTR, fBuff, eBuff);
 			// Vertex memory
 			vMem = CL10GL.clCreateFromGLBuffer(context, CL10.CL_MEM_READ_WRITE, vid, eBuff);
-			
+
 			rBuff = BufferUtils.createFloatBuffer(size);
-			
+
 			// Work size
 			sBuff = BufferUtils.createPointerBuffer(1);
 			sBuff.put(0, rows);
-			
+
 			// Args
 			calcFlow.setArg(1, hMem);
 			calcFlow.setArg(2, tMem);
@@ -168,31 +171,30 @@ public class Water extends Mesh {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Loads the OpenCL program for water simulation.
-	 * @return
-	 * The contents (source code) of the OpenCL program.
+	 * 
+	 * @return The contents (source code) of the OpenCL program.
 	 */
 	private String loadCLProgram() {
 		InputStream is = Water.class.getResourceAsStream("/water/pipes.cl");
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		StringBuilder sb = new StringBuilder();
 		try {
-		    String line = br.readLine();
-		    while (line != null) {
-		        sb.append(line);
-		        sb.append(System.lineSeparator());
-		        line = br.readLine();
-		    }
-		    br.close();
-		}
-		catch (IOException e) {
+			String line = br.readLine();
+			while (line != null) {
+				sb.append(line);
+				sb.append(System.lineSeparator());
+				line = br.readLine();
+			}
+			br.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return sb.toString();
 	}
-	
+
 	/**
 	 * Update the water simulation, using OpenCL-OpenGL interop.
 	 */
@@ -204,11 +206,10 @@ public class Water extends Mesh {
 			if (vid != NativeObject.INVALID_ID) {
 				cl_initd = setupOpenCL(vid);
 			}
-		}
-		else {
+		} else {
 			long ticks_now = System.currentTimeMillis();
 			// How much time this frame represents.
-			float t = (ticks_now - ticks_last)/1000.0f;
+			float t = (ticks_now - ticks_last) / 1000.0f;
 			ticks_last = ticks_now;
 			// Water flow calculation kernel.
 			calcFlow.setArg(0, t);
@@ -223,8 +224,9 @@ public class Water extends Mesh {
 			CL10GL.clEnqueueReleaseGLObjects(queue, vMem, null, null);
 			CL10.clFinish(queue);
 			// Read the new heights
-			//rBuff.rewind();
-			//CL10.clEnqueueReadBuffer(queue, hMem, CL10.CL_TRUE, 0, rBuff, null, null);
+			// rBuff.rewind();
+			// CL10.clEnqueueReadBuffer(queue, hMem, CL10.CL_TRUE, 0, rBuff,
+			// null, null);
 		}
 	}
 }

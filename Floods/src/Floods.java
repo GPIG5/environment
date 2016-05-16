@@ -41,7 +41,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
- 
 
 public class Floods extends SimpleApplication {
 	Water water;
@@ -51,8 +50,8 @@ public class Floods extends SimpleApplication {
 
 	public static void main(String[] args) {
 		ServiceInterface si = new ServiceInterface();
-//        Mesh mesh = new Mesh();
-//        mesh.start();
+		// Mesh mesh = new Mesh();
+		// mesh.start();
 		Floods app = new Floods();
 		app.start();
 	}
@@ -61,64 +60,70 @@ public class Floods extends SimpleApplication {
 	public void simpleInitApp() {
 		assetManager.registerLocator("assets", ClasspathLocator.class);
 		System.out.print(JmeSystem.getPlatformAssetConfigURL());
-        makeTerrain();
-        makeWater();
-        cam.setLocation(new Vector3f(0.0f, 4f, 0.0f));
-        cam.setAxes(new Quaternion(0.0f, 1.0f, 0.0f, 1.0f));
-        flyCam.setMoveSpeed(4.0f);
-        addLights();
-        dronecamera = new DroneCam(renderManager, rootNode);
-        ConcurrentLinkedQueue<CamRequest> requests = dronecamera.getRequestQueue();
-        requests.add(new CamRequest(10, 10));
-        requests.add(new CamRequest(30, 40));
-        requests.add(new CamRequest(10, 40));
+		makeTerrain();
+		makeWater();
+		cam.setLocation(new Vector3f(0.0f, 4f, 0.0f));
+		cam.setAxes(new Quaternion(0.0f, 1.0f, 0.0f, 1.0f));
+		flyCam.setMoveSpeed(4.0f);
+		addLights();
+		dronecamera = new DroneCam(renderManager, rootNode);
+		ConcurrentLinkedQueue<CamRequest> requests = dronecamera.getRequestQueue();
+		requests.add(new CamRequest(10, 10));
+		requests.add(new CamRequest(30, 40));
+		requests.add(new CamRequest(10, 40));
 	}
 
 	private void makeTerrain() {
-        Material mat2 = new Material(assetManager,
-                "Common/MatDefs/Light/Lighting.j3md");  // create a simple material
-        		
-        //mat2.setBoolean("UseMaterialColors",true);    - This breaks things
-        mat2.setColor("Diffuse",ColorRGBA.White);  // minimum material color
-        mat2.setColor("Specular",ColorRGBA.LightGray); // for shininess
-        mat2.setFloat("Shininess", 32f); // [1,128] for shininess
-        Texture gtex = assetManager.loadTexture("Textures/yorktex.jpg");
-        gtex.setWrap(WrapMode.Repeat);
-        mat2.setTexture("DiffuseMap", gtex);
-       
-        terrain = new Terrain(mat2, "lidar.zip");
-        rootNode.attachChild(terrain.getGeometry());
+		Material mat2 = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md"); // create
+																							// a
+																							// simple
+																							// material
+
+		// mat2.setBoolean("UseMaterialColors",true); - This breaks things
+		mat2.setColor("Diffuse", ColorRGBA.White); // minimum material color
+		mat2.setColor("Specular", ColorRGBA.LightGray); // for shininess
+		mat2.setFloat("Shininess", 32f); // [1,128] for shininess
+		Texture gtex = assetManager.loadTexture("Textures/yorktex.jpg");
+		gtex.setWrap(WrapMode.Repeat);
+		mat2.setTexture("DiffuseMap", gtex);
+
+		terrain = new Terrain(mat2, "lidar.zip");
+		rootNode.attachChild(terrain.getGeometry());
 	}
-	
+
 	private void makeWater() {
-		Material mat = new Material(assetManager,
-		          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
+		Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"); // create
+																						// a
+																						// simple
+																						// material
 		ColorRGBA c = ColorRGBA.Blue;
-		mat.setColor("Color", new ColorRGBA(0,0,1,0.5f));   // set color of material to blue
+		mat.setColor("Color", new ColorRGBA(0, 0, 1, 0.5f)); // set color of
+																// material to
+																// blue
 		mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 		water = new Water(terrain, Display.getDrawable(), "");
 		Geometry g = new Geometry("Water", water);
-        g.setMaterial(mat);
-        g.setCullHint(CullHint.Never);
+		g.setMaterial(mat);
+		g.setCullHint(CullHint.Never);
 		rootNode.attachChild(g);
 	}
-	
+
 	private void addLights() {
-        DirectionalLight sun = new DirectionalLight();
-        sun.setColor(ColorRGBA.Orange);
-        sun.setDirection(new Vector3f(-.5f,-.5f,-.5f).normalizeLocal());
-        rootNode.addLight(sun);
-        viewPort.setBackgroundColor(ColorRGBA.LightGray);
-        AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.White.mult(0.5f));
-        rootNode.addLight(al);
+		DirectionalLight sun = new DirectionalLight();
+		sun.setColor(ColorRGBA.Orange);
+		sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
+		rootNode.addLight(sun);
+		viewPort.setBackgroundColor(ColorRGBA.LightGray);
+		AmbientLight al = new AmbientLight();
+		al.setColor(ColorRGBA.White.mult(0.5f));
+		rootNode.addLight(al);
 	}
-	
+
 	@Override
 	public void simpleUpdate(float tpf) {
-        water.process();
-        super.simpleUpdate(tpf);
-        dronecamera.process(tpf);
+		water.process();
+		super.simpleUpdate(tpf);
+		dronecamera.process(tpf);
 	}
 
 }

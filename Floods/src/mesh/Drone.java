@@ -13,7 +13,6 @@ import utility.Location;
 
 public class Drone implements Runnable {
 
-    
     public ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
 
     public  final static int SIZE_BYTES = 4;
@@ -220,5 +219,4 @@ public class Drone implements Runnable {
             pinor = PINORLocs;
         }
     }
-
 }
