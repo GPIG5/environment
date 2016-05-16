@@ -2,6 +2,7 @@ package mesh;
 
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import services.ServiceInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public class Mesh {
     private final int range = 40;
 
 
-    public void start() {
+    public void start(ServiceInterface si) {
         Executors.newSingleThreadExecutor().submit(new Server(this));
     }
 
@@ -47,9 +48,9 @@ public class Mesh {
         return true;
         //return loc1.distance(loc2) < range;
     }
-    
+
     public static void main(String[] args) {
         Mesh mesh = new Mesh();
-        mesh.start();
+        mesh.start(new ServiceInterface());
     }
 }
