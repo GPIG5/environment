@@ -108,7 +108,7 @@ public class DroneTest {
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
 
-        Vector3f newLoc = new Vector3f(50, 40, 30);
+        Location newLoc = new Location(50, 40, 30);
         String test = gson.toJson(newLoc);
 
         String toSend = "{\"type\": \"direct\", \"data\": {\"datatype\": \"status\", " +
@@ -117,7 +117,7 @@ public class DroneTest {
 
         //consume data
         rxData(socs.in);
-        Vector3f droneLocation = drone.getLocation();
+        Location droneLocation = drone.getLocation();
 
         assertTrue(droneLocation.equals(newLoc));
         drone.terminate();

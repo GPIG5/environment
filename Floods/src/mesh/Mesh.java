@@ -37,14 +37,14 @@ public class Mesh {
         });
     }
 
-    public List<Vector3f> checkForPINOR(Vector3f location) {
+    public List<Location> checkForPINOR(Location location) {
 
-        List<Vector3f> PINORLocs = new ArrayList<>();
+        List<Location> PINORLocs = new ArrayList<>();
 
         return PINORLocs;
     }
 
-    private boolean inRange(Vector3f loc1, Vector3f loc2) {
+    private boolean inRange(Location loc1, Location loc2) {
         return true;
         //return loc1.distance(loc2) < range;
     }

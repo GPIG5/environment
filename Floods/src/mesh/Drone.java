@@ -13,8 +13,7 @@ import com.jme3.math.Vector3f;
 
 public class Drone implements Runnable {
 
-    //TODO add watchdog timer 2000
-
+    
     public BlockingQueue<String> dataToSend = new ArrayBlockingQueue<>(20);
 
     public  final static int SIZE_BYTES = 4;
@@ -24,7 +23,7 @@ public class Drone implements Runnable {
     private BufferedInputStream in;
     private BufferedOutputStream out;
     private Gson gson = new Gson();
-    private Vector3f location = new Vector3f(0, 0, 0);
+    private Location location = new Location(0, 0, 0);
     private Mesh mesh;
     private volatile boolean terminate = false;
 
@@ -106,10 +105,10 @@ public class Drone implements Runnable {
     private String processStatusMsg(String encodedStr) {
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         JsonElement locationJE = jobj.getAsJsonObject("data").get("location");
-        Vector3f newLocation = gson.fromJson(locationJE, Vector3f.class);
+        Location newLocation = gson.fromJson(locationJE, Location.class);
         setLocation(newLocation);
 
-        List<Vector3f> PINORLocs = mesh.checkForPINOR(location);
+        List<Location> PINORLocs = mesh.checkForPINOR(location);
 
         DirectPINORMessage pj = new DirectPINORMessage(PINORLocs);
 
@@ -153,14 +152,14 @@ public class Drone implements Runnable {
         out.flush();
     }
 
-    private void setLocation(Vector3f newLocation) {
+    private void setLocation(Location newLocation) {
         synchronized (location) {
             //stupid 3D map
-            location.set(newLocation);
+            location = newLocation;
         }
     }
 
-    public Vector3f getLocation() {
+    public Location getLocation() {
         synchronized (location) {
             return location;
         }
@@ -209,7 +208,7 @@ public class Drone implements Runnable {
         final String type = "direct";
         final PINORData data;
 
-        private DirectPINORMessage(List<Vector3f> PINORLocs) {
+        private DirectPINORMessage(List<Location> PINORLocs) {
             data = new PINORData(PINORLocs);
         }
 
@@ -217,9 +216,9 @@ public class Drone implements Runnable {
 
     private class PINORData {
         final String datatype = "pinor";
-        final List<Vector3f> PINOR;
+        final List<Location> PINOR;
 
-        private PINORData(List<Vector3f> PINORLocs) {
+        private PINORData(List<Location> PINORLocs) {
             PINOR = PINORLocs;
         }
     }
