@@ -1,9 +1,13 @@
 package simulation.terrain;
 
+import org.opengis.geometry.DirectPosition;
+
 import com.jme3.material.Material;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial.CullHint;
 import simulation.water.Cells;
+import utility.Location;
 
 /**
  * Wrapper class for ASCTerrain,
@@ -40,5 +44,23 @@ public class Terrain {
 
     public Geometry getGeometry() {
         return g;
+    }
+    
+    public Vector3f osgbTo3D(DirectPosition osgb, float alt) {
+        System.out.println("Xll: " + ater.getXll() + " Yll: " + ater.getYll());
+        System.out.println("osgb0: " + osgb.getOrdinate(0) + " osgb1: " + osgb.getOrdinate(1));
+        Vector3f loc =  new Vector3f(((float)osgb.getOrdinate(1) -  ater.getYll()) * scale,
+                                3*alt*scale, 
+                                ((float)osgb.getOrdinate(0) - ater.getXll())*scale);
+        System.out.println(loc);
+        return loc;
+    }
+    
+    public Location pointToLoc(Vector3f l) {
+        // Convert to OSGB
+        float invscale = 1/scale;
+        float eastings = invscale*l.x + ater.getYll();
+        float northings = invscale*l.z + ater.getXll();
+        return Location.fromOSGB(northings, eastings, invscale*(l.y/3));
     }
 }

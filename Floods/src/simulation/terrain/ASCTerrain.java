@@ -14,6 +14,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ASCTerrain extends Mesh {
+    int xll, yll;
     int ncols, nrows;
     float nodata, cellsize;
     float data[][];
@@ -60,7 +61,6 @@ public class ASCTerrain extends Mesh {
      */
     private ArrayList<Float> readFile(byte[] data) {
         int pStart = 0;
-        int xllcorner = -1, yllcorner = -1;
         ArrayList<Float> points = new ArrayList<Float>();
 
         for (int pEnd = 0; pEnd < data.length; pEnd++) {
@@ -71,9 +71,9 @@ public class ASCTerrain extends Mesh {
                 } else if (line.startsWith("nrows")) {
                     nrows = Integer.parseInt(line.substring(5).trim());
                 } else if (line.startsWith("xllcorner")) {
-                    xllcorner = (int) Float.parseFloat(line.substring(9).trim());
+                    xll = (int) Float.parseFloat(line.substring(9).trim());
                 } else if (line.startsWith("yllcorner")) {
-                    yllcorner = (int) Float.parseFloat(line.substring(9).trim());
+                    yll = (int) Float.parseFloat(line.substring(9).trim());
                 } else if (line.startsWith("cellsize")) {
                     cellsize = Float.parseFloat(line.substring(8).trim());
                 } else if (line.startsWith("NODATA_value")) {
@@ -276,5 +276,13 @@ public class ASCTerrain extends Mesh {
 
     public float getCellsize() {
         return cellsize;
+    }
+    
+    public int getXll() {
+        return xll;
+    }
+    
+    public int getYll() {
+        return yll;
     }
 }

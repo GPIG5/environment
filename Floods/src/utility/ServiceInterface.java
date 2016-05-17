@@ -1,5 +1,6 @@
 package utility;
 
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ServiceInterface {
@@ -11,11 +12,11 @@ public class ServiceInterface {
         responses = new ConcurrentLinkedQueue<ServiceResponse>();
     }
 
-    public ConcurrentLinkedQueue<ServiceRequest> getRequestQueue() {
+    public Queue<ServiceRequest> getRequestQueue() {
         return requests;
     }
 
-    public ConcurrentLinkedQueue<ServiceResponse> getResponseQueue() {
+    public Queue<ServiceResponse> getResponseQueue() {
         return responses;
     }
 }

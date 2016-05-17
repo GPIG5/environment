@@ -1,6 +1,7 @@
 package simulation;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.plugins.ClasspathLocator;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -16,15 +17,17 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 
 import java.util.List;
+import java.util.Queue;
 
 import org.lwjgl.opengl.Display;
 import simulation.terrain.Terrain;
 import simulation.water.Cells;
 import simulation.water.Pinor;
 import simulation.water.Water;
+import utility.Location;
 import utility.ServiceInterface;
-
-
+import utility.ServiceRequest;
+import utility.ServiceResponse;
 import simulation.services.DroneCam;
 import simulation.terrain.Terrain;
 import utility.ServiceInterface;
@@ -37,6 +40,9 @@ public class Simulation extends SimpleApplication {
     DroneCam dronecamera;
     ServiceInterface si;
     Cells cells;
+    Queue<ServiceRequest> requests;
+    Queue<ServiceResponse> responses;
+    int i = 0;
 
     public void start(ServiceInterface si) {
         this.si = si;
@@ -53,7 +59,9 @@ public class Simulation extends SimpleApplication {
         cam.setAxes(new Quaternion(0.0f, 1.0f, 0.0f, 1.0f));
         flyCam.setMoveSpeed(4.0f);
         addLights();
-        dronecamera = new DroneCam(renderManager, rootNode);
+        dronecamera = new DroneCam(renderManager, rootNode, terrain);
+        requests = si.getRequestQueue();
+        responses = si.getResponseQueue();
 //		ConcurrentLinkedQueue<CamRequest> requests = dronecamera.getRequestQueue();
 //		requests.add(new CamRequest(10, 10));
 //		requests.add(new CamRequest(30, 40));
@@ -80,7 +88,6 @@ public class Simulation extends SimpleApplication {
         // Pinor material
         Material pinormat =  new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         pinormat.setColor("Color", ColorRGBA.Red);
-        Box b =  new Box(0.01f, 0.1f, 0.01f);
         // make cells.
         cells =  terrain.makeCells("");
         
@@ -92,7 +99,9 @@ public class Simulation extends SimpleApplication {
         // Add Pinors from cells
         List<Pinor> pinors = cells.getPinors();
         for (Pinor p : pinors) {
-            p.setMesh(b);
+            p.setMesh( new Box(0.01f, 0.1f, 0.01f));
+            p.setModelBound(new BoundingBox());
+            p.updateModelBound();
             p.setMaterial(pinormat);
             rootNode.attachChild(p);
         }
@@ -113,7 +122,16 @@ public class Simulation extends SimpleApplication {
     public void simpleUpdate(float tpf) {
         water.process();
         super.simpleUpdate(tpf);
-        //dronecamera.process(tpf);
+        ServiceRequest req = requests.poll();
+        
+        if (req != null) {
+           responses.offer(dronecamera.process(tpf, req, cells.getPinors()));
+        }
+        i++;
+        
+        if (i == 1000) {
+            requests.offer(new ServiceRequest("XYZ", new Location(53.947117f, -1.128785f, 400), false));
+        }
     }
 
 }

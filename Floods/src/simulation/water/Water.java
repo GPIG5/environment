@@ -79,7 +79,7 @@ public class Water extends Mesh {
             if (platforms != null) {
                 platform = CLPlatform.getPlatforms().get(0);
                 // Run our program on the GPU
-                devices = platform.getDevices(CL10.CL_DEVICE_TYPE_GPU);
+                devices = platform.getDevices(CL10.CL_DEVICE_TYPE_CPU);
                 // Create an OpenCL context, this is where we could create an
                 // OpenCL-OpenGL compatible context
                 context = CLContext.create(platform, devices, null, drawable, eBuff);

@@ -29,6 +29,25 @@ public class Location {
         this.lon = lon;
         this.alt = alt;
     }
+    
+    public static Location fromOSGB(float northings, float eastings, float alt) {
+        try {
+            CRSAuthorityFactory crsfac = ReferencingFactoryFinder.getCRSAuthorityFactory("EPSG", null);
+            // 27700 is the EPSG code for OSGB36
+            CoordinateReferenceSystem osgbcrs = crsfac.createCoordinateReferenceSystem("27700");
+            // 4326 is the EPSG code for WGS84 aka Lat-Lng
+            CoordinateReferenceSystem wgs84crs = crsfac.createCoordinateReferenceSystem("4326");
+            
+            CoordinateOperation op = new DefaultCoordinateOperationFactory().createOperation(osgbcrs, wgs84crs);
+    
+            DirectPosition osgb = new GeneralDirectPosition(northings, eastings);
+            DirectPosition latLng = op.getMathTransform().transform(osgb, osgb);
+            return new Location((float)latLng.getOrdinate(0), (float)latLng.getOrdinate(1), alt);
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
 
     @Override
     public boolean equals(Object obj) {
