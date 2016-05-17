@@ -16,6 +16,7 @@ public class Main {
         mesh.start(si);
         Simulation sim = new Simulation();
         sim.start(si);
+        /*
         Location loc = new Location(54.007111f, -1.004663f, 0);
         try {
             loc.getOSGB();

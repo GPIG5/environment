@@ -1,6 +1,7 @@
 package utility;
 
 import org.geotools.geometry.GeneralDirectPosition;
+import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.ReferencingFactoryFinder;
 import org.geotools.referencing.operation.DefaultCoordinateOperationFactory;
 import org.opengis.geometry.DirectPosition;
@@ -68,8 +69,24 @@ public class Location {
         this.alt = alt;
     }
     
+    // http://stackoverflow.com/questions/25618207/what-distance-calculation-longitude-latitude-is-more-precise
+    // http://stackoverflow.com/questions/35213445/how-can-i-find-3d-distance-between-lat-lon-alt-points
+    public float distance(Location l1) {
+        GeodeticCalculator geodeticCalculator = new GeodeticCalculator();
+        geodeticCalculator.setStartingGeographicPoint(this.lon, this.lat);
+        geodeticCalculator.setDestinationGeographicPoint(l1.getLon(), l1.getLat());
+        float d = (float)geodeticCalculator.getOrthodromicDistance();
+        // Square distance
+        float d2 = d * d;
+        // Add z distance.
+        float dz = this.alt - l1.getAlt();
+        float dz2 = dz * dz;
+        d2 += dz2;
+        return (float)Math.sqrt((double)d2);
+    }
+    
     // http://stackoverflow.com/questions/4313618/convert-latitude-and-longitude-to-northing-and-easting-in-java
-    public void getOSGB() throws NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException {
+    public DirectPosition getOSGB() throws NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException {
         CRSAuthorityFactory crsfac = ReferencingFactoryFinder.getCRSAuthorityFactory("EPSG", null);
         // 27700 is the EPSG code for OSGB36
         CoordinateReferenceSystem osgbcrs = crsfac.createCoordinateReferenceSystem("27700");
@@ -80,7 +97,8 @@ public class Location {
 
         DirectPosition latLng = new GeneralDirectPosition(this.lat, this.lon);
         DirectPosition osgb = op.getMathTransform().transform(latLng, latLng);
-        System.out.println("X: " + osgb.getOrdinate(0));
-        System.out.println("Y: " + osgb.getOrdinate(1));
+//        System.out.println("X: " + osgb.getOrdinate(0));
+//        System.out.println("Y: " + osgb.getOrdinate(1));
+        return osgb;
     }
 }
