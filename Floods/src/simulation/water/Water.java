@@ -168,7 +168,7 @@ public class Water extends Mesh {
      * @return The contents (source code) of the OpenCL program.
      */
     private String loadCLProgram() {
-        InputStream is = Water.class.getResourceAsStream("/water/pipes.cl");
+        InputStream is = Water.class.getResourceAsStream("/simulation/water/pipes.cl");
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
         try {
