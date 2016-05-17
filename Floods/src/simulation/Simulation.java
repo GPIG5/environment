@@ -1,3 +1,4 @@
+package simulation;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.light.AmbientLight;
