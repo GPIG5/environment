@@ -79,23 +79,28 @@ public class DroneCam {
             cpubuffer.rewind();
             // Read framebuffer
             rend.readFrameBuffer(fb, cpubuffer);
-            // Make BufferedImage
-            BufferedImage bi = new BufferedImage(640, 480, BufferedImage.TYPE_INT_ARGB);
+            // Make BufferedImage - 3 byte BGR preferred...
+            BufferedImage bi = new BufferedImage(640, 480, BufferedImage.TYPE_3BYTE_BGR);
             cpubuffer.rewind();
-            int[] data = new int[width * height];
+            byte[] data = new byte[3*width * height];
             // buffer is X flipped and rgba.
             for (int row = 0; row < height; row++) {
                 for (int col = 0; col < width; col++) {
-                    int r = 0xFF & cpubuffer.get();
-                    int g = 0xFF & cpubuffer.get();
-                    int b = 0xFF & cpubuffer.get();
-                    int a = 0xFF & cpubuffer.get();
-                    data[(row * width) + width - col - 1] = (a << 24) | (r << 16) | (g << 8) | b;
+                    byte r = cpubuffer.get();
+                    byte g = cpubuffer.get();
+                    byte b = cpubuffer.get();
+                    // alpha
+                    cpubuffer.get();
+                    // BGR
+                    int base = 3*((row * width) + width - col -1);
+                    data[base] = r;
+                    data[base + 1] = g;
+                    data[base + 2] = b;
                 }
             }
             bi.getRaster().setDataElements(0, 0, width, height, data);
             try {
-                ImageIO.write(bi, "png", new File("/tmp/output.png"));
+                ImageIO.write(bi, "jpg", new File("/tmp/output" + req.getUuid() + "jpeg"));
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

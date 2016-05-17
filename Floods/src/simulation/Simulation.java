@@ -62,10 +62,6 @@ public class Simulation extends SimpleApplication {
         dronecamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
         responses = si.getResponseQueue();
-//		ConcurrentLinkedQueue<CamRequest> requests = dronecamera.getRequestQueue();
-//		requests.add(new CamRequest(10, 10));
-//		requests.add(new CamRequest(30, 40));
-//		requests.add(new CamRequest(10, 40));
     }
 
     private void makeTerrain() {
@@ -129,8 +125,8 @@ public class Simulation extends SimpleApplication {
         }
         i++;
         
-        if (i == 100) {
-            requests.offer(new ServiceRequest("XYZ", new Location(53.947117f, -1.128785f, 400), false));
+        if ((i % 100) == 0) {
+            requests.offer(new ServiceRequest("XYZ" + i, new Location(53.947117f, -1.128785f, 400), false));
         }
     }
 
