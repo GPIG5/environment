@@ -1,6 +1,7 @@
 package simulation.water;
 
 import com.jme3.math.Vector3f;
+
 import org.lwjgl.BufferUtils;
 
 import javax.imageio.ImageIO;
@@ -8,6 +9,9 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Processes terrain vertices into cell data required for water simulation.
@@ -22,6 +26,7 @@ public class Cells {
     float csize2;
     int rows;
     int cols;
+    ArrayList<Pinor> pinors;
 
     public Cells(Vector3f[] vertices, int nrows, int ncols, float cellsize, float scale, String heightmap) {
         System.out.println("Making water cells...");
@@ -42,6 +47,7 @@ public class Cells {
         heights = BufferUtils.createFloatBuffer(nr1 * nc1);
         // 4 flows and pipes per cell.
         flows = BufferUtils.createFloatBuffer(nr1 * nc1 * 4);
+        pinors = new ArrayList<Pinor>();
         // Load water height map + process
         try {
             BufferedImage img = ImageIO.read(Cells.class.getResourceAsStream("/assets/Textures/mask.png"));
@@ -105,8 +111,12 @@ public class Cells {
                     terhs.put(terh);
                     // Water heights - grayscale.
                     int color = img.getRGB(c, nr2 - r);
-                    // note rgb is 24 bits, so 0 - 3355.4432;
-                    //heights.put(i, (0xFF&color) * 0.0008f);
+                    float h = (0xFF & color) * 0.0008f;
+                    heights.put(i, h);
+                    // Does this cell meet pinor requirements?
+                    if ((h > 0.001f) && (h < 0.01f) && (Math.random() < 0.0005)) {
+                        pinors.add(new Pinor(new Vector3f(avg.x, terh, avg.z)));
+                    }
                     i++;
                 }
             }
@@ -165,5 +175,9 @@ public class Cells {
 
     public IntBuffer getEdges() {
         return ebuffer;
+    }
+    
+    public List<Pinor> getPinors() {
+        return this.pinors;
     }
 }

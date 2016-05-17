@@ -36,9 +36,9 @@ public class Water extends Mesh {
     private static CLMem fMem;
     private static CLMem tMem;
     private static CLMem vMem;
+    Cells cells;
     // The system ticks for which the last water simulation was performed.
     long ticks_last;
-    Cells cells;
     Terrain terrain;
     int size;
     int cols;
@@ -70,7 +70,7 @@ public class Water extends Mesh {
      * @param drawable  Drawable associated with display, for OpenCL-OpenGL interop.
      * @param heightmap The image file containing the height map for seeding water.
      */
-    public Water(Terrain terrain, Drawable drawable, String heightmap) {
+    public Water(Cells cells, Drawable drawable) {
         // First step is to init OpenCL context.
         try {
             CL.create();
@@ -89,9 +89,8 @@ public class Water extends Mesh {
             e.printStackTrace();
         }
         //
+        this.cells = cells;
         ticks_last = System.currentTimeMillis();
-        this.terrain = terrain;
-        cells = terrain.makeCells(heightmap);
         size = cells.getSize();
         cols = cells.getCols();
         rows = cells.getRows();

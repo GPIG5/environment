@@ -10,11 +10,17 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial.CullHint;
+import com.jme3.scene.shape.Box;
 import com.jme3.system.JmeSystem;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
+
+import java.util.List;
+
 import org.lwjgl.opengl.Display;
 import simulation.terrain.Terrain;
+import simulation.water.Cells;
+import simulation.water.Pinor;
 import simulation.water.Water;
 import utility.ServiceInterface;
 
@@ -30,6 +36,7 @@ public class Simulation extends SimpleApplication {
     Geometry gter;
     DroneCam dronecamera;
     ServiceInterface si;
+    Cells cells;
 
     public void start(ServiceInterface si) {
         this.si = si;
@@ -66,15 +73,29 @@ public class Simulation extends SimpleApplication {
     }
 
     private void makeWater() {
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        ColorRGBA c = ColorRGBA.Blue;
-        mat.setColor("Color", new ColorRGBA(0, 0, 1, 0.5f));
-        mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-        water = new Water(terrain, Display.getDrawable(), "");
+        // Water material
+        Material watermat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        watermat.setColor("Color", new ColorRGBA(0, 0, 1, 0.5f));
+        watermat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        // Pinor material
+        Material pinormat =  new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        pinormat.setColor("Color", ColorRGBA.Red);
+        Box b =  new Box(0.01f, 0.1f, 0.01f);
+        // make cells.
+        cells =  terrain.makeCells("");
+        
+        water = new Water(cells, Display.getDrawable());
         Geometry g = new Geometry("Water", water);
-        g.setMaterial(mat);
+        g.setMaterial(watermat);
         g.setCullHint(CullHint.Never);
         rootNode.attachChild(g);
+        // Add Pinors from cells
+        List<Pinor> pinors = cells.getPinors();
+        for (Pinor p : pinors) {
+            p.setMesh(b);
+            p.setMaterial(pinormat);
+            rootNode.attachChild(p);
+        }
     }
 
     private void addLights() {
