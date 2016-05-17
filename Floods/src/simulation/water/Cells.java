@@ -103,17 +103,10 @@ public class Cells {
                     vbuffer.put(terh);
                     vbuffer.put(avg.z);
                     terhs.put(terh);
-                    // Water heights
+                    // Water heights - grayscale.
                     int color = img.getRGB(c, nr2 - r);
-                    if ((color & 0xFF0000) != 0) {
-                        // Red - depest
-                        heights.put(i, 0.07f);
-                    } else if ((color & 0xFF00) != 0) {
-                        // Green
-                        heights.put(i, 0.02f);
-                    } else if ((color & 0xFF) != 0) {
-                        heights.put(i, 0.005f);
-                    }
+                    // note rgb is 24 bits, so 0 - 3355.4432;
+                    //heights.put(i, (0xFF&color) * 0.0008f);
                     i++;
                 }
             }
