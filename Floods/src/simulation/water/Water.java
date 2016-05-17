@@ -1,8 +1,10 @@
-package water;
+package simulation.water;
 
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.util.NativeObject;
+
+import simulation.terrain.Terrain;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
@@ -19,7 +21,6 @@ import java.nio.IntBuffer;
 
 import java.util.List;
 import static org.lwjgl.opencl.CL10.*;
-import terrain.Terrain;
 
 /**
  * Class for water simulation using OpenCL-OpenGL interop.

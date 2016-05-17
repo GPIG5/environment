@@ -1,10 +1,10 @@
-package terrain;
+package simulation.terrain;
 
 import com.jme3.material.Material;
-
-import water.Cells;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial.CullHint;
+
+import simulation.water.Cells;
 
 /**
  * Wrapper class for ASCTerrain,

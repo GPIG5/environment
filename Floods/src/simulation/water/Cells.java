@@ -1,4 +1,4 @@
-package water;
+package simulation.water;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package terrain;
+package simulation.terrain;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
