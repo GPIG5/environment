@@ -1,4 +1,4 @@
-package mesh;
+package comms;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -12,12 +12,12 @@ import java.util.concurrent.Executors;
 public class DroneServer implements Runnable {
 
     private final int PORT = 5555;
-    ServerSocket serverSoc;
+    private ServerSocket serverSoc;
     private volatile boolean terminate = false;
-    private Mesh mesh;
+    private MeshServer mesh;
     private ExecutorService threadPool = Executors.newCachedThreadPool();
 
-    public DroneServer(Mesh mesh) {
+    public DroneServer(MeshServer mesh) {
         this.mesh = mesh;
     }
 
@@ -26,19 +26,27 @@ public class DroneServer implements Runnable {
 
         try {
             serverSoc = new ServerSocket(PORT);
+            // Drone takes care of closing clientSoc
             while (!terminate) {
-                // Drone takes care of closing clientSoc
+                Socket clientSoc = null;
                 try {
-                    Socket clientSoc = serverSoc.accept();
+                    clientSoc = serverSoc.accept();
                     System.out.println("new drone connected");
                     Drone drone = new Drone(clientSoc, mesh);
                     threadPool.submit(drone);
                 } catch (Exception e) {
-                    // Don't do anything when an individual socket or drone
-                    // fails
+                    //if the thread did not start clientSoc will not be closed
+                    if (clientSoc != null && !clientSoc.isClosed()) {
+                        try {
+                            clientSoc.close();
+                        } catch (IOException e2) {
+                            //do nothing as want server to continue
+                        }
+                    }
                 }
             }
         } catch (IOException e) {
+            //We care about the server socket not working
             e.printStackTrace();
         } finally {
             try {

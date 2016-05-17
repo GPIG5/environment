@@ -14,9 +14,10 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import org.lwjgl.opengl.Display;
 import services.DroneCam;
-import terrain.Terrain;
+import simulation.terrain.Terrain;
+import simulation.water.Water;
 import utility.ServiceInterface;
-import water.Water;
+
 
 public class Simulation extends SimpleApplication {
     Water water;

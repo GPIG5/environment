@@ -1,4 +1,4 @@
-package mesh;
+package comms;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -6,8 +6,6 @@ import com.google.gson.JsonObject;
 import utility.Location;
 import utility.ServiceResponse;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
@@ -17,55 +15,41 @@ import java.util.concurrent.TimeUnit;
 
 public class Drone implements Runnable {
 
-    public final static int SIZE_BYTES = 4;
-    private final String uuid;
-    //in milliseconds
-    private final long timeOut = 2000;
-    //todo add timer
     public ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
-    private Socket clientSoc;
-    private BufferedInputStream in;
-    private BufferedOutputStream out;
+
+    //in milliseconds
+    //todo add to config file
+    private final long timeOut = 2000;
+
+    private Socket socket;
+    private String uuid;
     private Gson gson = new Gson();
     private Location location = new Location(0, 0, 0);
-    private Mesh mesh;
+    private MeshServer mesh;
     private volatile boolean terminate = false;
 
-    public Drone(Socket clientSoc, Mesh mesh) throws IOException {
-        this.clientSoc = clientSoc;
+    public Drone(Socket clientSoc, MeshServer mesh) {
+        this.socket = clientSoc;
         this.mesh = mesh;
-        try {
-            in = new BufferedInputStream(clientSoc.getInputStream());
-            out = new BufferedOutputStream(clientSoc.getOutputStream());
-            String encodedStr = rxData();
-            JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
-            uuid = jobj.get("uuid").getAsString();
-            //as object is not locked on reads another drone may put the same UUID in just after this check
-            //but what are the chances...
-            if (mesh.drones.containsKey(uuid)) {
-                throw new IllegalStateException("Drone with uuid already exists");
-            } else {
-                mesh.drones.put(uuid, this);
-            }
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            closeResources();
-            //rethrow back to whoever called
-            throw e;
-        }
     }
 
     @Override
     public void run() {
-        try {
+        try (SocCom soc = new SocCom(socket)) {
+            String encodedStr = soc.rxData();
+            parseAndSetUuid(encodedStr);
             long lastRx = System.nanoTime();
+
             //Main loop
             while (!terminate) {
                 //Check if data to receive from actual drone
-                if (in.available() > 0) {
+                if (soc.available() > 0) {
                     lastRx = System.nanoTime();
-                    String encodedStr = rxData();
-                    processRxMsg(encodedStr, out);
+                    encodedStr = soc.rxData();
+                    String toSend = processRxMsg(encodedStr);
+                    if (toSend != null) {
+                        soc.txData(toSend);
+                    }
                 } else if ((lastRx + TimeUnit.MILLISECONDS.toNanos(timeOut)) <= System.nanoTime()) {
                     throw new IllegalStateException("Drone timed out");
                 }
@@ -73,19 +57,29 @@ public class Drone implements Runnable {
                 //Check if data to send from other drones
                 String msgToSend = dataToSend.poll();
                 if (msgToSend != null) {
-                    txData(out, msgToSend);
+                    soc.txData(msgToSend);
                 }
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
         } finally {
             mesh.drones.remove(uuid);
-            closeResources();
             System.out.println("Drone disconnected");
         }
     }
 
-    private void processRxMsg(String encodedStr, BufferedOutputStream out) throws IOException {
+    private void parseAndSetUuid(String encodedStr) {
+        //Get uuid
+        JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
+        uuid = jobj.get("uuid").getAsString();
+        if (mesh.drones.containsKey(uuid)) {
+            throw new IllegalStateException("Drone with uuid already exists");
+        } else {
+            mesh.drones.put(uuid, this);
+        }
+    }
+
+    private String processRxMsg(String encodedStr) throws IOException {
 
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         String type = jobj.get("type").getAsString();
@@ -93,14 +87,13 @@ public class Drone implements Runnable {
         switch (type) {
             case "mesh":
                 mesh.messageGlobal(this, encodedStr);
-                return;
+                return null;
             case "direct":
                 String dataType = jobj.getAsJsonObject("data").get("datatype").getAsString();
                 switch (dataType) {
                     case "status":
                         String toSend = processStatusMsg(encodedStr);
-                        txData(out, toSend);
-                        return;
+                        return toSend;
                     default:
                         throw new IOException("Received unspecified datatype in JSON " + dataType);
                 }
@@ -122,42 +115,6 @@ public class Drone implements Runnable {
         return gson.toJson(pj);
     }
 
-    private String rxData() throws IOException {
-        int size = 0;
-        byte[] sizeBuf = new byte[SIZE_BYTES];
-        int bytesRead = in.read(sizeBuf, 0, SIZE_BYTES);
-
-        if (bytesRead != SIZE_BYTES) {
-            throw new IOException("Did not read the correct amount of size bytes");
-        }
-        for (int i = 0; i != SIZE_BYTES; ++i) {
-            size |= (Byte.toUnsignedInt(sizeBuf[i]) << 8 * (SIZE_BYTES - i - 1));
-        }
-
-        if (size <= 0) {
-            throw new IllegalStateException("message length was zero or below");
-        }
-
-        byte[] msgBuf = new byte[size];
-        bytesRead = in.read(msgBuf, 0, size);
-        if (bytesRead != size) {
-            throw new IOException("Did not read the correct amount of message bytes");
-        }
-
-        return new String(msgBuf, "UTF-8");
-    }
-
-    private void txData(BufferedOutputStream out, String toSend) throws IOException {
-        byte[] strBytes = toSend.getBytes("UTF-8");
-        int size = strBytes.length;
-
-        for (int i = 0; i != SIZE_BYTES; ++i) {
-            out.write(size >>> 8 * (SIZE_BYTES - i - 1));
-        }
-
-        out.write(strBytes, 0, size);
-        out.flush();
-    }
 
     public Location getLocation() {
         synchronized (location) {
@@ -168,36 +125,6 @@ public class Drone implements Runnable {
     private void setLocation(Location newLocation) {
         synchronized (location) {
             location = newLocation;
-        }
-    }
-
-    void closeResources() {
-        //The internet tells me the order is important
-        if (out != null) {
-            try {
-                out.close();
-            } catch (IOException e) {
-                System.err.println("Could not close output stream");
-                e.printStackTrace();
-            }
-        }
-
-        if (in != null) {
-            try {
-                in.close();
-            } catch (IOException e) {
-                System.err.println("Could not close input stream");
-                e.printStackTrace();
-            }
-        }
-
-        if (clientSoc != null && !clientSoc.isClosed()) {
-            try {
-                clientSoc.close();
-            } catch (IOException e) {
-                System.err.println("Could not close client socket");
-                e.printStackTrace();
-            }
         }
     }
 
