@@ -1,7 +1,9 @@
 package mesh;
 
 import com.google.gson.Gson;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import utility.Location;
 
 import java.io.BufferedInputStream;
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by hm649 on 11/05/16.
@@ -91,7 +93,7 @@ public class DroneTest {
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
 
-        txData( "{\"data\": {\"location\": {\"lat\": 0, \"lon\": 0, \"alt\": 0}, \"datatype\": \"status\", " +
+        txData("{\"data\": {\"location\": {\"lat\": 0, \"lon\": 0, \"alt\": 0}, \"datatype\": \"status\", " +
                 "\"battery\": 1799.998011066}, \"uuid\": \"1ca1ee1e-b717-43de-9011-87df0a9d8aaf\", \"type\": " +
                 "\"direct\"}", socs.out);
 
@@ -129,7 +131,7 @@ public class DroneTest {
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
 
-        txData( "{\"data\": {\"location\": {\"lat\": 0, \"lon\": 0, \"alt\": 0}, \"datatype\": \"status\", " +
+        txData("{\"data\": {\"location\": {\"lat\": 0, \"lon\": 0, \"alt\": 0}, \"datatype\": \"status\", " +
                 "\"battery\": 1799.998011066}, \"uuid\": \"1ca1ee1e-b717-43de-9011-87df0a9d8aaf\", \"type\": " +
                 "\"mesh\"}", socs.out);
 
@@ -153,7 +155,7 @@ public class DroneTest {
     private DroneSockets createSockets() throws Exception {
         crappySignal = false;
         Future<Socket> futureSoc = Executors.newSingleThreadExecutor().submit(new DummyServer());
-        while (!crappySignal);
+        while (!crappySignal) ;
         Socket clientSoc = new Socket("127.0.0.1", PORT);
         BufferedOutputStream out = new BufferedOutputStream(clientSoc.getOutputStream());
         BufferedInputStream in = new BufferedInputStream(clientSoc.getInputStream());

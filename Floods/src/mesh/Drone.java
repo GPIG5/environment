@@ -1,31 +1,28 @@
 package mesh;
 
-import java.awt.image.BufferedImage;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import utility.Location;
+import utility.ServiceResponse;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.google.gson.*;
-
-import utility.Location;
-import utility.ServiceResponse;
-
 public class Drone implements Runnable {
-
-    //todo add timer
-    public ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
 
     public final static int SIZE_BYTES = 4;
     private final String uuid;
     //in milliseconds
     private final long timeOut = 2000;
-
+    //todo add timer
+    public ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
     private Socket clientSoc;
     private BufferedInputStream in;
     private BufferedOutputStream out;
@@ -162,15 +159,15 @@ public class Drone implements Runnable {
         out.flush();
     }
 
-    private void setLocation(Location newLocation) {
-        synchronized (location) {
-            location = newLocation;
-        }
-    }
-
     public Location getLocation() {
         synchronized (location) {
             return location;
+        }
+    }
+
+    private void setLocation(Location newLocation) {
+        synchronized (location) {
+            location = newLocation;
         }
     }
 

@@ -1,15 +1,10 @@
 package mesh;
 
-import utility.ServiceInterface;
 import utility.Location;
+import utility.ServiceInterface;
 import utility.ServiceResponse;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
@@ -18,27 +13,31 @@ import java.util.concurrent.Executors;
  */
 public class Mesh {
 
-    public ConcurrentHashMap<String, Drone> drones = new ConcurrentHashMap<>();
-
     private final int range = 40;
-    private Server server;
+    public ConcurrentHashMap<String, Drone> drones = new ConcurrentHashMap<>();
+    private DroneServer droneServer;
 
     public Mesh() {
-        this.server = new Server(this);
+        this.droneServer = new DroneServer(this);
     }
 
+    public static void main(String[] args) {
+        Mesh mesh = new Mesh();
+        mesh.start(new ServiceInterface());
+    }
 
     public void start(ServiceInterface si) {
-        Executors.newSingleThreadExecutor().submit(server);
+        Executors.newSingleThreadExecutor().submit(droneServer);
     }
 
     /**
      * Send a message to all drones in range of tx. If tx is null send to all drones.
+     *
      * @param tx  - null if *every* drone is to be messaged
-     * @param msg   - the message
+     * @param msg - the message
      */
     public void messageGlobal(Drone tx, String msg) {
-        drones.forEach( (k,v) -> {
+        drones.forEach((k, v) -> {
             if (tx != null && k != tx.getUuid() && inRange(v.getLocation(), tx.getLocation())) {
                 v.dataToSend.add(msg);
             }
@@ -53,16 +52,11 @@ public class Mesh {
     }
 
     public void terminate() {
-        server.terminate();
+        droneServer.terminate();
     }
 
     private boolean inRange(Location loc1, Location loc2) {
         return true;
         //return loc1.distance(loc2) < range;
-    }
-
-    public static void main(String[] args) {
-        Mesh mesh = new Mesh();
-        mesh.start(new ServiceInterface());
     }
 }
