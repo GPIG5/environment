@@ -129,7 +129,7 @@ public class Simulation extends SimpleApplication {
         }
         i++;
         
-        if (i == 1000) {
+        if (i == 100) {
             requests.offer(new ServiceRequest("XYZ", new Location(53.947117f, -1.128785f, 400), false));
         }
     }

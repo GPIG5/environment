@@ -1,5 +1,7 @@
 package simulation.services;
 
+import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
@@ -36,6 +38,7 @@ import org.opengis.referencing.operation.TransformException;
 public class DroneCam {
     static final int width = 640;
     static final int height = 480;
+    static final Vector3f up = new Vector3f(-1, 0, 0);
     private final ByteBuffer cpubuffer = BufferUtils.createByteBuffer(width * height * 4);
     int i = 0;
     Camera cam;
@@ -53,8 +56,7 @@ public class DroneCam {
         terrain = t;
         cam = new Camera(width, height);
         cam.setFrustumPerspective(45f, (float) width / (float) height, 1f, 1000f);
-        cam.setLocation(new Vector3f(0f, 20f, 0f));
-        cam.lookAt(new Vector3f(0f, 0f, 0f), Vector3f.UNIT_Y);
+        //cam.setRotation(new Quaternion().fromAngleNormalAxis(FastMath.PI, Vector3f.UNIT_X));
         vp = new ViewPort("Drone View", cam);
         vp.setClearFlags(true, true, true);
         vp.attachScene(root);
@@ -71,7 +73,7 @@ public class DroneCam {
             try {
                 Vector3f pos = terrain.osgbTo3D(loc.getOSGB(), loc.getAlt());
                 cam.setLocation(pos);
-                cam.lookAt(new Vector3f(pos.x, 0f, pos.z), Vector3f.UNIT_Y);
+                cam.lookAt(new Vector3f(pos.x, 0f, pos.z), up);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Location conversion failed in DroneCam");
@@ -87,13 +89,15 @@ public class DroneCam {
             BufferedImage bi = new BufferedImage(640, 480, BufferedImage.TYPE_INT_ARGB);
             cpubuffer.rewind();
             int[] data = new int[width * height];
-            for (int i = 0; i < data.length; i++) {
-                // Note: Framebuffer is rgba
-                int r = 0xFF & cpubuffer.get();
-                int g = 0xFF & cpubuffer.get();
-                int b = 0xFF & cpubuffer.get();
-                int a = 0xFF & cpubuffer.get();
-                data[i] = (a << 24) | (r << 16) | (g << 8) | b;
+            // buffer is X flipped and rgba.
+            for (int row = 0; row < height; row++) {
+                for (int col = 0; col < width; col++) {
+                    int r = 0xFF & cpubuffer.get();
+                    int g = 0xFF & cpubuffer.get();
+                    int b = 0xFF & cpubuffer.get();
+                    int a = 0xFF & cpubuffer.get();
+                    data[(row * width) + width - col - 1] = (a << 24) | (r << 16) | (g << 8) | b;
+                }
             }
             bi.getRaster().setDataElements(0, 0, width, height, data);
             try {
