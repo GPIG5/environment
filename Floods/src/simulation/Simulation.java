@@ -1,3 +1,4 @@
+package simulation;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.light.AmbientLight;
@@ -13,11 +14,15 @@ import com.jme3.system.JmeSystem;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import org.lwjgl.opengl.Display;
-import services.DroneCam;
 import simulation.terrain.Terrain;
 import simulation.water.Water;
 import utility.ServiceInterface;
 
+
+import simulation.services.DroneCam;
+import simulation.terrain.Terrain;
+import utility.ServiceInterface;
+import simulation.water.Water;
 
 public class Simulation extends SimpleApplication {
     Water water;
