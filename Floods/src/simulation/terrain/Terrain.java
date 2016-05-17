@@ -47,7 +47,6 @@ public class Terrain {
     }
     
     public Vector3f osgbTo3D(DirectPosition osgb, float alt) {
-        System.out.println("Xll: " + ater.getXll() + " Yll: " + ater.getYll());
         System.out.println("osgb0: " + osgb.getOrdinate(0) + " osgb1: " + osgb.getOrdinate(1));
         Vector3f loc =  new Vector3f(((float)osgb.getOrdinate(1) -  ater.getYll()) * scale,
                                 3*alt*scale, 

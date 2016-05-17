@@ -27,11 +27,6 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.operation.TransformException;
-
 //https://github.com/Suinos/heaven-rts-jmegame/blob/d67c84fe3081c1101699b50a101ee07c7588891e/src/rts/ui/MiniView.java
 // https://github.com/cosmolev/ComoFlyer/blob/73a7f5963037e59a7400a64f8210d025f17608db/src/comoflyer/OffscreenComoFlyer.java
 
@@ -56,7 +51,6 @@ public class DroneCam {
         terrain = t;
         cam = new Camera(width, height);
         cam.setFrustumPerspective(45f, (float) width / (float) height, 1f, 1000f);
-        //cam.setRotation(new Quaternion().fromAngleNormalAxis(FastMath.PI, Vector3f.UNIT_X));
         vp = new ViewPort("Drone View", cam);
         vp.setClearFlags(true, true, true);
         vp.attachScene(root);
@@ -107,8 +101,7 @@ public class DroneCam {
                 e.printStackTrace();
             }
             ArrayList<Location> locs = new ArrayList<Location>(); 
-            // Look over the Pinors
-            System.out.println(pinors.size() + " pinors total");
+            // Detect pinors
             for (Pinor p : pinors) {
                 int state = cam.getPlaneState();
                 cam.setPlaneState(0);
