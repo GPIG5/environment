@@ -4,6 +4,7 @@ import utility.Location;
 import utility.ServiceInterface;
 import utility.ServiceResponse;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -44,7 +45,11 @@ public class MeshServer {
 
         //Send to C2 Server if in range
         if (tx != null && inRange(c2Server.getLocation(), tx.getLocation())) {
-            c2Server.txData(msg);
+            try {
+                c2Server.txData(msg);
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
         }
     }
 
