@@ -82,7 +82,7 @@ public class DroneCam {
             // Make BufferedImage - 3 byte BGR preferred...
             BufferedImage bi = new BufferedImage(640, 480, BufferedImage.TYPE_3BYTE_BGR);
             cpubuffer.rewind();
-            byte[] data = new byte[3*width * height];
+            byte[] data = new byte[3 * width * height];
             // buffer is X flipped and rgba.
             for (int row = 0; row < height; row++) {
                 for (int col = 0; col < width; col++) {
@@ -92,7 +92,7 @@ public class DroneCam {
                     // alpha
                     cpubuffer.get();
                     // BGR
-                    int base = 3*((row * width) + width - col -1);
+                    int base = 3 * ((row * width) + width - col - 1);
                     data[base] = r;
                     data[base + 1] = g;
                     data[base + 2] = b;
@@ -105,7 +105,7 @@ public class DroneCam {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            ArrayList<Location> locs = new ArrayList<Location>(); 
+            ArrayList<Location> locs = new ArrayList<Location>();
             // Detect pinors
             for (Pinor p : pinors) {
                 int state = cam.getPlaneState();

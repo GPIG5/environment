@@ -25,7 +25,17 @@ public class C2Server implements Runnable {
         this.location = location;
     }
 
-    public void txData(String toSend) throws IOException{
+    public static void main(String[] args) throws Exception {
+
+        MeshServer mesh = new MeshServer();
+        C2Server c2 = new C2Server(mesh, new Location(0, 0, 0));
+        c2.txData("\"{\"data\": \"test\"}");
+
+//        Executors.newSingleThreadExecutor().submit(c2);
+
+    }
+
+    public void txData(String toSend) throws IOException {
         //TODO config file
         URL url = new URL("http://144.32.178.58:8000/c2gui/send_drone_data");
         URLConnection con = url.openConnection();
@@ -49,7 +59,7 @@ public class C2Server implements Runnable {
         try {
             serverSoc = new ServerSocket(PORT);
             while (!terminate) {
-                try (SocCom soc = new SocCom(serverSoc.accept())){
+                try (SocCom soc = new SocCom(serverSoc.accept())) {
                     System.out.println("C2 connected");
                     String encodedStr = soc.rxData();
                     mesh.messageGlobal(null, encodedStr);
@@ -82,15 +92,5 @@ public class C2Server implements Runnable {
 
     public Location getLocation() {
         return location;
-    }
-
-    public static void main(String[] args) throws Exception {
-
-        MeshServer mesh = new MeshServer();
-        C2Server c2 = new C2Server(mesh, new Location(0,0,0));
-        c2.txData("\"{\"data\": \"test\"}");
-
-//        Executors.newSingleThreadExecutor().submit(c2);
-
     }
 }

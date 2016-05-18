@@ -60,13 +60,13 @@ public class DroneTest {
         DroneSockets socs1 = createSockets();
         Drone drone1 = connectDrone(socs1);
         Future<?> droneF = droneThreadPool.submit(drone1);
-        while (mesh.drones.isEmpty());
+        while (mesh.drones.isEmpty()) ;
         assertTrue(drone1.getUuid().equals("4c9c12ed-947a-4fcf-8c3a-c82214234600"));
 
         DroneSockets socs2 = createSockets();
         Drone drone2 = connectDrone(socs2);
         Future<?> droneF2 = droneThreadPool.submit(drone2);
-        while (mesh.drones.size() == 1);
+        while (mesh.drones.size() == 1) ;
         assertTrue(drone2.getUuid().equals("4c9c12ed-947a-4fcf-8c3a-c82214234601"));
 
         drone1.terminate();
@@ -151,7 +151,7 @@ public class DroneTest {
         return new DroneSockets(droneSoc, socs);
     }
 
-//    private String rxData(BufferedInputStream in) throws Exception {
+    //    private String rxData(BufferedInputStream in) throws Exception {
 //        int size = 0;
 //        byte[] sizeBuf = new byte[SIZE_BYTES];
 //        in.read(sizeBuf, 0, SIZE_BYTES);

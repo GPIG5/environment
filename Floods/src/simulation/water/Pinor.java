@@ -12,12 +12,12 @@ public class Pinor extends Geometry {
         this.move(loc);
         this.setCullHint(CullHint.Dynamic);
     }
-    
+
     public boolean isVisible(Camera c) {
         BoundingVolume bv = this.getWorldBound();
         int state = bv.getCheckPlane();
         bv.setCheckPlane(0);
-        FrustumIntersect fi =  c.contains(bv);
+        FrustumIntersect fi = c.contains(bv);
         bv.setCheckPlane(state);
         return fi != FrustumIntersect.Outside;
     }

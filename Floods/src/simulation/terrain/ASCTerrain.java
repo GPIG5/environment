@@ -277,11 +277,11 @@ public class ASCTerrain extends Mesh {
     public float getCellsize() {
         return cellsize;
     }
-    
+
     public int getXll() {
         return xll;
     }
-    
+
     public int getYll() {
         return yll;
     }

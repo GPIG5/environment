@@ -1,4 +1,5 @@
 package simulation;
+
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.plugins.ClasspathLocator;
 import com.jme3.bounding.BoundingBox;
@@ -82,11 +83,11 @@ public class Simulation extends SimpleApplication {
         watermat.setColor("Color", new ColorRGBA(0, 0, 1, 0.5f));
         watermat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
         // Pinor material
-        Material pinormat =  new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Material pinormat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         pinormat.setColor("Color", ColorRGBA.Red);
         // make cells.
-        cells =  terrain.makeCells("");
-        
+        cells = terrain.makeCells("");
+
         water = new Water(cells, Display.getDrawable());
         Geometry g = new Geometry("Water", water);
         g.setMaterial(watermat);
@@ -95,7 +96,7 @@ public class Simulation extends SimpleApplication {
         // Add Pinors from cells
         List<Pinor> pinors = cells.getPinors();
         for (Pinor p : pinors) {
-            p.setMesh( new Box(0.01f, 0.1f, 0.01f));
+            p.setMesh(new Box(0.01f, 0.1f, 0.01f));
             p.setModelBound(new BoundingBox());
             p.updateModelBound();
             p.setMaterial(pinormat);
@@ -119,12 +120,12 @@ public class Simulation extends SimpleApplication {
         water.process();
         super.simpleUpdate(tpf);
         ServiceRequest req = requests.poll();
-        
+
         if (req != null) {
-           responses.offer(dronecamera.process(tpf, req, cells.getPinors()));
+            responses.offer(dronecamera.process(tpf, req, cells.getPinors()));
         }
         i++;
-        
+
         if ((i % 100) == 0) {
             requests.offer(new ServiceRequest("XYZ" + i, new Location(53.947117f, -1.128785f, 400), false));
         }

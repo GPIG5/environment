@@ -29,7 +29,7 @@ public class Location {
         this.lon = lon;
         this.alt = alt;
     }
-    
+
     public static Location fromOSGB(float northings, float eastings, float alt) {
         try {
             CRSAuthorityFactory crsfac = ReferencingFactoryFinder.getCRSAuthorityFactory("EPSG", null);
@@ -37,14 +37,13 @@ public class Location {
             CoordinateReferenceSystem osgbcrs = crsfac.createCoordinateReferenceSystem("27700");
             // 4326 is the EPSG code for WGS84 aka Lat-Lng
             CoordinateReferenceSystem wgs84crs = crsfac.createCoordinateReferenceSystem("4326");
-            
+
             CoordinateOperation op = new DefaultCoordinateOperationFactory().createOperation(osgbcrs, wgs84crs);
-    
+
             DirectPosition osgb = new GeneralDirectPosition(northings, eastings);
             DirectPosition latLng = op.getMathTransform().transform(osgb, osgb);
-            return new Location((float)latLng.getOrdinate(0), (float)latLng.getOrdinate(1), alt);
-        }
-        catch (Exception e) {
+            return new Location((float) latLng.getOrdinate(0), (float) latLng.getOrdinate(1), alt);
+        } catch (Exception e) {
             return null;
         }
     }
@@ -87,23 +86,23 @@ public class Location {
     public void setAlt(float alt) {
         this.alt = alt;
     }
-    
+
     // http://stackoverflow.com/questions/25618207/what-distance-calculation-longitude-latitude-is-more-precise
     // http://stackoverflow.com/questions/35213445/how-can-i-find-3d-distance-between-lat-lon-alt-points
     public float distance(Location l1) {
         GeodeticCalculator geodeticCalculator = new GeodeticCalculator();
         geodeticCalculator.setStartingGeographicPoint(this.lon, this.lat);
         geodeticCalculator.setDestinationGeographicPoint(l1.getLon(), l1.getLat());
-        float d = (float)geodeticCalculator.getOrthodromicDistance();
+        float d = (float) geodeticCalculator.getOrthodromicDistance();
         // Square distance
         float d2 = d * d;
         // Add z distance.
         float dz = this.alt - l1.getAlt();
         float dz2 = dz * dz;
         d2 += dz2;
-        return (float)Math.sqrt((double)d2);
+        return (float) Math.sqrt((double) d2);
     }
-    
+
     // http://stackoverflow.com/questions/4313618/convert-latitude-and-longitude-to-northing-and-easting-in-java
     public DirectPosition getOSGB() throws NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException {
         CRSAuthorityFactory crsfac = ReferencingFactoryFinder.getCRSAuthorityFactory("EPSG", null);
@@ -111,7 +110,7 @@ public class Location {
         CoordinateReferenceSystem osgbcrs = crsfac.createCoordinateReferenceSystem("27700");
         // 4326 is the EPSG code for WGS84 aka Lat-Lng
         CoordinateReferenceSystem wgs84crs = crsfac.createCoordinateReferenceSystem("4326");
-        
+
         CoordinateOperation op = new DefaultCoordinateOperationFactory().createOperation(wgs84crs, osgbcrs);
 
         DirectPosition latLng = new GeneralDirectPosition(this.lat, this.lon);

@@ -15,12 +15,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Drone implements Runnable {
 
-    public ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
-
     //in milliseconds
     //todo add to config file
     private final long timeOut = 2000;
-
+    public ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
     private Socket socket;
     private String uuid;
     private Gson gson = new Gson();

@@ -21,8 +21,13 @@ public class MeshServer {
 
     public MeshServer() {
         droneServer = new DroneServer(this);
-        c2Server = new C2Server(this, new Location(0,0,0));
+        c2Server = new C2Server(this, new Location(0, 0, 0));
         //todo read in config file with server location
+    }
+
+    public static void main(String[] args) {
+        MeshServer mesh = new MeshServer();
+        mesh.start(new ServiceInterface());
     }
 
     public void start(ServiceInterface si) {
@@ -69,11 +74,6 @@ public class MeshServer {
         //TODO use geotool
         return true;
         //return loc1.distance(loc2) < range;
-    }
-
-    public static void main(String[] args) {
-        MeshServer mesh = new MeshServer();
-        mesh.start(new ServiceInterface());
     }
 
 }

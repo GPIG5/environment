@@ -45,21 +45,21 @@ public class Terrain {
     public Geometry getGeometry() {
         return g;
     }
-    
+
     public Vector3f osgbTo3D(DirectPosition osgb, float alt) {
         System.out.println("osgb0: " + osgb.getOrdinate(0) + " osgb1: " + osgb.getOrdinate(1));
-        Vector3f loc =  new Vector3f(((float)osgb.getOrdinate(1) -  ater.getYll()) * scale,
-                                3*alt*scale, 
-                                ((float)osgb.getOrdinate(0) - ater.getXll())*scale);
+        Vector3f loc = new Vector3f(((float) osgb.getOrdinate(1) - ater.getYll()) * scale,
+                3 * alt * scale,
+                ((float) osgb.getOrdinate(0) - ater.getXll()) * scale);
         System.out.println(loc);
         return loc;
     }
-    
+
     public Location pointToLoc(Vector3f l) {
         // Convert to OSGB
-        float invscale = 1/scale;
-        float eastings = invscale*l.x + ater.getYll();
-        float northings = invscale*l.z + ater.getXll();
-        return Location.fromOSGB(northings, eastings, invscale*(l.y/3));
+        float invscale = 1 / scale;
+        float eastings = invscale * l.x + ater.getYll();
+        float northings = invscale * l.z + ater.getXll();
+        return Location.fromOSGB(northings, eastings, invscale * (l.y / 3));
     }
 }

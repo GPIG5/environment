@@ -176,7 +176,7 @@ public class Cells {
     public IntBuffer getEdges() {
         return ebuffer;
     }
-    
+
     public List<Pinor> getPinors() {
         return this.pinors;
     }
