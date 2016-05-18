@@ -41,7 +41,7 @@ public class Drone implements Runnable {
             String encodedStr = soc.rxData();
             parseAndSetUuid(encodedStr);
             long lastRx = System.nanoTime();
-
+            System.out.println("Drone connected with UUID: " + uuid);
             //Main loop
             while (!Thread.interrupted()) {
                 //Check if data to receive from actual drone

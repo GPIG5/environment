@@ -12,7 +12,7 @@ public class Main {
         Simulation sim = new Simulation();
         sim.start(si);
         // Terminate the mesh when the sim stops.
-        mesh.terminate();
+       // mesh.terminate();
     }
 
 }
