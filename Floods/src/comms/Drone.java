@@ -7,11 +7,13 @@ import utility.Location;
 import utility.ServiceRequest;
 import utility.ServiceResponse;
 
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -152,6 +154,7 @@ public class Drone implements Runnable {
         private PINORData(ServiceResponse data) {
             pinor = data.getPinors();
             String imgStr = data.getImage().toString();
+            Iterator iter = ImageIO.getImageWritersByFormatName("jpg");
             byte[] b64 = Base64.getEncoder().encode(imgStr.getBytes(StandardCharsets.UTF_8));
             img = new String(b64, StandardCharsets.UTF_8);
 
