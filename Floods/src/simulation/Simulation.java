@@ -11,6 +11,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.shape.Box;
 import com.jme3.system.JmeSystem;
@@ -43,7 +44,6 @@ public class Simulation extends SimpleApplication {
     Cells cells;
     Queue<ServiceRequest> requests;
     Queue<ServiceResponse> responses;
-    int i = 0;
 
     public void start(ServiceInterface si) {
         this.si = si;
@@ -63,6 +63,11 @@ public class Simulation extends SimpleApplication {
         dronecamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
         responses = si.getResponseQueue();
+        // Drone test
+        Spatial drone = assetManager.loadModel("drone.obj");
+        drone.scale(0.2f);
+        drone.move(10,10,10);
+        rootNode.attachChild(drone);
     }
 
     private void makeTerrain() {
@@ -126,11 +131,6 @@ public class Simulation extends SimpleApplication {
             synchronized (responses) {
                 responses.notifyAll();
             }
-        }
-        i++;
-
-        if ((i % 100) == 0) {
-            requests.offer(new ServiceRequest("XYZ" + i, new Location(53.947117f, -1.128785f, 400), false));
         }
     }
 

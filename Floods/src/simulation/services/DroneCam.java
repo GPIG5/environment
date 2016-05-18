@@ -99,12 +99,6 @@ public class DroneCam {
                 }
             }
             bi.getRaster().setDataElements(0, 0, width, height, data);
-            try {
-                ImageIO.write(bi, "jpg", new File("/tmp/output" + req.getUuid() + "jpeg"));
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
             ArrayList<Location> locs = new ArrayList<Location>();
             // Detect pinors
             for (Pinor p : pinors) {
