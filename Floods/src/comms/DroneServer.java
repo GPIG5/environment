@@ -36,6 +36,7 @@ public class DroneServer implements Runnable {
                     clientSoc = serverSoc.accept();
                     System.out.println("new drone connected");
                     Drone drone = new Drone(clientSoc, mesh);
+                    //todo fix this
                     droneFutures.put(drone.getUuid(), threadPool.submit(drone));
                 } catch (Exception e) {
                     //if the thread did not start clientSoc will not be closed

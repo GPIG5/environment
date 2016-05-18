@@ -84,7 +84,5 @@ public class C2Server implements Runnable {
         C2Server c2 = new C2Server(mesh, new Location(0, 0, 0));
         c2.txData("\"{\"data\": \"test\"}");
 
-//        Executors.newSingleThreadExecutor().submit(c2);
-
     }
 }
