@@ -2,37 +2,41 @@ package comms;
 
 import utility.Location;
 import utility.ServiceInterface;
+import utility.ServiceRequest;
 import utility.ServiceResponse;
 
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Created by hm649 on 10/05/16.
  */
 public class MeshServer {
 
+    public AbstractMap<String, Drone> drones = new ConcurrentHashMap<>();
+    //in meters
     private final int range = 40;
-    public ConcurrentHashMap<String, Drone> drones = new ConcurrentHashMap<>();
     private DroneServer droneServer;
     private C2Server c2Server;
-
-    public MeshServer() {
-        droneServer = new DroneServer(this);
-        c2Server = new C2Server(this, new Location(0, 0, 0));
-        //todo read in config file with server location
-    }
-
-    public static void main(String[] args) {
-        MeshServer mesh = new MeshServer();
-        mesh.start(new ServiceInterface());
-    }
+    private ServiceInterface si;
+    private MessageDispatcher md;
+    private List<Future<?>> futureList = new ArrayList<>();
 
     public void start(ServiceInterface si) {
-        Executors.newSingleThreadExecutor().submit(droneServer);
-        Executors.newSingleThreadExecutor().submit(c2Server);
+        droneServer = new DroneServer(this);
+        c2Server = new C2Server(this, new Location(0, 0, 0));
+        md = new MessageDispatcher(si);
+
+        //todo read in config file with server location and range
+        futureList.add(Executors.newSingleThreadExecutor().submit(droneServer));
+        futureList.add(Executors.newSingleThreadExecutor().submit(c2Server));
+        futureList.add(Executors.newSingleThreadExecutor().submit(md));
+        this.si = si;
     }
 
     /**
@@ -43,7 +47,8 @@ public class MeshServer {
      */
     public void messageGlobal(Drone tx, String msg) {
         drones.forEach((k, v) -> {
-            if (tx == null || !k.equals(tx.getUuid()) && inRange(v.getLocation(), tx.getLocation())) {
+            if ( (tx == null && inRange(c2Server.getLocation(), v.getLocation())) ||
+                    (tx != null && !k.equals(tx.getUuid()) && inRange(v.getLocation(), tx.getLocation()))) {
                 v.dataToSend.add(msg);
             }
         });
@@ -58,22 +63,33 @@ public class MeshServer {
         }
     }
 
-    public ServiceResponse checkForPINOR(Drone drone, Location location) {
+    public ServiceResponse checkForPINOR(String uuid, Location loc) throws InterruptedException {
 
-        ServiceResponse test = new ServiceResponse(drone.getUuid(), new ArrayList<Location>(), null);
+        addServiceRequest(new ServiceRequest(uuid, loc, false));
+        ServiceResponse response = md.waitForResponse(uuid, droneServer.getFuture(uuid));
 
-        return test;
+        return response;
+    }
+
+    public ServiceResponse getResponse(String uuid) {
+        return si.getResponseQueue().remove();
+    }
+
+    public void addServiceRequest(ServiceRequest sr) {
+        si.getRequestQueue().add(sr);
     }
 
     public void terminate() {
-        droneServer.terminate();
-        c2Server.terminate();
+        futureList.forEach(future -> future.cancel(true));
     }
 
     private boolean inRange(Location loc1, Location loc2) {
-        //TODO use geotool
-        return true;
-        //return loc1.distance(loc2) < range;
+        return loc1.distance(loc2) <= range;
+    }
+
+    public static void main(String[] args) {
+        MeshServer mesh = new MeshServer();
+        mesh.start(new ServiceInterface());
     }
 
 }

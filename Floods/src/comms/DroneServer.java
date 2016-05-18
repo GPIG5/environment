@@ -3,8 +3,13 @@ package comms;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Created by hm649 on 10/05/16.
@@ -12,10 +17,9 @@ import java.util.concurrent.Executors;
 public class DroneServer implements Runnable {
 
     private final int PORT = 5555;
-    private ServerSocket serverSoc;
-    private volatile boolean terminate = false;
     private MeshServer mesh;
     private ExecutorService threadPool = Executors.newCachedThreadPool();
+    private AbstractMap<String, Future<?>> droneFutures = new HashMap<>();
 
     public DroneServer(MeshServer mesh) {
         this.mesh = mesh;
@@ -24,16 +28,15 @@ public class DroneServer implements Runnable {
     @Override
     public void run() {
 
-        try {
-            serverSoc = new ServerSocket(PORT);
-            // Drone takes care of closing clientSoc
-            while (!terminate) {
+        try (ServerSocket serverSoc = new ServerSocket(PORT)) {
+            //main loop
+            while (!Thread.interrupted()) {
                 Socket clientSoc = null;
                 try {
                     clientSoc = serverSoc.accept();
                     System.out.println("new drone connected");
                     Drone drone = new Drone(clientSoc, mesh);
-                    threadPool.submit(drone);
+                    droneFutures.put(drone.getUuid(), threadPool.submit(drone));
                 } catch (Exception e) {
                     //if the thread did not start clientSoc will not be closed
                     if (clientSoc != null && !clientSoc.isClosed()) {
@@ -47,23 +50,16 @@ public class DroneServer implements Runnable {
             }
         } catch (IOException e) {
             //We care about the server socket not working
-            e.printStackTrace();
+            System.err.println(e.getMessage());
         } finally {
-            try {
-                serverSoc.close();
-            } catch (IOException e) {
-                //who cares
-            }
+            droneFutures.forEach((k, v) -> v.cancel(true));
         }
     }
 
-    public void terminate() {
-        terminate = true;
-        try {
-            serverSoc.close();
-        } catch (IOException e) {
-            //who cares
+    public Future<?> getFuture(String key) {
+        if (!droneFutures.containsKey(key)) {
+            throw new IllegalStateException("Requested future for ID that did not exist");
         }
+        return droneFutures.get(key);
     }
-
 }

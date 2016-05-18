@@ -41,6 +41,11 @@ public class DroneTest {
     @After
     public void tearDown() throws Exception {
 
+        droneThreadPool.shutdownNow();
+        assertTrue(droneThreadPool.awaitTermination(50, TimeUnit.MILLISECONDS));
+
+        assertTrue(mesh.drones.isEmpty());
+
         for (SocCom soc : clientSocsToClose) {
             soc.close();
         }
@@ -48,11 +53,6 @@ public class DroneTest {
         for (Socket soc : droneSocsToCheck) {
             assertTrue(soc.isClosed());
         }
-
-        droneThreadPool.shutdownNow();
-        assertTrue(droneThreadPool.awaitTermination(50, TimeUnit.MILLISECONDS));
-
-        assertTrue(mesh.drones.isEmpty());
     }
 
     @Test
@@ -69,14 +69,13 @@ public class DroneTest {
         while (mesh.drones.size() == 1) ;
         assertTrue(drone2.getUuid().equals("4c9c12ed-947a-4fcf-8c3a-c82214234601"));
 
-        drone1.terminate();
-        droneF.get(40, TimeUnit.MILLISECONDS);
-        drone2.terminate();
-        droneF2.get(40, TimeUnit.MILLISECONDS);
+        droneF.cancel(true);
+        droneF2.cancel(true);
     }
 
     @Test
     public void droneStatusUpdateTest() throws Exception {
+        //this test won't work if the C2 server does not exist
         DroneSockets socs = createSockets();
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
@@ -87,8 +86,7 @@ public class DroneTest {
 
         socs.client.rxData();
 
-        drone.terminate();
-        droneF.get(40, TimeUnit.MILLISECONDS);
+        droneF.cancel(true);
     }
 
     @Test
@@ -109,8 +107,7 @@ public class DroneTest {
         Location droneLocation = drone.getLocation();
 
         assertTrue(droneLocation.equals(newLoc));
-        drone.terminate();
-        droneF.get(20, TimeUnit.MILLISECONDS);
+        droneF.cancel(true);
     }
 
     @Test
@@ -123,10 +120,11 @@ public class DroneTest {
                 "\"battery\": 1799.998011066}, \"uuid\": \"1ca1ee1e-b717-43de-9011-87df0a9d8aaf\", \"type\": " +
                 "\"mesh\"}");
 
-        drone.terminate();
-        droneF.get(40, TimeUnit.MILLISECONDS);
-
+        Thread.sleep(100);
+        droneF.cancel(true);
     }
+
+    public void PINORTest() throws Exception
 
     private Drone connectDrone(DroneSockets socs) throws Exception {
         String connectMsg = "{\"type\": \"direct\", \"uuid\": \"4c9c12ed-947a-4fcf-8c3a-c8221423460" + droneID++ +
@@ -151,33 +149,6 @@ public class DroneTest {
         return new DroneSockets(droneSoc, socs);
     }
 
-    //    private String rxData(BufferedInputStream in) throws Exception {
-//        int size = 0;
-//        byte[] sizeBuf = new byte[SIZE_BYTES];
-//        in.read(sizeBuf, 0, SIZE_BYTES);
-//
-//        for (int i = 0; i != SIZE_BYTES; ++i) {
-//            size |= Byte.toUnsignedInt(sizeBuf[i]) << 8 * (SIZE_BYTES - i - 1);
-//        }
-//
-//        byte[] msgBuf = new byte[size];
-//        in.read(msgBuf, 0, size);
-//
-//        return new String(msgBuf, "UTF-8");
-//    }
-//
-//    private void txData(String toSend, BufferedOutputStream out) throws Exception {
-//        byte[] strBytes = toSend.getBytes("UTF-8");
-//        int size = strBytes.length;
-//
-//        for (int i = 0; i != SIZE_BYTES; ++i) {
-//            out.write(size >> 8 * (SIZE_BYTES - i - 1));
-//        }
-//
-//        out.write(strBytes, 0, size);
-//        out.flush();
-//    }
-//
     private class DroneSockets {
 
         Socket drone;

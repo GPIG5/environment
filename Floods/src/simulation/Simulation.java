@@ -123,6 +123,7 @@ public class Simulation extends SimpleApplication {
 
         if (req != null) {
             responses.offer(dronecamera.process(tpf, req, cells.getPinors()));
+            responses.notifyAll();
         }
         i++;
 
