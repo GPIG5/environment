@@ -16,6 +16,7 @@ public class C2Server implements Runnable {
     private final int PORT = 5556;
     private final Location location;
     private MeshServer mesh;
+    private ServerSocket serverSoc = null;
 
 
     public C2Server(MeshServer mesh, Location location) {
@@ -45,6 +46,7 @@ public class C2Server implements Runnable {
     @Override
     public void run() {
         try (ServerSocket serverSoc = new ServerSocket(PORT)) {
+            this.serverSoc = serverSoc;
             while (!Thread.interrupted()) {
                 try (SocCom soc = new SocCom(serverSoc.accept())) {
                     System.out.println("C2 connected");
@@ -64,6 +66,16 @@ public class C2Server implements Runnable {
 
     public Location getLocation() {
         return location;
+    }
+
+    public void terminate() {
+        if (serverSoc != null) {
+            try {
+                serverSoc.close();
+            } catch (IOException e) {
+                //yolo
+            }
+        }
     }
 
     public static void main(String[] args) throws Exception {

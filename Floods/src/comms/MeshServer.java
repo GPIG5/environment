@@ -81,6 +81,8 @@ public class MeshServer {
 
     public void terminate() {
         futureList.forEach(future -> future.cancel(true));
+        c2Server.terminate();
+        droneServer.terminate();
     }
 
     private boolean inRange(Location loc1, Location loc2) {

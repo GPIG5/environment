@@ -124,11 +124,11 @@ public class DroneTest {
         droneF.cancel(true);
     }
 
-    public void PINORTest() throws Exception
-
     private Drone connectDrone(DroneSockets socs) throws Exception {
         String connectMsg = "{\"type\": \"direct\", \"uuid\": \"4c9c12ed-947a-4fcf-8c3a-c8221423460" + droneID++ +
                 "\", \"data\": {}}";
+
+
 
         socs.client.txData(connectMsg);
         Drone drone = new Drone(socs.drone, mesh);

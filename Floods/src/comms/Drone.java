@@ -8,18 +8,18 @@ import utility.ServiceRequest;
 import utility.ServiceResponse;
 
 import javax.imageio.ImageIO;
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 public class Drone implements Runnable {
 
+    //todo record battery
     //in milliseconds
     //todo add to config file
     private final long timeOut = 2000;
@@ -105,7 +105,7 @@ public class Drone implements Runnable {
         }
     }
 
-    private String processStatusMsg(String encodedStr) throws InterruptedException {
+    private String processStatusMsg(String encodedStr) throws InterruptedException, IOException {
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         JsonElement locationJE = jobj.getAsJsonObject("data").get("location");
         Location newLocation = gson.fromJson(locationJE, Location.class);
@@ -140,7 +140,7 @@ public class Drone implements Runnable {
         final String type = "direct";
         final PINORData data;
 
-        private DirectPINORMessage(ServiceResponse data) {
+        private DirectPINORMessage(ServiceResponse data) throws IOException {
             this.data = new PINORData(data);
         }
 
@@ -151,11 +151,15 @@ public class Drone implements Runnable {
         final List<Location> pinor;
         final String img;
 
-        private PINORData(ServiceResponse data) {
+        private PINORData(ServiceResponse data) throws IOException {
             pinor = data.getPinors();
-            String imgStr = data.getImage().toString();
-            Iterator iter = ImageIO.getImageWritersByFormatName("jpg");
-            byte[] b64 = Base64.getEncoder().encode(imgStr.getBytes(StandardCharsets.UTF_8));
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(data.getImage(), "jpg", baos);
+            String jpgStr = baos.toString(String.valueOf(StandardCharsets.UTF_8));
+            baos.close();
+
+            byte[] b64 = Base64.getEncoder().encode(jpgStr.getBytes(StandardCharsets.UTF_8));
             img = new String(b64, StandardCharsets.UTF_8);
 
         }

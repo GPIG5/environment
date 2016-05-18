@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -20,6 +18,7 @@ public class DroneServer implements Runnable {
     private MeshServer mesh;
     private ExecutorService threadPool = Executors.newCachedThreadPool();
     private AbstractMap<String, Future<?>> droneFutures = new HashMap<>();
+    private ServerSocket serverSoc = null;
 
     public DroneServer(MeshServer mesh) {
         this.mesh = mesh;
@@ -29,6 +28,7 @@ public class DroneServer implements Runnable {
     public void run() {
 
         try (ServerSocket serverSoc = new ServerSocket(PORT)) {
+            this.serverSoc = serverSoc;
             //main loop
             while (!Thread.interrupted()) {
                 Socket clientSoc = null;
@@ -61,5 +61,15 @@ public class DroneServer implements Runnable {
             throw new IllegalStateException("Requested future for ID that did not exist");
         }
         return droneFutures.get(key);
+    }
+
+    public void terminate() {
+        if (serverSoc != null) {
+            try {
+                serverSoc.close();
+            } catch (IOException e) {
+                //yolo
+            }
+        }
     }
 }
