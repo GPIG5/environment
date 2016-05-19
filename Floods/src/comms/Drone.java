@@ -15,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class Drone implements Runnable {
@@ -40,8 +42,8 @@ public class Drone implements Runnable {
         try (SocCom soc = new SocCom(socket)) {
             String encodedStr = soc.rxData();
             parseAndSetUuid(encodedStr);
+
             long lastRx = System.nanoTime();
-            System.out.println("Drone connected with UUID: " + uuid);
             //Main loop
             while (!Thread.interrupted()) {
                 //Check if data to receive from actual drone
@@ -63,10 +65,10 @@ public class Drone implements Runnable {
                 }
             }
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            System.err.println("Drone exception: " + e.getMessage());
         } finally {
             mesh.drones.remove(uuid);
-            mesh.addServiceRequest(new ServiceRequest(uuid, location, true));
+            mesh.addServiceRequest(new ServiceRequest(uuid, location, true, null));
             System.out.println("Drone disconnected");
         }
     }
@@ -82,7 +84,7 @@ public class Drone implements Runnable {
         }
     }
 
-    private String processRxMsg(String encodedStr) throws IOException, InterruptedException {
+    private String processRxMsg(String encodedStr) throws IOException, InterruptedException, ExecutionException {
 
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         String type = jobj.get("type").getAsString();
@@ -105,7 +107,7 @@ public class Drone implements Runnable {
         }
     }
 
-    private String processStatusMsg(String encodedStr) throws InterruptedException, IOException {
+    private String processStatusMsg(String encodedStr) throws IOException, ExecutionException, InterruptedException {
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         JsonElement locationJE = jobj.getAsJsonObject("data").get("location");
         Location newLocation = gson.fromJson(locationJE, Location.class);

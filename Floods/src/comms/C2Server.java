@@ -60,7 +60,7 @@ public class C2Server implements Runnable {
             }
         } catch (Exception e) {
             //We care about the server socket dying
-            System.err.println(e.getMessage());
+            System.err.println("C2 Server exception: " + e.getMessage());
         }
     }
 

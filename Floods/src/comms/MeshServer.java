@@ -9,9 +9,7 @@ import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * Created by hm649 on 10/05/16.
@@ -24,18 +22,15 @@ public class MeshServer {
     private DroneServer droneServer;
     private C2Server c2Server;
     private ServiceInterface si;
-    private MessageDispatcher md;
     private List<Future<?>> futureList = new ArrayList<>();
 
     public void start(ServiceInterface si) {
         droneServer = new DroneServer(this);
         c2Server = new C2Server(this, new Location(0, 0, 0));
-        md = new MessageDispatcher(si);
 
         //todo read in config file with server location and range
         futureList.add(Executors.newSingleThreadExecutor().submit(droneServer));
         futureList.add(Executors.newSingleThreadExecutor().submit(c2Server));
-        futureList.add(Executors.newSingleThreadExecutor().submit(md));
         this.si = si;
     }
 
@@ -58,21 +53,20 @@ public class MeshServer {
             try {
                 c2Server.txData(msg);
             } catch (IOException e) {
-                System.err.println(e.getMessage());
+                System.err.println("Sending data to C2 server exception: " + e.getMessage());
             }
         }
     }
 
-    public ServiceResponse checkForPINOR(String uuid, Location loc) throws InterruptedException {
+    public ServiceResponse checkForPINOR(String uuid, Location loc) throws InterruptedException, ExecutionException {
 
-        addServiceRequest(new ServiceRequest(uuid, loc, false));
-        ServiceResponse response = md.waitForResponse(uuid, droneServer.getFuture(uuid));
+        CompletableFuture<ServiceResponse> future = new CompletableFuture<>();
 
-        return response;
-    }
+        ServiceRequest sr = new ServiceRequest(uuid, loc, false, future);
+        addServiceRequest(sr);
 
-    public ServiceResponse getResponse(String uuid) {
-        return si.getResponseQueue().remove();
+        ServiceResponse resp = future.get();
+        return resp;
     }
 
     public void addServiceRequest(ServiceRequest sr) {
