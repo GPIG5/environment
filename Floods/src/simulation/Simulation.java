@@ -67,6 +67,12 @@ public class Simulation extends SimpleApplication {
         Spatial drone = assetManager.loadModel("drone.obj");
         drone.scale(0.2f);
         drone.move(10,10,10);
+        Material mat2 = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        mat2.setBoolean("UseMaterialColors", true);
+        mat2.setColor("Diffuse", new ColorRGBA(0.2f, 0.2f, 0.2f, 0.0f)); // minimum material color
+        mat2.setColor("Specular", ColorRGBA.Gray); // for shininess
+        mat2.setFloat("Shininess", 32f); // [1,128] for shininess
+        drone.setMaterial(mat2);
         rootNode.attachChild(drone);
     }
 
@@ -111,7 +117,7 @@ public class Simulation extends SimpleApplication {
 
     private void addLights() {
         DirectionalLight sun = new DirectionalLight();
-        sun.setColor(ColorRGBA.Orange);
+        sun.setColor(new ColorRGBA(1, 0.973f, 0.617f, 0.0f));
         sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
         rootNode.addLight(sun);
         viewPort.setBackgroundColor(ColorRGBA.LightGray);
