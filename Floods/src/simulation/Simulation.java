@@ -18,6 +18,8 @@ import com.jme3.system.JmeSystem;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 
+import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
 
@@ -26,23 +28,22 @@ import simulation.terrain.Terrain;
 import simulation.water.Cells;
 import simulation.water.Pinor;
 import simulation.water.Water;
-import utility.Location;
 import utility.ServiceInterface;
 import utility.ServiceRequest;
 import utility.ServiceResponse;
 import simulation.services.DroneCam;
-import simulation.terrain.Terrain;
-import utility.ServiceInterface;
-import simulation.water.Water;
 
 public class Simulation extends SimpleApplication {
     Water water;
     Terrain terrain;
     Geometry gter;
-    DroneCam dronecamera;
+    DroneCam droneCamera;
     ServiceInterface si;
     Cells cells;
     Queue<ServiceRequest> requests;
+    AbstractMap<String,Spatial> drones;
+    Spatial drone;
+    Material droneMat;
 
     public void start(ServiceInterface si) {
         this.si = si;
@@ -59,38 +60,41 @@ public class Simulation extends SimpleApplication {
         cam.setAxes(new Quaternion(0.0f, 1.0f, 0.0f, 1.0f));
         flyCam.setMoveSpeed(4.0f);
         addLights();
-        dronecamera = new DroneCam(renderManager, rootNode, terrain);
+        droneCamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
-        // Drone test
+        makeDrone();
+    }
+    
+    private void makeDrone() {
+        // Load drone
         Spatial drone = assetManager.loadModel("drone.obj");
         drone.scale(0.2f);
-        drone.move(10,10,10);
-        Material mat2 = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        mat2.setBoolean("UseMaterialColors", true);
-        mat2.setColor("Diffuse", new ColorRGBA(0.2f, 0.2f, 0.2f, 0.0f)); // minimum material color
-        mat2.setColor("Specular", ColorRGBA.Gray); // for shininess
-        mat2.setFloat("Shininess", 32f); // [1,128] for shininess
-        drone.setMaterial(mat2);
-        rootNode.attachChild(drone);
+        Material droneMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        droneMat.setBoolean("UseMaterialColors", true);
+        droneMat.setColor("Diffuse", new ColorRGBA(0.2f, 0.2f, 0.2f, 0.0f)); // minimum material color
+        droneMat.setColor("Specular", ColorRGBA.Gray); // for shininess
+        droneMat.setFloat("Shininess", 32f); // [1,128] for shininess
+        drone.setMaterial(droneMat);
+        drones = new HashMap<String, Spatial>();
     }
 
     private void makeTerrain() {
-        Material mat2 = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        mat2.setColor("Diffuse", ColorRGBA.White); // minimum material color
-        mat2.setColor("Specular", ColorRGBA.LightGray); // for shininess
-        mat2.setFloat("Shininess", 32f); // [1,128] for shininess
+        Material terMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        terMat.setColor("Diffuse", ColorRGBA.White); // minimum material color
+        terMat.setColor("Specular", ColorRGBA.LightGray); // for shininess
+        terMat.setFloat("Shininess", 32f); // [1,128] for shininess
         Texture gtex = assetManager.loadTexture("Textures/yorktex.jpg");
         gtex.setWrap(WrapMode.Repeat);
-        mat2.setTexture("DiffuseMap", gtex);
-        terrain = new Terrain(mat2, "lidar.zip");
+        terMat.setTexture("DiffuseMap", gtex);
+        terrain = new Terrain(terMat, "lidar.zip");
         rootNode.attachChild(terrain.getGeometry());
     }
 
     private void makeWater() {
         // Water material
-        Material watermat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        watermat.setColor("Color", new ColorRGBA(0, 0, 1, 0.5f));
-        watermat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        Material waterMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        waterMat.setColor("Color", new ColorRGBA(0, 0, 1, 0.5f));
+        waterMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
         // Pinor material
         Material pinormat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         pinormat.setColor("Color", ColorRGBA.Red);
@@ -99,7 +103,7 @@ public class Simulation extends SimpleApplication {
 
         water = new Water(cells, Display.getDrawable());
         Geometry g = new Geometry("Water", water);
-        g.setMaterial(watermat);
+        g.setMaterial(waterMat);
         g.setCullHint(CullHint.Never);
         rootNode.attachChild(g);
         // Add Pinors from cells
@@ -130,8 +134,31 @@ public class Simulation extends SimpleApplication {
         super.simpleUpdate(tpf);
         ServiceRequest req = requests.poll();
         if (req != null) {
-            ServiceResponse resp = dronecamera.process(tpf, req, cells.getPinors());
-            req.getFuture().complete(resp);
+            String uuid = req.getUuid();
+            // Drone Rendering stuff
+            if (req.isRemoved() && drones.containsKey(uuid)) {
+                // Drone is to be removed and is in map.
+                rootNode.detachChild(drones.remove(uuid));
+            }
+            else if (!req.isRemoved()) {
+                // Get response packet.
+                ServiceResponse resp = droneCamera.process(tpf, req, cells.getPinors());
+                Spatial d;
+                if (drones.containsKey(uuid)) {
+                    // This is a new drone.
+                    d = drone.clone();
+                    rootNode.attachChild(d);
+                    drones.put(uuid, d);
+                }
+                else {
+                    // Existing drone.
+                    d = drones.get(uuid);
+                }
+                // Move drone
+                d.setLocalTranslation(droneCamera.getPos());
+                // Notify drone via future.
+                req.getFuture().complete(resp);
+            }
         }
     }
 

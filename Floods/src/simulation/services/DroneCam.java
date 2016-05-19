@@ -43,6 +43,7 @@ public class DroneCam {
     FrameBuffer fb;
     Node root;
     Terrain terrain;
+    Vector3f pos;
 
     public DroneCam(RenderManager renderman, Node root, Terrain t) {
         // Setup camera
@@ -65,7 +66,7 @@ public class DroneCam {
         if (req != null && req.getLocation() != null) {
             // Move the camera
             try {
-                Vector3f pos = terrain.osgbTo3D(loc.getOSGB(), loc.getAlt());
+                pos = terrain.osgbTo3D(loc.getOSGB(), loc.getAlt());
                 cam.setLocation(pos);
                 cam.lookAt(new Vector3f(pos.x, 0f, pos.z), up);
             } catch (Exception e) {
@@ -114,6 +115,10 @@ public class DroneCam {
             return new ServiceResponse(req.getUuid(), locs, bi);
         }
         return null;
+    }
+    
+    public Vector3f getPos() {
+        return pos;
     }
 
 }
