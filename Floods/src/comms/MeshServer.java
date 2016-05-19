@@ -42,7 +42,7 @@ public class MeshServer {
      */
     public void messageGlobal(Drone tx, String msg) {
         drones.forEach((k, v) -> {
-            if ( (tx == null && inRange(c2Server.getLocation(), v.getLocation())) ||
+            if (true || (tx == null && inRange(c2Server.getLocation(), v.getLocation())) ||
                     (tx != null && !k.equals(tx.getUuid()) && inRange(v.getLocation(), tx.getLocation()))) {
                 v.dataToSend.add(msg);
             }

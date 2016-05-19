@@ -144,7 +144,7 @@ public class Simulation extends SimpleApplication {
                 // Get response packet.
                 ServiceResponse resp = droneCamera.process(tpf, req, cells.getPinors());
                 Spatial d;
-                if (drones.containsKey(uuid)) {
+                if (!drones.containsKey(uuid)) {
                     // This is a new drone.
                     d = drone.clone();
                     rootNode.attachChild(d);
