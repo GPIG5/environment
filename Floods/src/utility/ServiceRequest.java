@@ -18,6 +18,10 @@ public class ServiceRequest extends Message {
     public Location getLocation() {
         return loc;
     }
+    
+    public CompletableFuture<ServiceResponse> getFuture() {
+        return future;
+    }
 
     public boolean isRemoved() {
         return removed;

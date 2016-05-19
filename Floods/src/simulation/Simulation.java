@@ -43,7 +43,6 @@ public class Simulation extends SimpleApplication {
     ServiceInterface si;
     Cells cells;
     Queue<ServiceRequest> requests;
-    Queue<ServiceResponse> responses;
 
     public void start(ServiceInterface si) {
         this.si = si;
@@ -62,7 +61,6 @@ public class Simulation extends SimpleApplication {
         addLights();
         dronecamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
-        //responses = si.getResponseQueue();
         // Drone test
         Spatial drone = assetManager.loadModel("drone.obj");
         drone.scale(0.2f);
@@ -131,12 +129,9 @@ public class Simulation extends SimpleApplication {
         water.process();
         super.simpleUpdate(tpf);
         ServiceRequest req = requests.poll();
-
         if (req != null) {
-            responses.offer(dronecamera.process(tpf, req, cells.getPinors()));
-            synchronized (responses) {
-                responses.notifyAll();
-            }
+            ServiceResponse resp = dronecamera.process(tpf, req, cells.getPinors());
+            req.getFuture().complete(resp);
         }
     }
 
