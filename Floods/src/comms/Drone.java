@@ -157,11 +157,8 @@ public class Drone implements Runnable {
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(data.getImage(), "jpg", baos);
-            String jpgStr = baos.toString(String.valueOf(StandardCharsets.UTF_8));
+            img = Base64.getEncoder().encodeToString(baos.toByteArray());
             baos.close();
-
-            byte[] b64 = Base64.getEncoder().encode(jpgStr.getBytes(StandardCharsets.UTF_8));
-            img = new String(b64, StandardCharsets.UTF_8);
 
         }
     }
