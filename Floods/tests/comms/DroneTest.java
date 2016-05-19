@@ -25,8 +25,6 @@ public class DroneTest {
     private List<Socket> droneSocsToCheck = new ArrayList<>();
     private volatile boolean crappySignal = false;
     private ExecutorService droneThreadPool;
-    private DroneServer droneServer;
-    private Future<?> droneServerFuture;
 
     private MeshServer mesh;
     private int droneID;
@@ -34,18 +32,15 @@ public class DroneTest {
     @Before
     public void setUp() throws Exception {
         mesh = new MeshServer();
-        droneServer = new DroneServer(mesh);
         droneID = 0;
         clientSocsToClose.clear();
         droneSocsToCheck.clear();
         droneThreadPool = Executors.newCachedThreadPool();
-        droneServerFuture = Executors.newSingleThreadExecutor().submit(droneServer);
     }
 
     @After
     public void tearDown() throws Exception {
 
-        droneServerFuture.cancel(true);
         droneThreadPool.shutdownNow();
         assertTrue(droneThreadPool.awaitTermination(50, TimeUnit.MILLISECONDS));
 
@@ -65,14 +60,12 @@ public class DroneTest {
         DroneSockets socs1 = createSockets();
         Drone drone1 = connectDrone(socs1);
         Future<?> droneF = droneThreadPool.submit(drone1);
-        drone1.setFuture(droneF);
         while (mesh.drones.isEmpty()) ;
         assertTrue(drone1.getUuid().equals("4c9c12ed-947a-4fcf-8c3a-c82214234600"));
 
         DroneSockets socs2 = createSockets();
         Drone drone2 = connectDrone(socs2);
         Future<?> droneF2 = droneThreadPool.submit(drone2);
-        drone2.setFuture(droneF2);
         while (mesh.drones.size() == 1) ;
         assertTrue(drone2.getUuid().equals("4c9c12ed-947a-4fcf-8c3a-c82214234601"));
 
@@ -86,7 +79,6 @@ public class DroneTest {
         DroneSockets socs = createSockets();
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
-        drone.setFuture(droneF);
 
         socs.client.txData("{\"data\": {\"location\": {\"lat\": 0, \"lon\": 0, \"alt\": 0}, \"datatype\": \"status\", " +
                 "\"battery\": 1799.998011066}, \"uuid\": \"1ca1ee1e-b717-43de-9011-87df0a9d8aaf\", \"type\": " +
@@ -102,7 +94,6 @@ public class DroneTest {
         DroneSockets socs = createSockets();
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
-        drone.setFuture(droneF);
 
         Location newLoc = new Location(50, 30, 50);
         String test = gson.toJson(newLoc);
@@ -124,7 +115,6 @@ public class DroneTest {
         DroneSockets socs = createSockets();
         Drone drone = connectDrone(socs);
         Future<?> droneF = droneThreadPool.submit(drone);
-        drone.setFuture(droneF);
 
         socs.client.txData("{\"data\": {\"location\": {\"lat\": 0, \"lon\": 0, \"alt\": 0}, \"datatype\": \"status\", " +
                 "\"battery\": 1799.998011066}, \"uuid\": \"1ca1ee1e-b717-43de-9011-87df0a9d8aaf\", \"type\": " +
@@ -141,7 +131,7 @@ public class DroneTest {
 
 
         socs.client.txData(connectMsg);
-        Drone drone = new Drone(socs.drone, mesh, droneServer);
+        Drone drone = new Drone(socs.drone, mesh);
 
         return drone;
     }

@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -30,13 +31,10 @@ public class Drone implements Runnable {
     private Gson gson = new Gson();
     private Location location = new Location(0, 0, 0);
     private MeshServer mesh;
-    private Future<?> future;
-    private DroneServer droneServer;
 
-    public Drone(Socket clientSoc, MeshServer mesh, DroneServer droneServer) {
+    public Drone(Socket clientSoc, MeshServer mesh) {
         this.socket = clientSoc;
         this.mesh = mesh;
-        this.droneServer = droneServer;
     }
 
     @Override
@@ -44,12 +42,7 @@ public class Drone implements Runnable {
         try (SocCom soc = new SocCom(socket)) {
             String encodedStr = soc.rxData();
             parseAndSetUuid(encodedStr);
-            synchronized (this) {
-                while (future == null) {
-                    wait();
-                }
-            }
-            droneServer.addFuture(uuid, future);
+
             long lastRx = System.nanoTime();
             //Main loop
             while (!Thread.interrupted()) {
@@ -75,7 +68,7 @@ public class Drone implements Runnable {
             System.err.println("Drone exception: " + e.getMessage());
         } finally {
             mesh.drones.remove(uuid);
-            mesh.addServiceRequest(new ServiceRequest(uuid, location, true));
+            mesh.addServiceRequest(new ServiceRequest(uuid, location, true, null));
             System.out.println("Drone disconnected");
         }
     }
@@ -91,7 +84,7 @@ public class Drone implements Runnable {
         }
     }
 
-    private String processRxMsg(String encodedStr) throws IOException, InterruptedException {
+    private String processRxMsg(String encodedStr) throws IOException, InterruptedException, ExecutionException {
 
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         String type = jobj.get("type").getAsString();
@@ -114,7 +107,7 @@ public class Drone implements Runnable {
         }
     }
 
-    private String processStatusMsg(String encodedStr) throws InterruptedException, IOException {
+    private String processStatusMsg(String encodedStr) throws IOException, ExecutionException, InterruptedException {
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         JsonElement locationJE = jobj.getAsJsonObject("data").get("location");
         Location newLocation = gson.fromJson(locationJE, Location.class);
@@ -142,13 +135,6 @@ public class Drone implements Runnable {
 
     public String getUuid() {
         return uuid;
-    }
-
-    public void setFuture(Future<?> future) {
-        synchronized (this) {
-            this.future = future;
-            notifyAll();
-        }
     }
 
     private class DirectPINORMessage {

@@ -62,7 +62,7 @@ public class Simulation extends SimpleApplication {
         addLights();
         dronecamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
-        responses = si.getResponseQueue();
+        //responses = si.getResponseQueue();
         // Drone test
         Spatial drone = assetManager.loadModel("drone.obj");
         drone.scale(0.2f);
