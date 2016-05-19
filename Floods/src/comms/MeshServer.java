@@ -17,8 +17,8 @@ import java.util.concurrent.*;
 public class MeshServer {
 
     public AbstractMap<String, Drone> drones = new ConcurrentHashMap<>();
-    //in meters
-    private final int range = 40;
+    //in metres
+    private final float range = 1000000000;
     private DroneServer droneServer;
     private C2Server c2Server;
     private ServiceInterface si;
@@ -26,7 +26,7 @@ public class MeshServer {
 
     public void start(ServiceInterface si) {
         droneServer = new DroneServer(this);
-        c2Server = new C2Server(this, new Location(0, 0, 0));
+        c2Server = new C2Server(this, new Location(53.929472f, -1.165084f, 2));
 
         //todo read in config file with server location and range
         futureList.add(Executors.newSingleThreadExecutor().submit(droneServer));
@@ -42,7 +42,7 @@ public class MeshServer {
      */
     public void messageGlobal(Drone tx, String msg) {
         drones.forEach((k, v) -> {
-            if (true || (tx == null && inRange(c2Server.getLocation(), v.getLocation())) ||
+            if ((tx == null && inRange(c2Server.getLocation(), v.getLocation())) ||
                     (tx != null && !k.equals(tx.getUuid()) && inRange(v.getLocation(), tx.getLocation()))) {
                 v.dataToSend.add(msg);
             }
