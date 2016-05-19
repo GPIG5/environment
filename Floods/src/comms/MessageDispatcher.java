@@ -36,14 +36,19 @@ public class MessageDispatcher implements Runnable {
     public void run() {
         while(!Thread.interrupted()) {
             try {
-                responses.wait();
+                synchronized (responses) {
+                    responses.wait();
+                }
                 ServiceResponse sr;
                 while ( (sr = responses.poll()) != null) {
                     if (responseMap.containsKey(sr.getUuid())) {
                         throw new IllegalStateException("Multiple service responses for same drone");
                     } else {
                         responseMap.put(sr.getUuid(), sr);
-                        waitMap.get(sr.getUuid()).notifyAll();
+                        Future<?> future = waitMap.get(sr.getUuid());
+                        synchronized (future) {
+                            future.notifyAll();
+                        }
                     }
                 }
             } catch (InterruptedException e) {

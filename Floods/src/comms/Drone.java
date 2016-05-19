@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class Drone implements Runnable {
@@ -29,10 +30,13 @@ public class Drone implements Runnable {
     private Gson gson = new Gson();
     private Location location = new Location(0, 0, 0);
     private MeshServer mesh;
+    private Future<?> future;
+    private DroneServer droneServer;
 
-    public Drone(Socket clientSoc, MeshServer mesh) {
+    public Drone(Socket clientSoc, MeshServer mesh, DroneServer droneServer) {
         this.socket = clientSoc;
         this.mesh = mesh;
+        this.droneServer = droneServer;
     }
 
     @Override
@@ -40,8 +44,13 @@ public class Drone implements Runnable {
         try (SocCom soc = new SocCom(socket)) {
             String encodedStr = soc.rxData();
             parseAndSetUuid(encodedStr);
+            synchronized (this) {
+                while (future == null) {
+                    wait();
+                }
+            }
+            droneServer.addFuture(uuid, future);
             long lastRx = System.nanoTime();
-            System.out.println("Drone connected with UUID: " + uuid);
             //Main loop
             while (!Thread.interrupted()) {
                 //Check if data to receive from actual drone
@@ -63,7 +72,7 @@ public class Drone implements Runnable {
                 }
             }
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            System.err.println("Drone exception: " + e.getMessage());
         } finally {
             mesh.drones.remove(uuid);
             mesh.addServiceRequest(new ServiceRequest(uuid, location, true));
@@ -133,6 +142,13 @@ public class Drone implements Runnable {
 
     public String getUuid() {
         return uuid;
+    }
+
+    public void setFuture(Future<?> future) {
+        synchronized (this) {
+            this.future = future;
+            notifyAll();
+        }
     }
 
     private class DirectPINORMessage {

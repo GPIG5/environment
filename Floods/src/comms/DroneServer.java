@@ -35,9 +35,9 @@ public class DroneServer implements Runnable {
                 try {
                     clientSoc = serverSoc.accept();
                     System.out.println("new drone connected");
-                    Drone drone = new Drone(clientSoc, mesh);
-                    //todo fix this
-                    droneFutures.put(drone.getUuid(), threadPool.submit(drone));
+                    Drone drone = new Drone(clientSoc, mesh, this);
+                    Future<?> future = threadPool.submit(drone);
+                    drone.setFuture(future);
                 } catch (Exception e) {
                     //if the thread did not start clientSoc will not be closed
                     if (clientSoc != null && !clientSoc.isClosed()) {
@@ -51,7 +51,7 @@ public class DroneServer implements Runnable {
             }
         } catch (IOException e) {
             //We care about the server socket not working
-            System.err.println(e.getMessage());
+            System.err.println("Drone server exception: " + e.getMessage());
         } finally {
             droneFutures.forEach((k, v) -> v.cancel(true));
         }
@@ -61,7 +61,14 @@ public class DroneServer implements Runnable {
         if (!droneFutures.containsKey(key)) {
             throw new IllegalStateException("Requested future for ID that did not exist");
         }
+
         return droneFutures.get(key);
+    }
+
+    public void addFuture(String key, Future<?> value) {
+        if (droneFutures.put(key, value) != null) {
+            throw new IllegalStateException("Drone future already exists");
+        }
     }
 
     public void terminate() {
