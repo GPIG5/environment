@@ -105,9 +105,6 @@ public class Cells {
                     avg.addLocal(p2);
                     avg.addLocal(p3);
                     avg.multLocal(0.25f);
-                    vbuffer.put(avg.x);
-                    vbuffer.put(terh);
-                    vbuffer.put(avg.z);
                     terhs.put(terh);
                     // Water heights - grayscale.
                     int color = img.getRGB(c, nr2 - r);
@@ -117,6 +114,9 @@ public class Cells {
                     if ((h > 0.001f) && (h < 0.01f) && (Math.random() < 0.0005)) {
                         pinors.add(new Pinor(new Vector3f(avg.x, terh, avg.z)));
                     }
+                    vbuffer.put(avg.x);
+                    vbuffer.put(terh + h);
+                    vbuffer.put(avg.z);
                     i++;
                 }
             }
