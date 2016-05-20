@@ -32,7 +32,7 @@ public class DroneStatus extends JFrame {
         closeButton.addActionListener(click -> frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING)));
     }
 
-    public static void main(String[] args) {
+    public static void start() {
         frame = new JFrame("DroneStatus");
         frame.setContentPane(new DroneStatus().topPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
