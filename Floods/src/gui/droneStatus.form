@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="gui.droneStatus">
+  <grid id="27dc6" binding="topPanel" layout-manager="GridBagLayout">
+    <constraints>
+      <xy x="20" y="20" width="515" height="400"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="88db5" class="javax.swing.JButton" binding="closeButton">
+        <constraints>
+          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <text value="Close"/>
+        </properties>
+      </component>
+      <scrollpane id="e5114">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="d5535" class="javax.swing.JTable" binding="droneTable" custom-create="true">
+            <constraints/>
+            <properties/>
+          </component>
+        </children>
+      </scrollpane>
+      <component id="42e27" class="javax.swing.JButton" binding="killButton">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <text value="Kill Selected Drones"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>

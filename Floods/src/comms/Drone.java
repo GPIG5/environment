@@ -30,6 +30,7 @@ public class Drone implements Runnable {
     private Gson gson = new Gson();
     private Location location = new Location(0, 0, 0);
     private MeshServer mesh;
+    private Integer battery = 0;
 
     public Drone(Socket clientSoc, MeshServer mesh) {
         this.socket = clientSoc;
@@ -112,6 +113,10 @@ public class Drone implements Runnable {
         Location newLocation = gson.fromJson(locationJE, Location.class);
         setLocation(newLocation);
 
+        synchronized (battery) {
+            battery = jobj.getAsJsonObject("battery").getAsInt();
+        }
+
         ServiceResponse sr = mesh.checkForPINOR(uuid, location);
 
         DirectPINORMessage pj = new DirectPINORMessage(sr);
@@ -134,6 +139,22 @@ public class Drone implements Runnable {
 
     public String getUuid() {
         return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public void setBattery(int battery) {
+        synchronized (this.battery) {
+            this.battery = battery;
+        }
+    }
+
+    public int getBattery() {
+        synchronized (battery) {
+            return battery;
+        }
     }
 
     private class DirectPINORMessage {
