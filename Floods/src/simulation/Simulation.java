@@ -28,6 +28,7 @@ import simulation.terrain.Terrain;
 import simulation.water.Cells;
 import simulation.water.Pinor;
 import simulation.water.Water;
+import startup.Main;
 import utility.ServiceInterface;
 import utility.ServiceRequest;
 import utility.ServiceResponse;
@@ -164,10 +165,9 @@ public class Simulation extends SimpleApplication {
         }
     }
     
-    /* TODO Once merged with master, connect this up.
     @Override
     public void stop() {
     	super.stop();
-    	Main
-    } */
+    	Main.close();
+    }
 }

@@ -1,3 +1,4 @@
+package startup;
 import com.jme3.app.SettingsDialog.SelectionListener;
 
 import comms.MeshServer;
