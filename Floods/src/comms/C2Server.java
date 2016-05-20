@@ -6,27 +6,54 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.*;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by hm649 on 10/05/16.
  */
 public class C2Server implements Runnable {
 
-    private final int PORT = 5556;
+    private final int port;
     private final Location location;
+    private final String addr;
     private MeshServer mesh;
-    private ServerSocket serverSoc = null;
+    private ServerSocket serverSoc;
 
 
-    public C2Server(MeshServer mesh, Location location) {
+    public C2Server(MeshServer mesh) {
         this.mesh = mesh;
-        this.location = location;
+
+        String location = mesh.getProperty("c2ServerLocation");
+        if (location == null) {
+            System.err.println("c2 server location property not found, using default value");
+            this.location = new Location(53.929472f, -1.165084f, 2);
+        } else {
+            location = location.replaceAll("[()]","");
+            List<String> vals = Arrays.asList(location.split(","));
+            this.location = new Location(Float.valueOf(vals.get(0)), Float.valueOf(vals.get(1)),
+                    Float.valueOf(vals.get(2)));
+        }
+
+        String portStr = mesh.getProperty("c2ServerPort");
+        if (portStr == null) {
+            System.err.println("C2 server port property not found, using default value");
+            this.port = 5556;
+        } else {
+            this.port = Integer.valueOf(portStr);
+        }
+
+        String addr = mesh.getProperty("c2ServerPOSTAddr");
+        if (portStr == null) {
+            System.err.println("C2 server POST address property not found, using default value");
+            this.addr = "http://127.0.0.1/c2gui/send_drone_data";
+        } else {
+            this.addr = addr;
+        }
     }
 
     public void txData(String toSend) throws IOException {
-        //TODO config file
-        URL url = new URL("http://144.32.178.58:8000/c2gui/send_drone_data");
+        URL url = new URL(addr);
         URLConnection con = url.openConnection();
         HttpURLConnection tx = (HttpURLConnection) con;
 
@@ -45,7 +72,7 @@ public class C2Server implements Runnable {
 
     @Override
     public void run() {
-        try (ServerSocket serverSoc = new ServerSocket(PORT)) {
+        try (ServerSocket serverSoc = new ServerSocket(port)) {
             this.serverSoc = serverSoc;
             while (!Thread.interrupted()) {
                 try (SocCom soc = new SocCom(serverSoc.accept())) {
@@ -76,13 +103,5 @@ public class C2Server implements Runnable {
                 //yolo
             }
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-
-        MeshServer mesh = new MeshServer();
-        C2Server c2 = new C2Server(mesh, new Location(0, 0, 0));
-        c2.txData("\"{\"data\": \"test\"}");
-
     }
 }
