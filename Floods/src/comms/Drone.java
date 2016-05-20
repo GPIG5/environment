@@ -3,6 +3,7 @@ package comms;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import gui.DroneStatus;
 import utility.Location;
 import utility.ServiceRequest;
 import utility.ServiceResponse;
@@ -11,7 +12,6 @@ import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -24,12 +24,15 @@ public class Drone implements Runnable {
     //in milliseconds
     //todo add to config file
     private final long timeOut = 2000;
-    public ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
+
+    private ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
     private Socket socket;
-    private String uuid;
+    private volatile String uuid;
     private Gson gson = new Gson();
     private Location location = new Location(0, 0, 0);
     private MeshServer mesh;
+    private volatile int battery = 0;
+    private volatile boolean killComms = false;
 
     public Drone(Socket clientSoc, MeshServer mesh) {
         this.socket = clientSoc;
@@ -41,7 +44,7 @@ public class Drone implements Runnable {
         try (SocCom soc = new SocCom(socket)) {
             String encodedStr = soc.rxData();
             parseAndSetUuid(encodedStr);
-
+            DroneStatus.addDrone(this);
             long lastRx = System.nanoTime();
             //Main loop
             while (!Thread.interrupted()) {
@@ -64,10 +67,11 @@ public class Drone implements Runnable {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Drone exception: " + e.getMessage());
+            //
         } finally {
             mesh.drones.remove(uuid);
             mesh.addServiceRequest(new ServiceRequest(uuid, location, true, null));
+            DroneStatus.removeDrone(this);
             System.out.println("Drone disconnected");
         }
     }
@@ -90,7 +94,9 @@ public class Drone implements Runnable {
 
         switch (type) {
             case "mesh":
-                mesh.messageGlobal(this, encodedStr);
+                if (!killComms) {
+                    mesh.messageGlobal(this, encodedStr);
+                }
                 return null;
             case "direct":
                 String dataType = jobj.getAsJsonObject("data").get("datatype").getAsString();
@@ -110,7 +116,10 @@ public class Drone implements Runnable {
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         JsonElement locationJE = jobj.getAsJsonObject("data").get("location");
         Location newLocation = gson.fromJson(locationJE, Location.class);
-        setLocation(newLocation);
+        location = newLocation;
+
+        battery = jobj.getAsJsonObject("battery").getAsInt();
+
 
         ServiceResponse sr = mesh.checkForPINOR(uuid, location);
 
@@ -121,19 +130,33 @@ public class Drone implements Runnable {
 
 
     public Location getLocation() {
-        synchronized (location) {
             return location;
-        }
-    }
-
-    private void setLocation(Location newLocation) {
-        synchronized (location) {
-            location = newLocation;
-        }
     }
 
     public String getUuid() {
         return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public void setBattery(int battery) {
+        this.battery = battery;
+    }
+
+    public int getBattery() {
+        return battery;
+    }
+
+    public void setKillComms(boolean value) {
+        killComms = value;
+    }
+
+    public void addMsgToSend(String msg) {
+        if (!killComms) {
+            dataToSend.add(msg);
+        }
     }
 
     private class DirectPINORMessage {
