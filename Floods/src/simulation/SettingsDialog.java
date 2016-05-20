@@ -15,6 +15,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -41,13 +42,39 @@ public final class SettingsDialog extends JFrame {
 	private boolean vsync = false;
 	private boolean fscreen = false;
 	
+	private DisplayMode[] defaultModes = {
+	        new DisplayMode(1024, 768, 24, 60),
+	        new DisplayMode(1280, 720, 24, 60),
+	        new DisplayMode(1280, 1024, 24, 60),
+	        new DisplayMode(1440, 900, 24, 60),
+	        new DisplayMode(1680, 1050, 24, 60),
+	};
+	
 	public SettingsDialog() {
 		settings = new AppSettings(true);
 		settings.setTitle("Environment Monitor");
 		GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-		modes = device.getDisplayModes();
-		Arrays.sort(modes, new DisplayModeSorter());
+		ArrayList<DisplayMode> tmpModes = new ArrayList<DisplayMode>();
+		DisplayMode[] devModes = device.getDisplayModes();
+		for (DisplayMode d : devModes) {
+			tmpModes.add(d);
+		}
+		for (DisplayMode d : defaultModes) {
+			boolean found = false;
+			for (DisplayMode e : devModes) {
+				if (e.getWidth() == d.getWidth() 
+						&& e.getHeight() == d.getHeight()) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				tmpModes.add(d);
+			}
+		}
 		// Populate str modes.
+		tmpModes.sort(new DisplayModeSorter());
+		modes = tmpModes.toArray(devModes);
 		strModes = new String[modes.length];
 		for (int i = 0; i < modes.length; i++) {
 			StringBuilder strb =  new StringBuilder(modes[i].getWidth()+"x"+modes[i].getHeight());
@@ -193,7 +220,7 @@ public final class SettingsDialog extends JFrame {
         gbc.gridx = 0;
         gbc.gridwidth = 1;
         gbc.gridy = 4;
-        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.anchor = GridBagConstraints.WEST;
         gbc.weightx = 0.5;
         panelMain.add(btnCancel, gbc);
         gbc.anchor = GridBagConstraints.EAST;
