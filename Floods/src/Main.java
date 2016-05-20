@@ -2,6 +2,7 @@ import com.jme3.app.SettingsDialog.SelectionListener;
 
 import comms.MeshServer;
 
+import gui.DroneStatus;
 import simulation.Simulation;
 import simulation.SettingsDialog;
 import utility.ServiceInterface;
@@ -11,6 +12,7 @@ public final class Main {
 	static MeshServer mesh = null;
 
     public static void main(String[] args) {
+        DroneStatus.start();
         ServiceInterface si = new ServiceInterface();
         mesh = new MeshServer();
         mesh.start(si);
@@ -42,5 +44,4 @@ public final class Main {
     	}
     	System.exit(0);
     }
-
 }
