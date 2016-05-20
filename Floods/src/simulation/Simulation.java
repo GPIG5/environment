@@ -63,7 +63,9 @@ public class Simulation extends SimpleApplication {
         droneCamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
         makeDrone();
-    }
+    }  
+    
+    
     
     private void makeDrone() {
         // Load drone
