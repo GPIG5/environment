@@ -5,10 +5,14 @@ import utility.ServiceInterface;
 import utility.ServiceRequest;
 import utility.ServiceResponse;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.*;
 
 /**
@@ -18,17 +22,32 @@ public class MeshServer {
 
     public AbstractMap<String, Drone> drones = new ConcurrentHashMap<>();
     //in metres
-    private final float range = 1000000000;
+    private float range;
     private DroneServer droneServer;
     private C2Server c2Server;
     private ServiceInterface si;
     private List<Future<?>> futureList = new ArrayList<>();
+    private Properties properties = new Properties();
 
     public void start(ServiceInterface si) {
-        droneServer = new DroneServer(this);
-        c2Server = new C2Server(this, new Location(53.929472f, -1.165084f, 2));
 
-        //todo read in config file with server location and range
+        try (InputStream in = getClass().getResourceAsStream("/config.properties")) {
+            properties.load(in);
+        } catch (IOException e) {
+            System.err.println("Exception loading config file: " + e.getMessage());
+        }
+
+        String rangeStr = getProperty("commRange");
+        if (rangeStr == null) {
+            System.err.println("Range property not found, using default value");
+            this.range = 1000000000;
+        } else {
+            this.range = Float.valueOf(rangeStr);
+        }
+
+        droneServer = new DroneServer(this);
+        c2Server = new C2Server(this);
+
         futureList.add(Executors.newSingleThreadExecutor().submit(droneServer));
         futureList.add(Executors.newSingleThreadExecutor().submit(c2Server));
         this.si = si;
@@ -79,13 +98,13 @@ public class MeshServer {
         droneServer.terminate();
     }
 
+    public String getProperty(String key) {
+        return properties.getProperty(key);
+    }
+
     private boolean inRange(Location loc1, Location loc2) {
         return loc1.distance(loc2) <= range;
     }
 
-    public static void main(String[] args) {
-        MeshServer mesh = new MeshServer();
-        mesh.start(new ServiceInterface());
-    }
 
 }

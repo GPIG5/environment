@@ -131,7 +131,7 @@ public class DroneTest {
 
 
         socs.client.txData(connectMsg);
-        Drone drone = new Drone(socs.drone, mesh);
+        Drone drone = new Drone(socs.drone, mesh, 2000);
 
         return drone;
     }

@@ -16,7 +16,8 @@ import java.util.concurrent.Future;
  */
 public class DroneServer implements Runnable {
 
-    private final int PORT = 5555;
+    private final int port;
+    private final long droneTimeout;
     private MeshServer mesh;
     private ExecutorService threadPool = Executors.newCachedThreadPool();
     private List<Future<?>> droneFutures = new ArrayList<>();
@@ -24,12 +25,28 @@ public class DroneServer implements Runnable {
 
     public DroneServer(MeshServer mesh) {
         this.mesh = mesh;
+
+        String droneTimeoutStr = mesh.getProperty("droneTimeOut");
+        if (droneTimeoutStr == null) {
+            System.err.println("Drone time out property not found, using default value");
+            this.droneTimeout = 2000;
+        } else {
+            this.droneTimeout = Integer.valueOf(droneTimeoutStr);
+        }
+
+        String portStr = mesh.getProperty("envServerPort");
+        if (portStr == null) {
+            System.err.println("Environment server port property not found, using default value");
+            this.port = 5555;
+        } else {
+            this.port = Integer.valueOf(portStr);
+        }
     }
 
     @Override
     public void run() {
 
-        try (ServerSocket serverSoc = new ServerSocket(PORT)) {
+        try (ServerSocket serverSoc = new ServerSocket(port)) {
             this.serverSoc = serverSoc;
             //main loop
             while (!Thread.interrupted()) {
@@ -37,7 +54,7 @@ public class DroneServer implements Runnable {
                 try {
                     clientSoc = serverSoc.accept();
                     System.out.println("new drone connected");
-                    Drone drone = new Drone(clientSoc, mesh);
+                    Drone drone = new Drone(clientSoc, mesh, droneTimeout);
                     droneFutures.add(threadPool.submit(drone));
                 } catch (Exception e) {
                     //if the thread did not start clientSoc will not be closed

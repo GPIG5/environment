@@ -20,10 +20,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Drone implements Runnable {
 
-    //todo record battery
     //in milliseconds
-    //todo add to config file
-    private final long timeOut = 2000;
+    private final long timeOut;
 
     private ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
     private Socket socket;
@@ -34,9 +32,10 @@ public class Drone implements Runnable {
     private volatile int battery = 0;
     private volatile boolean killComms = false;
 
-    public Drone(Socket clientSoc, MeshServer mesh) {
+    public Drone(Socket clientSoc, MeshServer mesh, long timeOut) {
         this.socket = clientSoc;
         this.mesh = mesh;
+        this.timeOut = timeOut;
     }
 
     @Override
