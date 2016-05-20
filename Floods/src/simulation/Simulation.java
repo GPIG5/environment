@@ -68,7 +68,7 @@ public class Simulation extends SimpleApplication {
     private void makeDrone() {
         // Load drone
         drone = assetManager.loadModel("drone.obj");
-        drone.scale(0.2f);
+        drone.scale(0.05f);
         Material droneMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         droneMat.setBoolean("UseMaterialColors", true);
         droneMat.setColor("Diffuse", new ColorRGBA(0.2f, 0.2f, 0.2f, 0.0f)); // minimum material color
