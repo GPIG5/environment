@@ -38,6 +38,8 @@ public final class SettingsDialog extends JFrame {
 	private SelectionListener selectionListener = null;
 	
 	private String heightmap = "";
+	private boolean vsync = false;
+	private boolean fscreen = false;
 	
 	public SettingsDialog() {
 		settings = new AppSettings(true);
@@ -99,9 +101,21 @@ public final class SettingsDialog extends JFrame {
         // Vsync
         boxVsync = new JCheckBox("Vsync");
         boxVsync.setSelected(false);
+        boxVsync.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				vsync = boxVsync.isSelected();
+			}
+		});
         // Full screen
         boxFscreen = new JCheckBox("Fullscreen");
         boxFscreen.setSelected(false);
+        boxFscreen.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fscreen = boxFscreen.isSelected();
+			}
+		});
         // Buttons
         JButton btnAccept = new JButton("Accept");     
         btnAccept.addActionListener(new ActionListener() {
@@ -112,6 +126,7 @@ public final class SettingsDialog extends JFrame {
 				if (heightmap != "") {
 					File f =  new File(heightmap);
 					if (f.exists() && !f.isDirectory()) {
+						updateSettings();
 						setUserSelection(APPROVE_SELECTION);
 					}
 					else {
@@ -194,9 +209,14 @@ public final class SettingsDialog extends JFrame {
         setVisible(true);
 	}
 	
-	// Propagate information to settings dialog.
+	// Propagate information to settings object.
 	public void updateSettings() {
-		
+		DisplayMode smode = modes[comboRes.getSelectedIndex()];
+		settings.setWidth(smode.getWidth());
+		settings.setHeight(smode.getHeight());
+		settings.setFrequency(smode.getRefreshRate());
+		settings.setVSync(vsync);
+		settings.setFullscreen(fscreen);
 	}
 	
 	public AppSettings getSettings() {

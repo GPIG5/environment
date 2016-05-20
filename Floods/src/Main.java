@@ -6,7 +6,7 @@ import simulation.Simulation;
 import simulation.SettingsDialog;
 import utility.ServiceInterface;
 
-public class Main {
+public final class Main {
 	static Simulation sim = null;
 	static MeshServer mesh = null;
 
@@ -18,7 +18,6 @@ public class Main {
         // Sim settings
         SettingsDialog sdialog = new SettingsDialog();
         sdialog.setSelectionListener(new SelectionListener() {
-			
 			@Override
 			public void onSelection(int arg0) {
 				if (arg0 == SettingsDialog.APPROVE_SELECTION) {

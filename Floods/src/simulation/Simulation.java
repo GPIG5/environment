@@ -163,5 +163,11 @@ public class Simulation extends SimpleApplication {
             }
         }
     }
-
+    
+    /* TODO Once merged with master, connect this up.
+    @Override
+    public void stop() {
+    	super.stop();
+    	Main
+    } */
 }
