@@ -137,7 +137,6 @@ public class UserInterface extends JFrame {
         	}
         	else {
         		// We know about this drone, update the checkbox value.
-        		System.out.println(k+": "+killed);
         		v.setKillComms(killed);
         	}
         });

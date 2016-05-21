@@ -47,6 +47,9 @@ public final class Main {
     	if (settings != null) {
     		settings.dispose();
     	}
+    	if (droneWindow != null) {
+    		droneWindow.dispose();
+    	}
     	System.exit(0);
     }
 }

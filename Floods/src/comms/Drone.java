@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import utility.Location;
-import utility.ServiceRequest;
 import utility.ServiceResponse;
 
 import javax.imageio.ImageIO;
@@ -13,7 +12,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +53,6 @@ public class Drone implements Runnable {
                         soc.txData(toSend);
                     }
                 } else if ((lastRx + TimeUnit.MILLISECONDS.toNanos(timeOut)) <= System.nanoTime()) {
-                	System.out.println("Outta time");
                     throw new IllegalStateException("Drone timed out");
                 }
 
@@ -66,8 +63,8 @@ public class Drone implements Runnable {
                 }
             }
         } catch (Exception e) {
-        	e.printStackTrace();
-        	System.out.println(e.getMessage());
+//        	e.printStackTrace();
+//        	System.out.println(e.getMessage());
         } finally {
         	mesh.removeDrone(uuid);
             System.out.println("Drone disconnected");
@@ -78,10 +75,9 @@ public class Drone implements Runnable {
         // Get uuid.
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         uuid = jobj.get("uuid").getAsString();
-        System.out.println("UUID: " + uuid);
+//        System.out.println("UUID: " + uuid);
         // Try and add this drone.
         if (!mesh.addDrone(uuid, this)) {
-            System.out.println("Drone with uuid "+ uuid + " already exists!");
             throw new IllegalStateException("Drone with uuid already exists");
         }
     }
