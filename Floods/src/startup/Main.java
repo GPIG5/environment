@@ -2,8 +2,7 @@ package startup;
 import com.jme3.app.SettingsDialog.SelectionListener;
 
 import comms.MeshServer;
-
-import gui.DroneStatus;
+import comms.UserInterface;
 import simulation.Simulation;
 import simulation.SettingsDialog;
 import utility.ServiceInterface;
@@ -11,20 +10,22 @@ import utility.ServiceInterface;
 public final class Main {
 	static Simulation sim = null;
 	static MeshServer mesh = null;
-
+	static UserInterface droneWindow = null;
+	static SettingsDialog settings = null;
+	
     public static void main(String[] args) {
-        DroneStatus.start();
         ServiceInterface si = new ServiceInterface();
         mesh = new MeshServer();
         mesh.start(si);
         Simulation sim = new Simulation();
         // Sim settings
-        SettingsDialog sdialog = new SettingsDialog();
-        sdialog.setSelectionListener(new SelectionListener() {
+        settings = new SettingsDialog();
+        settings.setSelectionListener(new SelectionListener() {
 			@Override
 			public void onSelection(int arg0) {
 				if (arg0 == SettingsDialog.APPROVE_SELECTION) {
-			        sim.setSettings(sdialog.getSettings());
+					droneWindow = new UserInterface(mesh.getDrones());
+			        sim.setSettings(settings.getSettings());
 			        sim.setShowSettings(false);
 			        sim.start(si);
 				}
@@ -42,6 +43,9 @@ public final class Main {
     	}
     	if (sim != null) {
     		sim.requestClose(true);
+    	}
+    	if (settings != null) {
+    		settings.dispose();
     	}
     	System.exit(0);
     }

@@ -12,22 +12,22 @@ import java.io.InputStream;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.concurrent.*;
 
 /**
  * Created by hm649 on 10/05/16.
  */
 public class MeshServer {
-
-    public AbstractMap<String, Drone> drones = new ConcurrentHashMap<>();
-    //in metres
+    private AbstractMap<String, Drone> drones = new ConcurrentHashMap<>();
     private float range;
     private DroneServer droneServer;
     private C2Server c2Server;
-    private ServiceInterface si;
     private List<Future<?>> futureList = new ArrayList<>();
     private Properties properties = new Properties();
+    private Queue<ServiceRequest> queueRequests;
 
     public void start(ServiceInterface si) {
 
@@ -50,7 +50,7 @@ public class MeshServer {
 
         futureList.add(Executors.newSingleThreadExecutor().submit(droneServer));
         futureList.add(Executors.newSingleThreadExecutor().submit(c2Server));
-        this.si = si;
+        queueRequests = si.getRequestQueue();
     }
 
     /**
@@ -82,14 +82,10 @@ public class MeshServer {
         CompletableFuture<ServiceResponse> future = new CompletableFuture<>();
 
         ServiceRequest sr = new ServiceRequest(uuid, loc, false, future);
-        addServiceRequest(sr);
+        queueRequests.offer(sr);
 
         ServiceResponse resp = future.get();
         return resp;
-    }
-
-    public void addServiceRequest(ServiceRequest sr) {
-        si.getRequestQueue().add(sr);
     }
 
     public void terminate() {
@@ -105,6 +101,25 @@ public class MeshServer {
     private boolean inRange(Location loc1, Location loc2) {
         return loc1.distance(loc2) <= range;
     }
-
-
+    
+    // Try and add a drone, returning false if drone already exists.
+    public synchronized boolean addDrone(String uuid, Drone drone) {
+    	if (drones.containsKey(uuid)) {
+    		return false;
+    	}
+    	else {
+    		drones.put(uuid, drone);
+    		return true;
+    	}
+    }
+    
+    // Remove a drone and send a remove message to the simulation.
+    public synchronized void removeDrone(String uuid) {
+    	drones.remove(uuid);
+    	queueRequests.offer(new ServiceRequest(uuid, null, true, null));
+    }
+    
+    public Map<String, Drone> getDrones() {
+    	return this.drones;
+    }
 }
