@@ -50,7 +50,7 @@ public class Cells {
         pinors = new ArrayList<Pinor>();
         // Load water height map + process
         try {
-            BufferedImage img = ImageIO.read(Cells.class.getResourceAsStream("/assets/Textures/mask.png"));
+            BufferedImage img = ImageIO.read(Cells.class.getResourceAsStream("/assets/mask.png"));
             // Make planes
             int i = 0;
             System.out.println("Water is : " + nr1 + "x" + nc1);

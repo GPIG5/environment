@@ -30,6 +30,52 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+              <plugin>
+			    <artifactId>maven-resources-plugin</artifactId>
+			    <version>2.6</version>
+			    <executions>
+			      <execution>
+			        <id>copy-assets</id>
+			        <phase>validate</phase>
+			        <goals>
+			          <goal>copy-resources</goal>
+			        </goals>
+			        <configuration><include>yorktex.jpg</include><include>yorktex.jpg</include><include>yorktex.jpg</include>
+			          <outputDirectory>${basedir}/target/classes/assets</outputDirectory>
+			          <resources>
+			            <resource>
+			                <directory>src/assets</directory>
+			               <includes>
+          						<include>drone.obj</include>
+          						<include>gpig.jpg</include>
+          						<include>lidar.zip</include>
+          						<include>mask.png</include>
+          						<include>yorktex.jpg</include>
+          					</includes>
+			            </resource>
+			          </resources>
+			        </configuration>
+			      </execution>
+			      <execution>
+			        <id>copy-cl</id>
+			        <phase>validate</phase>
+			        <goals>
+			          <goal>copy-resources</goal>
+			        </goals>
+			        <configuration>
+			          <outputDirectory>${basedir}/target/classes/simulation/water</outputDirectory>
+			          <resources>
+			            <resource>
+			                <directory>src/simulation/water</directory>
+			          		<includes>
+          						<include>pipes.cl</include>
+          					</includes>
+			            </resource>
+			          </resources>
+			        </configuration>
+			      </execution>
+			    </executions>
+			  </plugin>
         </plugins>
     </build>
     <dependencies>

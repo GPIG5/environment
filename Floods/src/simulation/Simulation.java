@@ -86,7 +86,7 @@ public class Simulation extends SimpleApplication {
         terMat.setColor("Diffuse", ColorRGBA.White); // minimum material color
         terMat.setColor("Specular", ColorRGBA.LightGray); // for shininess
         terMat.setFloat("Shininess", 32f); // [1,128] for shininess
-        Texture gtex = assetManager.loadTexture("Textures/yorktex.jpg");
+        Texture gtex = assetManager.loadTexture("yorktex.jpg");
         gtex.setWrap(WrapMode.Repeat);
         terMat.setTexture("DiffuseMap", gtex);
         terrain = new Terrain(terMat, "lidar.zip");

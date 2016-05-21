@@ -34,7 +34,7 @@ public class ASCTerrain extends Mesh {
     public ASCTerrain(String zfile) {
         int count;
         try {
-            ZipInputStream zis = new ZipInputStream(ASCTerrain.class.getResourceAsStream("/assets/Terrain/" + zfile));
+            ZipInputStream zis = new ZipInputStream(ASCTerrain.class.getResourceAsStream("/assets/" + zfile));
             ZipEntry ze = zis.getNextEntry();
             System.out.println("Opening file: " + ze.getName());
             byte[] asc = new byte[(int) ze.getSize()];
