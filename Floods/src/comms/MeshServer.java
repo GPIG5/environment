@@ -79,11 +79,15 @@ public class MeshServer {
 
         //Send to C2 Server if in range
         if (tx != null && inRange(c2Server.getLocation(), tx.getLocation())) {
-            try {
-                c2Server.txData(msg);
-            } catch (IOException e) {
-                System.err.println("Sending data to C2 server exception: " + e.getMessage());
-            }
+           messageC2(msg);
+        }
+    }
+
+    public void messageC2(String msg) {
+        try {
+            c2Server.txData(msg);
+        } catch (IOException e) {
+            System.err.println("Sending data to C2 server exception: " + e.getMessage());
         }
     }
 
@@ -116,8 +120,7 @@ public class MeshServer {
     public synchronized boolean addDrone(String uuid, Drone drone) {
     	if (drones.containsKey(uuid)) {
     		return false;
-    	}
-    	else {
+    	} else {
     		drones.put(uuid, drone);
     		return true;
     	}

@@ -99,6 +99,8 @@ public class Drone implements Runnable {
                     case "status":
                         String toSend = processStatusMsg(encodedStr);
                         return toSend;
+                    case "upload":
+                        mesh.messageC2(encodedStr);
                     default:
                         throw new IOException("Received unspecified datatype in JSON " + dataType);
                 }
