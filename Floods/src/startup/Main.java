@@ -16,7 +16,7 @@ public final class Main {
     public static void main(String[] args) {
         ServiceInterface si = new ServiceInterface();
         mesh = new MeshServer();
-        mesh.start(si);
+        mesh.start(si, args[0]);
         Simulation sim = new Simulation();
         // Sim settings
         settings = new SettingsDialog();

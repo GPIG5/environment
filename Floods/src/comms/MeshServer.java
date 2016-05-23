@@ -5,10 +5,7 @@ import utility.ServiceInterface;
 import utility.ServiceRequest;
 import utility.ServiceResponse;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,12 +26,25 @@ public class MeshServer {
     private Properties properties = new Properties();
     private Queue<ServiceRequest> queueRequests;
 
-    public void start(ServiceInterface si) {
+    public void start(ServiceInterface si, String propertiesLoc) {
 
-        try (InputStream in = getClass().getResourceAsStream("/config.properties")) {
-            properties.load(in);
-        } catch (IOException e) {
-            System.err.println("Exception loading config file: " + e.getMessage());
+
+        if (propertiesLoc != null) {
+            try (FileInputStream in = new FileInputStream(new File(propertiesLoc))) {
+                properties.load(in);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try (InputStream in = getClass().getResourceAsStream("/config.properties")) {
+                if (in != null) {
+                    properties.load(in);
+                } else {
+                    System.err.println("Could not load config file");
+                }
+            } catch (IOException e) {
+                System.err.println("Exception loading config file: " + e.getMessage());
+            }
         }
 
         String rangeStr = getProperty("commRange");
