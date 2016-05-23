@@ -34,7 +34,7 @@ public final class SettingsDialog extends JFrame {
 	
 	private JCheckBox boxVsync;
 	private JCheckBox boxFscreen;
-	private JComboBox comboRes;
+	private JComboBox<String> comboRes;
 	private JFileChooser chooser;
 	private SelectionListener selectionListener = null;
 	
@@ -107,8 +107,8 @@ public final class SettingsDialog extends JFrame {
         // icon
         JLabel icon = new JLabel(new ImageIcon(SettingsDialog.class.getResource("/assets/gpig.jpg")));
         // Screen resolution
-        comboRes = new JComboBox();
-        comboRes.setModel(new DefaultComboBoxModel<String>(strModes));
+        comboRes = new JComboBox<>();
+        comboRes.setModel(new DefaultComboBoxModel<>(strModes));
         comboRes.setSelectedItem(0);
         // File chooser
         JTextField txtSelected = new JTextField(15);
