@@ -6,19 +6,14 @@ import utility.ServiceRequest;
 import utility.ServiceResponse;
 
 import java.io.*;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
  * Created by hm649 on 10/05/16.
  */
 public class MeshServer {
-    private AbstractMap<String, Drone> drones = new ConcurrentHashMap<>();
+    private AbstractMap<String, Drone> drones = new HashMap<>();
     private float range;
     private DroneServer droneServer;
     private C2Server c2Server;
@@ -117,21 +112,25 @@ public class MeshServer {
     }
     
     // Try and add a drone, returning false if drone already exists.
-    public synchronized boolean addDrone(String uuid, Drone drone) {
-    	if (drones.containsKey(uuid)) {
-    		return false;
-    	} else {
-    		drones.put(uuid, drone);
-    		return true;
-    	}
+    public boolean addDrone(String uuid, Drone drone) {
+        synchronized (drones) {
+            if (drones.containsKey(uuid)) {
+                return false;
+            } else {
+                drones.put(uuid, drone);
+                return true;
+            }
+        }
     }
-    
+
     // Remove a drone and send a remove message to the simulation.
-    public synchronized void removeDrone(String uuid) {
-    	drones.remove(uuid);
-    	queueRequests.offer(new ServiceRequest(uuid, null, true, null));
+    public void removeDrone(String uuid) {
+        synchronized (drones) {
+            drones.remove(uuid);
+            queueRequests.offer(new ServiceRequest(uuid, null, true, null));
+        }
     }
-    
+
     public Map<String, Drone> getDrones() {
     	return this.drones;
     }

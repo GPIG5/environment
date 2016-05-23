@@ -101,6 +101,7 @@ public class Drone implements Runnable {
                         return toSend;
                     case "upload":
                         mesh.messageC2(encodedStr);
+                        return null;
                     default:
                         throw new IOException("Received unspecified datatype in JSON " + dataType);
                 }
