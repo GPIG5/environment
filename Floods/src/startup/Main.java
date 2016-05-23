@@ -16,7 +16,11 @@ public final class Main {
     public static void main(String[] args) {
         ServiceInterface si = new ServiceInterface();
         mesh = new MeshServer();
-        mesh.start(si, args[0]);
+		if (args.length > 0) {
+			mesh.start(si, args[0]);
+		} else {
+			mesh.start(si, null);
+		}
         Simulation sim = new Simulation();
         // Sim settings
         settings = new SettingsDialog();
