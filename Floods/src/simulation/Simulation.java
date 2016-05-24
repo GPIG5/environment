@@ -18,17 +18,18 @@ import com.jme3.system.JmeSystem;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 import org.lwjgl.opengl.Display;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.operation.TransformException;
 import simulation.terrain.Terrain;
 import simulation.water.Cells;
 import simulation.water.Pinor;
 import simulation.water.Water;
 import startup.Main;
+import utility.Location;
 import utility.ServiceInterface;
 import utility.ServiceRequest;
 import utility.ServiceResponse;
@@ -64,10 +65,107 @@ public class Simulation extends SimpleApplication {
         droneCamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
         makeDrone();
-    }  
-    
-    
-    
+
+
+        // Debugging stuff
+
+        // Corners
+        List<Location> corners = Arrays.asList(
+                new Location(53.945531f,-1.134069f,50),
+                new Location(53.961323f,-1.112501f,50));
+
+
+        List<Location> other_points = Arrays.asList(
+                //X axis
+                new Location(53.946847f, -1.134069f, 50),
+                new Location(53.948163f, -1.134069f, 50),
+                new Location(53.949479f, -1.134069f, 50),
+                new Location(53.950795f, -1.134069f, 50),
+                new Location(53.952111f, -1.134069f, 50),
+                new Location(53.953427f, -1.134069f, 50),
+                new Location(53.954743f, -1.134069f, 50),
+                new Location(53.956059f, -1.134069f, 50),
+                new Location(53.957375f, -1.134069f, 50),
+                new Location(53.958691f, -1.134069f, 50),
+                new Location(53.960007f, -1.134069f, 50),
+//                new Location(53.961323f, -1.134069f, 50),
+                //Y axis
+                new Location(53.945531f, -1.1319122f, 50),
+                new Location(53.945531f, -1.1297554f, 50),
+                new Location(53.945531f, -1.1275986f, 50),
+                new Location(53.945531f, -1.1254418f, 50),
+                new Location(53.945531f, -1.123285f, 50),
+                new Location(53.945531f, -1.1211282f, 50),
+                new Location(53.945531f, -1.1189714f, 50),
+                new Location(53.945531f, -1.1168145f, 50),
+                new Location(53.945531f, -1.1146578f, 50),
+                new Location(53.945531f, -1.112501f, 50)
+                );
+
+        try {
+
+            for (Location location : corners){
+
+                // Y axis
+                Vector3f pos = terrain.osgbTo3D(location.getOSGB(), location.getAlt());
+                Geometry geo = new Geometry("TestY" + corners.indexOf(location), new Box(50f, 0.05f, 0.05f));
+                Material pinormat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                pinormat.setColor("Color", ColorRGBA.Yellow);
+                geo.setMaterial(pinormat);
+                geo.setLocalTranslation(pos);
+                rootNode.attachChild(geo);
+
+                // X axis
+                pos = terrain.osgbTo3D(location.getOSGB(), location.getAlt());
+                geo = new Geometry("TestX" + corners.indexOf(location), new Box(0.05f, 0.05f, 50f));
+                pinormat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                pinormat.setColor("Color", ColorRGBA.Yellow);
+                geo.setMaterial(pinormat);
+                geo.setLocalTranslation(pos);
+                rootNode.attachChild(geo);
+            }
+
+            for (Location location : other_points){
+
+                // Y axis
+                Vector3f pos = terrain.osgbTo3D(location.getOSGB(), location.getAlt());
+                Geometry geo = new Geometry("Test_dY" + other_points.indexOf(location), new Box(50f, 0.01f, 0.01f));
+                Material pinormat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                pinormat.setColor("Color", ColorRGBA.Orange);
+                geo.setMaterial(pinormat);
+                geo.setLocalTranslation(pos);
+                rootNode.attachChild(geo);
+
+                // X axis
+                pos = terrain.osgbTo3D(location.getOSGB(), location.getAlt());
+                geo = new Geometry("Test_dX" + other_points.indexOf(location), new Box(0.01f, 0.01f, 50f));
+                pinormat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                pinormat.setColor("Color", ColorRGBA.Orange);
+                geo.setMaterial(pinormat);
+                geo.setLocalTranslation(pos);
+                rootNode.attachChild(geo);
+            }
+
+//            p.setMesh(new Box(0.01f, 0.1f, 0.01f));
+//            p.setModelBound(new BoundingBox());
+//            p.updateModelBound();
+//            p.setMaterial(pinormat);
+//            rootNode.attachChild(p);
+        } catch (TransformException | FactoryException ignored) {
+        }
+    }
+
+    private static class PointAndColour {
+
+        public final Location location;
+        public final Material material;
+
+        public PointAndColour(Location location, Material material) {
+            this.location = location;
+            this.material = material;
+        }
+    }
+
     private void makeDrone() {
         // Load drone
         drone = assetManager.loadModel("drone.obj");
@@ -164,10 +262,10 @@ public class Simulation extends SimpleApplication {
             }
         }
     }
-    
+
     @Override
     public void stop() {
-    	super.stop();
-    	Main.close();
+        super.stop();
+        Main.close();
     }
 }
