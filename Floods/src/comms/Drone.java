@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import utility.Location;
+import utility.ServiceRequest;
 import utility.ServiceResponse;
 
 import javax.imageio.ImageIO;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Base64;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +23,8 @@ public class Drone implements Runnable {
     //in milliseconds
     private final long timeOut;
 
-    private ConcurrentLinkedQueue<String> dataToSend = new ConcurrentLinkedQueue<>();
+    private Queue<String> dataToSend = new ConcurrentLinkedQueue<String>();
+    private Queue<ServiceResponse> respToSend = new ConcurrentLinkedQueue<ServiceResponse>();
     private Socket socket;
     private volatile String uuid;
     private Gson gson = new Gson();
@@ -48,10 +51,7 @@ public class Drone implements Runnable {
                 if (soc.available() > 0) {
                     lastRx = System.nanoTime();
                     encodedStr = soc.rxData();
-                    String toSend = processRxMsg(encodedStr);
-                    if (toSend != null) {
-                        soc.txData(toSend);
-                    }
+                    processRxMsg(encodedStr);
                 } else if ((lastRx + TimeUnit.MILLISECONDS.toNanos(timeOut)) <= System.nanoTime()) {
                     throw new IllegalStateException("Drone timed out");
                 }
@@ -60,6 +60,11 @@ public class Drone implements Runnable {
                 String msgToSend = dataToSend.poll();
                 if (msgToSend != null) {
                     soc.txData(msgToSend);
+                }
+                ServiceResponse r = respToSend.poll();
+                if (r != null) {
+                	DirectPINORMessage pj = new DirectPINORMessage(r);
+                	soc.txData(gson.toJson(pj));
                 }
             }
         } catch (Exception e) {
@@ -82,7 +87,7 @@ public class Drone implements Runnable {
         }
     }
 
-    private String processRxMsg(String encodedStr) throws IOException, InterruptedException, ExecutionException {
+    private void processRxMsg(String encodedStr) throws IOException, InterruptedException, ExecutionException {
 
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         String type = jobj.get("type").getAsString();
@@ -92,16 +97,16 @@ public class Drone implements Runnable {
                 if (!killComms) {
                     mesh.messageGlobal(this, encodedStr);
                 }
-                return null;
+                return;
             case "direct":
                 String dataType = jobj.getAsJsonObject("data").get("datatype").getAsString();
                 switch (dataType) {
                     case "status":
-                        String toSend = processStatusMsg(encodedStr);
-                        return toSend;
+                        processStatusMsg(encodedStr);
+                        return;
                     case "upload":
                         mesh.messageC2(encodedStr);
-                        return null;
+                        return;
                     default:
                         throw new IOException("Received unspecified datatype in JSON " + dataType);
                 }
@@ -110,7 +115,7 @@ public class Drone implements Runnable {
         }
     }
 
-    private String processStatusMsg(String encodedStr) throws IOException, ExecutionException, InterruptedException {
+    private void processStatusMsg(String encodedStr) throws IOException, ExecutionException, InterruptedException {
         JsonObject jobj = gson.fromJson(encodedStr, JsonObject.class);
         JsonElement locationJE = jobj.getAsJsonObject("data").get("location");
         Location newLocation = gson.fromJson(locationJE, Location.class);
@@ -120,11 +125,14 @@ public class Drone implements Runnable {
         	battery = jobj.getAsJsonObject("battery").getAsInt();
         }
         
-        ServiceResponse sr = mesh.checkForPINOR(uuid, location);
+        // Send a service request.
+        ServiceRequest sr = new ServiceRequest(uuid, location, false, this);
 
-        DirectPINORMessage pj = new DirectPINORMessage(sr);
-
-        return gson.toJson(pj);
+        mesh.getRequestQueue().offer(sr);
+    }
+    
+    public void addServiceResponse(ServiceResponse r) {
+    	respToSend.offer(r);
     }
 
 

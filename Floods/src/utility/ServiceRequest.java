@@ -2,16 +2,18 @@ package utility;
 
 import java.util.concurrent.CompletableFuture;
 
+import comms.Drone;
+
 public class ServiceRequest extends Message {
     Location loc;
     boolean removed;
-    CompletableFuture<ServiceResponse> future;
+    Drone drone;
 
-    public ServiceRequest(String uuid, Location loc, boolean removed, CompletableFuture<ServiceResponse> future) {
+    public ServiceRequest(String uuid, Location loc, boolean removed, Drone drone) {
         super(uuid);
         this.loc = loc;
         this.removed = removed;
-        this.future = future;
+        this.drone = drone;
 
     }
 
@@ -19,8 +21,8 @@ public class ServiceRequest extends Message {
         return loc;
     }
     
-    public CompletableFuture<ServiceResponse> getFuture() {
-        return future;
+    public Drone getDrone() {
+        return drone;
     }
 
     public boolean isRemoved() {

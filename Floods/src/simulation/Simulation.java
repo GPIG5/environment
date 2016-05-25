@@ -160,7 +160,7 @@ public class Simulation extends SimpleApplication {
                 // Move drone
                 d.setLocalTranslation(droneCamera.getPos());
                 // Notify drone via future.
-                req.getFuture().complete(resp);
+                req.getDrone().addServiceResponse(resp);
             }
         }
     }

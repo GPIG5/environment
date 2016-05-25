@@ -86,17 +86,6 @@ public class MeshServer {
         }
     }
 
-    public ServiceResponse checkForPINOR(String uuid, Location loc) throws InterruptedException, ExecutionException {
-
-        CompletableFuture<ServiceResponse> future = new CompletableFuture<>();
-
-        ServiceRequest sr = new ServiceRequest(uuid, loc, false, future);
-        queueRequests.offer(sr);
-
-        ServiceResponse resp = future.get();
-        return resp;
-    }
-
     public void terminate() {
         futureList.forEach(future -> future.cancel(true));
         c2Server.terminate();
@@ -133,5 +122,9 @@ public class MeshServer {
 
     public Map<String, Drone> getDrones() {
     	return this.drones;
+    }
+    
+    public Queue<ServiceRequest> getRequestQueue() {
+    	return queueRequests;
     }
 }
