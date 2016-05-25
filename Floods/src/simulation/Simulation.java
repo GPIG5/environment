@@ -135,8 +135,8 @@ public class Simulation extends SimpleApplication {
     public void simpleUpdate(float tpf) {
         water.process();
         super.simpleUpdate(tpf);
-        int count = requests.size();
-        for (int i = 0; i < count; i++) {
+       // int count = requests.size();
+        //for (int i = 0; i < count; i++) {
 	        ServiceRequest req = requests.poll();
 	        if (req != null) {
 	            String uuid = req.getUuid();
@@ -165,7 +165,7 @@ public class Simulation extends SimpleApplication {
 	                req.getDrone().addServiceResponse(resp);
 	            }
 	        }
-        }
+        //}
     }
     
     @Override
