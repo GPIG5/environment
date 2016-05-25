@@ -65,12 +65,14 @@ public class MeshServer {
      * @param msg - the message
      */
     public void messageGlobal(Drone tx, String msg) {
-        drones.forEach((k, v) -> {
-            if ((tx == null && inRange(c2Server.getLocation(), v.getLocation())) ||
-                    (tx != null && !k.equals(tx.getUuid()) && inRange(v.getLocation(), tx.getLocation()))) {
-                v.addMsgToSend(msg);
-            }
-        });
+    	synchronized (drones) {
+	        drones.forEach((k, v) -> {
+	            if ((tx == null && inRange(c2Server.getLocation(), v.getLocation())) ||
+	                    (tx != null && !k.equals(tx.getUuid()) && inRange(v.getLocation(), tx.getLocation()))) {
+	                v.addMsgToSend(msg);
+	            }
+	        });
+    	}
 
         //Send to C2 Server if in range
         if (tx != null && inRange(c2Server.getLocation(), tx.getLocation())) {
