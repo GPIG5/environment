@@ -13,7 +13,7 @@ import java.util.concurrent.*;
  * Created by hm649 on 10/05/16.
  */
 public class MeshServer {
-    private AbstractMap<String, Drone> drones = new HashMap<>();
+    private AbstractMap<String, Drone> drones = new ConcurrentHashMap<>();
     private float range;
     private DroneServer droneServer;
     private C2Server c2Server;
@@ -86,17 +86,6 @@ public class MeshServer {
         }
     }
 
-    public ServiceResponse checkForPINOR(String uuid, Location loc) throws InterruptedException, ExecutionException {
-
-        CompletableFuture<ServiceResponse> future = new CompletableFuture<>();
-
-        ServiceRequest sr = new ServiceRequest(uuid, loc, false, future);
-        queueRequests.offer(sr);
-
-        ServiceResponse resp = future.get();
-        return resp;
-    }
-
     public void terminate() {
         futureList.forEach(future -> future.cancel(true));
         c2Server.terminate();
@@ -113,25 +102,22 @@ public class MeshServer {
     
     // Try and add a drone, returning false if drone already exists.
     public boolean addDrone(String uuid, Drone drone) {
-        synchronized (drones) {
-            if (drones.containsKey(uuid)) {
-                return false;
-            } else {
-                drones.put(uuid, drone);
-                return true;
-            }
-        }
+    	// Note putIfAbsent returns null if absent.
+    	return drones.putIfAbsent(uuid, drone) == null;
     }
 
     // Remove a drone and send a remove message to the simulation.
     public void removeDrone(String uuid) {
-        synchronized (drones) {
-            drones.remove(uuid);
-            queueRequests.offer(new ServiceRequest(uuid, null, true, null));
+        if (drones.remove(uuid) != null) {
+        	queueRequests.offer(new ServiceRequest(uuid, null, true, null));
         }
     }
 
     public Map<String, Drone> getDrones() {
     	return this.drones;
+    }
+    
+    public Queue<ServiceRequest> getRequestQueue() {
+    	return queueRequests;
     }
 }

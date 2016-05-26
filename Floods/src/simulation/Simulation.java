@@ -233,34 +233,37 @@ public class Simulation extends SimpleApplication {
     public void simpleUpdate(float tpf) {
         water.process();
         super.simpleUpdate(tpf);
-        ServiceRequest req = requests.poll();
-        if (req != null) {
-            String uuid = req.getUuid();
-            // Drone Rendering stuff
-            if (req.isRemoved() && drones.containsKey(uuid)) {
-                // Drone is to be removed and is in map.
-                rootNode.detachChild(drones.remove(uuid));
-            }
-            else if (!req.isRemoved()) {
-                // Get response packet.
-                ServiceResponse resp = droneCamera.process(tpf, req, cells.getPinors());
-                Spatial d;
-                if (!drones.containsKey(uuid)) {
-                    // This is a new drone.
-                    d = drone.clone();
-                    rootNode.attachChild(d);
-                    drones.put(uuid, d);
-                }
-                else {
-                    // Existing drone.
-                    d = drones.get(uuid);
-                }
-                // Move drone
-                d.setLocalTranslation(droneCamera.getPos());
-                // Notify drone via future.
-                req.getFuture().complete(resp);
-            }
-        }
+       // int count = requests.size();
+        //for (int i = 0; i < count; i++) {
+	        ServiceRequest req = requests.poll();
+	        if (req != null) {
+	            String uuid = req.getUuid();
+	            // Drone Rendering stuff
+	            if (req.isRemoved() && drones.containsKey(uuid)) {
+	                // Drone is to be removed and is in map.
+	                rootNode.detachChild(drones.remove(uuid));
+	            }
+	            else if (!req.isRemoved()) {
+	                // Get response packet.
+	                ServiceResponse resp = droneCamera.process(tpf, req, cells.getPinors());
+	                Spatial d;
+	                if (!drones.containsKey(uuid)) {
+	                    // This is a new drone.
+	                    d = drone.clone();
+	                    rootNode.attachChild(d);
+	                    drones.put(uuid, d);
+	                }
+	                else {
+	                    // Existing drone.
+	                    d = drones.get(uuid);
+	                }
+	                // Move drone
+	                d.setLocalTranslation(droneCamera.getPos());
+	                // Notify drone via future.
+	                req.getDrone().addServiceResponse(resp);
+	            }
+	        }
+        //}
     }
 
     @Override
