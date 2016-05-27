@@ -31,7 +31,7 @@ public final class Main {
 					droneWindow = new UserInterface(mesh.getDrones());
 			        sim.setSettings(settings.getSettings());
 			        sim.setShowSettings(false);
-			        sim.start(si);
+			        sim.start(si, mesh.getC2().getLocation());
 				}
 				else {
 					close();

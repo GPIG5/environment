@@ -29,10 +29,10 @@ import simulation.water.Cells;
 import simulation.water.Pinor;
 import simulation.water.Water;
 import startup.Main;
+import utility.Location;
 import utility.ServiceInterface;
 import utility.ServiceRequest;
 import utility.ServiceResponse;
-import simulation.services.DroneCam;
 
 public class Simulation extends SimpleApplication {
     Water water;
@@ -45,9 +45,11 @@ public class Simulation extends SimpleApplication {
     AbstractMap<String,Spatial> drones;
     Spatial drone;
     Material droneMat;
+    Location c2loc;
 
-    public void start(ServiceInterface si) {
+    public void start(ServiceInterface si, Location c2loc) {
         this.si = si;
+        this.c2loc = c2loc;
         super.start();
     }
 
@@ -64,6 +66,18 @@ public class Simulation extends SimpleApplication {
         droneCamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
         makeDrone();
+        // Draw the C2 location.
+        try {
+            Vector3f pos = terrain.osgbTo3D(c2loc.getOSGB(), c2loc.getAlt());
+            Geometry g = new Geometry("C2",  new Box(0.02f, 0.4f, 0.02f));
+            Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            mat.setColor("Color", ColorRGBA.Magenta);
+            g.setMaterial(mat);
+            g.setLocalTranslation(pos.add(0,0.4f,0));
+            rootNode.attachChild(g);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }  
     
     

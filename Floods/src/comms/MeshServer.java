@@ -23,7 +23,6 @@ public class MeshServer {
 
     public void start(ServiceInterface si, String propertiesLoc) {
 
-
         if (propertiesLoc != null) {
             try (FileInputStream in = new FileInputStream(new File(propertiesLoc))) {
                 properties.load(in);
@@ -114,10 +113,14 @@ public class MeshServer {
     }
 
     public Map<String, Drone> getDrones() {
-    	return this.drones;
+    	return drones;
     }
     
     public Queue<ServiceRequest> getRequestQueue() {
     	return queueRequests;
+    }
+    
+    public C2Server getC2() {
+        return c2Server;
     }
 }

@@ -51,6 +51,9 @@ public class Cells {
         // Load water height map + process
         try {
             BufferedImage img = ImageIO.read(Cells.class.getResourceAsStream("/assets/mask.png"));
+            if (img.getWidth() != nc1 || img.getHeight() != nr1) {
+                throw new ArrayIndexOutOfBoundsException("Water height map size error!");
+            }
             // Make planes
             int i = 0;
             System.out.println("Water is : " + nr1 + "x" + nc1);
