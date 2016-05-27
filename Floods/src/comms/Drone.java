@@ -121,9 +121,7 @@ public class Drone implements Runnable {
         Location newLocation = gson.fromJson(locationJE, Location.class);
         location = newLocation;
 
-        if (jobj.has("battery")) {
-        	battery = jobj.getAsJsonObject("battery").getAsInt();
-        }
+        battery = jobj.getAsJsonObject("data").getAsJsonObject("battery").getAsInt();
         
         // Send a service request.
         ServiceRequest sr = new ServiceRequest(uuid, location, false, this);
