@@ -89,7 +89,7 @@ public class Location {
 
     // http://stackoverflow.com/questions/25618207/what-distance-calculation-longitude-latitude-is-more-precise
     // http://stackoverflow.com/questions/35213445/how-can-i-find-3d-distance-between-lat-lon-alt-points
-    public float distance(Location l1) {
+    public float distance3D(Location l1) {
         GeodeticCalculator geodeticCalculator = new GeodeticCalculator();
         geodeticCalculator.setStartingGeographicPoint(this.lon, this.lat);
         geodeticCalculator.setDestinationGeographicPoint(l1.getLon(), l1.getLat());
@@ -102,6 +102,14 @@ public class Location {
         d2 += dz2;
         return (float) Math.sqrt((double) d2);
     }
+    
+    public float distance(Location l1) {
+        GeodeticCalculator geodeticCalculator = new GeodeticCalculator();
+        geodeticCalculator.setStartingGeographicPoint(this.lon, this.lat);
+        geodeticCalculator.setDestinationGeographicPoint(l1.getLon(), l1.getLat());
+        return (float) geodeticCalculator.getOrthodromicDistance();
+    }
+
 
     // http://stackoverflow.com/questions/4313618/convert-latitude-and-longitude-to-northing-and-easting-in-java
     public DirectPosition getOSGB() throws NoSuchAuthorityCodeException, FactoryException, MismatchedDimensionException, TransformException {
