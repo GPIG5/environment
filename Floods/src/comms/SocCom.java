@@ -2,6 +2,7 @@ package comms;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -14,13 +15,13 @@ public class SocCom implements AutoCloseable {
     public final static int SIZE_BYTES = 4;
 
     private Socket clientSoc;
-    private BufferedInputStream in;
+    private DataInputStream in;
     private BufferedOutputStream out;
 
     public SocCom(Socket clientSoc) throws Exception {
         this.clientSoc = clientSoc;
         try {
-            in = new BufferedInputStream(clientSoc.getInputStream());
+            in = new DataInputStream(clientSoc.getInputStream());
             out = new BufferedOutputStream(clientSoc.getOutputStream());
         } catch (IOException e) {
             try {
@@ -50,10 +51,10 @@ public class SocCom implements AutoCloseable {
         }
 
         byte[] msgBuf = new byte[size];
-        bytesRead = in.read(msgBuf, 0, size);
-        if (bytesRead != size) {
+        in.readFully(msgBuf, 0, size);
+        /*if (bytesRead != size) {
             throw new IOException("Did not read the correct amount of message bytes");
-        }
+        }*/
 
         return new String(msgBuf, StandardCharsets.UTF_8);
     }
