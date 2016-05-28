@@ -68,7 +68,7 @@ public class Drone implements Runnable {
                 }
             }
         } catch (Exception e) {
-//        	e.printStackTrace();
+        	e.printStackTrace();
 //        	System.out.println(e.getMessage());
         } finally {
         	mesh.removeDrone(uuid);
@@ -121,7 +121,7 @@ public class Drone implements Runnable {
         Location newLocation = gson.fromJson(locationJE, Location.class);
         location = newLocation;
 
-        battery = jobj.getAsJsonObject("data").getAsJsonObject("battery").getAsInt();
+        battery = jobj.getAsJsonObject("data").get("battery").getAsInt();
         
         // Send a service request.
         ServiceRequest sr = new ServiceRequest(uuid, location, false, this);
