@@ -45,11 +45,11 @@ public class Simulation extends SimpleApplication {
     AbstractMap<String,Spatial> drones;
     Spatial drone;
     Material droneMat;
-    Location c2loc;
+    List<Location> c2locs;
 
-    public void start(ServiceInterface si, Location c2loc) {
+    public void start(ServiceInterface si, List<Location> c2locs) {
         this.si = si;
-        this.c2loc = c2loc;
+        this.c2locs = c2locs;
         super.start();
     }
 
@@ -66,15 +66,18 @@ public class Simulation extends SimpleApplication {
         droneCamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
         makeDrone();
-        // Draw the C2 location.
+        // Draw the C2 locations
+        Box b =  new Box(0.02f, 0.4f, 0.02f);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.Magenta);
         try {
-            Vector3f pos = terrain.osgbTo3D(c2loc.getOSGB(), c2loc.getAlt());
-            Geometry g = new Geometry("C2",  new Box(0.02f, 0.4f, 0.02f));
-            Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-            mat.setColor("Color", ColorRGBA.Magenta);
-            g.setMaterial(mat);
-            g.setLocalTranslation(pos.add(0,0.4f,0));
-            rootNode.attachChild(g);
+        	for (Location loc : c2locs) {
+                Vector3f pos = terrain.osgbTo3D(loc.getOSGB(), loc.getAlt());
+                Geometry g = new Geometry("C2",  b);
+                g.setMaterial(mat);
+                g.setLocalTranslation(pos.add(0,0.4f,0));
+                rootNode.attachChild(g);
+        	}
         } catch (Exception e) {
             e.printStackTrace();
         }
