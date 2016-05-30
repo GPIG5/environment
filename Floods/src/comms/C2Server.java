@@ -53,7 +53,7 @@ public class C2Server implements Runnable {
     }
 
     public void txData(String toSend) throws IOException {
-        URL url = new URL(addr);
+        URL url = new URL("http", addr, 8000, "/c2gui/send_drone_data");
         URLConnection con = url.openConnection();
         HttpURLConnection tx = (HttpURLConnection) con;
 

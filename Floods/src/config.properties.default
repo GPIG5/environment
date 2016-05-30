@@ -1,5 +1,5 @@
 #C2 Server Config
-c2ServerPOSTAddr=http://127.0.0.1/c2gui/send_drone_data
+c2ServerPOSTAddr=127.0.0.1
 #lat long alt
 c2ServerLocation=(53.929472,-1.165084,2)
 c2ServerPort=5556
