@@ -104,14 +104,13 @@ public class Simulation extends SimpleApplication {
     	Spatial droneModel = assetManager.loadModel("drone.obj");
     	droneModel.scale(0.05f);
     	droneModel.setMaterial(droneMat);
-    	Spatial droneSphere = new Geometry("Sphere", new Sphere(10, 10, range * terrain.getScale()));
+    	Spatial droneSphere = new Geometry("Sphere", new Sphere(10, 10, range));
     	droneSphere.scale(terrain.getScale());
     	droneSphere.setMaterial(sphereMat);
     	
     	drone = new Node("Drone");
     	drone.attachChild(droneModel);
         drone.attachChild(droneSphere);
-        drone.scale(0.05f);
         drones = new HashMap<String, Spatial>();
     }
 
