@@ -3,7 +3,6 @@ package comms;
 import utility.Location;
 import utility.ServiceInterface;
 import utility.ServiceRequest;
-import utility.ServiceResponse;
 
 import java.io.*;
 import java.util.*;
@@ -65,14 +64,16 @@ public class MeshServer {
      */
     public void messageGlobal(Drone tx, String msg) {
         drones.forEach((k, v) -> {
-            if ((tx == null && inRange(c2Server.getLocation(), v.getLocation())) ||
+            // message a drone if in range of any c2 server / relay
+            if ((tx == null && inRangeC2(c2Server.getLocations(), v.getLocation())) ||
+                    // message a drone if in range of the transmission drone
                     (tx != null && !k.equals(tx.getUuid()) && inRange(v.getLocation(), tx.getLocation()))) {
                 v.addMsgToSend(msg);
             }
         });
 
         //Send to C2 Server if in range
-        if (tx != null && inRange(c2Server.getLocation(), tx.getLocation())) {
+        if (tx != null && inRangeC2(c2Server.getLocations(), tx.getLocation())) {
            messageC2(msg);
         }
     }
@@ -93,6 +94,16 @@ public class MeshServer {
 
     public String getProperty(String key) {
         return properties.getProperty(key);
+    }
+
+    private boolean inRangeC2(List<Location> locs1, Location loc2) {
+        for (Location loc : locs1) {
+            if (loc.distance(loc2) <= range) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean inRange(Location loc1, Location loc2) {

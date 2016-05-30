@@ -1,7 +1,7 @@
 #C2 Server Config
 c2ServerPOSTAddr=127.0.0.1
-#lat long alt
-c2ServerLocation=(53.929472,-1.165084,2)
+#(lat,long,alt) specify multiple entries separated by a :
+c2ServerLocation=(53.929472,-1.165084,4) : (53.957285,-1.090634,4)
 c2ServerPort=5556
 
 #Env Server Config

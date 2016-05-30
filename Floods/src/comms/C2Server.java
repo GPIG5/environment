@@ -6,6 +6,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,8 +16,8 @@ import java.util.List;
 public class C2Server implements Runnable {
 
     private final int port;
-    private final Location location;
     private final String addr;
+    private List<Location> locations = new ArrayList<>();
     private MeshServer mesh;
     private ServerSocket serverSoc;
 
@@ -27,12 +28,15 @@ public class C2Server implements Runnable {
         String location = mesh.getProperty("c2ServerLocation");
         if (location == null) {
             System.err.println("c2 server location property not found, using default value");
-            this.location = new Location(53.929472f, -1.165084f, 2);
+            this.locations.add(new Location(53.929472f, -1.165084f, 4));
         } else {
-            location = location.replaceAll("[()]","");
-            List<String> vals = Arrays.asList(location.split(","));
-            this.location = new Location(Float.valueOf(vals.get(0)), Float.valueOf(vals.get(1)),
-                    Float.valueOf(vals.get(2)));
+            // best string processing
+            for (String loc : Arrays.asList(location.split(":"))) {
+                loc = loc.replaceAll("[()]", "");
+                List<String> vals = Arrays.asList(loc.split(","));
+                this.locations.add(new Location(Float.valueOf(vals.get(0)), Float.valueOf(vals.get(1)),
+                        Float.valueOf(vals.get(2))));
+            }
         }
 
         String portStr = mesh.getProperty("c2ServerPort");
@@ -91,8 +95,8 @@ public class C2Server implements Runnable {
         }
     }
 
-    public Location getLocation() {
-        return location;
+    public List<Location> getLocations() {
+        return locations;
     }
 
     public void terminate() {
