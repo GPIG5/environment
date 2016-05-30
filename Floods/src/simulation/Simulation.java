@@ -11,9 +11,11 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Sphere;
 import com.jme3.system.JmeSystem;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
@@ -43,13 +45,15 @@ public class Simulation extends SimpleApplication {
     Cells cells;
     Queue<ServiceRequest> requests;
     AbstractMap<String,Spatial> drones;
-    Spatial drone;
+    Node drone;
     Material droneMat;
     List<Location> c2locs;
+    float range;
 
-    public void start(ServiceInterface si, List<Location> c2locs) {
+    public void start(ServiceInterface si, List<Location> c2locs, float range) {
         this.si = si;
         this.c2locs = c2locs;
+        this.range = range;
         super.start();
     }
 
@@ -86,15 +90,28 @@ public class Simulation extends SimpleApplication {
     
     
     private void makeDrone() {
-        // Load drone
-        drone = assetManager.loadModel("drone.obj");
-        drone.scale(0.05f);
         Material droneMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         droneMat.setBoolean("UseMaterialColors", true);
         droneMat.setColor("Diffuse", new ColorRGBA(0.2f, 0.2f, 0.2f, 0.0f)); // minimum material color
         droneMat.setColor("Specular", ColorRGBA.Gray); // for shininess
         droneMat.setFloat("Shininess", 32f); // [1,128] for shininess
-        drone.setMaterial(droneMat);
+        
+        Material sphereMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        sphereMat.setColor("Color", new ColorRGBA(1, 1, 0, 0.5f));
+        sphereMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+    	
+        // Load drone
+    	Spatial droneModel = assetManager.loadModel("drone.obj");
+    	droneModel.scale(0.05f);
+    	droneModel.setMaterial(droneMat);
+    	Spatial droneSphere = new Geometry("Sphere", new Sphere(10, 10, range * terrain.getScale()));
+    	droneSphere.scale(terrain.getScale());
+    	droneSphere.setMaterial(sphereMat);
+    	
+    	drone = new Node("Drone");
+    	drone.attachChild(droneModel);
+        drone.attachChild(droneSphere);
+        drone.scale(0.05f);
         drones = new HashMap<String, Spatial>();
     }
 

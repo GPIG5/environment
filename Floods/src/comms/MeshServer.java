@@ -134,4 +134,8 @@ public class MeshServer {
     public C2Server getC2() {
         return c2Server;
     }
+    
+   public float getRange() {
+	   return range;
+   } 
 }

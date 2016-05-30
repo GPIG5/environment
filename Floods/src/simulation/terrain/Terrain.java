@@ -60,4 +60,8 @@ public class Terrain {
         float northings = invscale * l.z + ater.getXll();
         return Location.fromOSGB(northings, eastings, invscale * (l.y / 3));
     }
+    
+    public float getScale() {
+    	return scale;
+    }
 }
