@@ -51,6 +51,7 @@
           						<include>gpig.jpg</include>
           						<include>lidar.zip</include>
           						<include>mask.png</include>
+          						<include>historic.png</include>
           						<include>yorktex.jpg</include>
           					</includes>
 			            </resource>

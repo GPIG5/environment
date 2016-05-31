@@ -35,8 +35,15 @@ public final class SettingsDialog extends JFrame {
 	private JCheckBox boxVsync;
 	private JCheckBox boxFscreen;
 	private JComboBox<String> comboRes;
+	private JComboBox<String> comboHmaps;
 	private JFileChooser chooser;
 	private SelectionListener selectionListener = null;
+	
+	// available heightmaps
+	private final String[] heightmaps = {
+	        "/assets/mask.png", 
+	        "/assets/historic.png"
+	 };
 	
 	private String heightmap = "";
 	private boolean vsync = false;
@@ -110,21 +117,10 @@ public final class SettingsDialog extends JFrame {
         comboRes = new JComboBox<>();
         comboRes.setModel(new DefaultComboBoxModel<>(strModes));
         comboRes.setSelectedItem(0);
-        // File chooser
-        JTextField txtSelected = new JTextField(15);
-        txtSelected.setEditable(false);
-        txtSelected.setText("Select file");
-        chooser = new JFileChooser();
-        chooser.setFileFilter(new FileNameExtensionFilter("Image files", "jpeg", "jpg", "png", "bmp"));
-        txtSelected.addMouseListener(new MouseAdapter() {
-        	@Override
-        	public void mouseClicked(MouseEvent e) {
-        		if (chooser.showOpenDialog(panelMain) == JFileChooser.APPROVE_OPTION) {
-        			txtSelected.setText(chooser.getSelectedFile().getName());
-        			heightmap = chooser.getSelectedFile().getPath();
-        		}
-        	}
-		});
+        // Heightmap
+        comboHmaps = new JComboBox<>();
+        comboHmaps.setModel(new DefaultComboBoxModel<>(heightmaps));
+        comboHmaps.setSelectedIndex(0);
         // Vsync
         boxVsync = new JCheckBox("Vsync");
         boxVsync.setSelected(false);
@@ -150,19 +146,9 @@ public final class SettingsDialog extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// Verify that heightmap file exists
-				if (heightmap != "") {
-					File f =  new File(heightmap);
-					if (f.exists() && !f.isDirectory()) {
-						updateSettings();
-						setUserSelection(APPROVE_SELECTION);
-					}
-					else {
-						JOptionPane.showMessageDialog(panelMain, "Water heightmap \"" + heightmap + "\" is not a file.");
-					}
-				}
-				else {
-					JOptionPane.showMessageDialog(panelMain, "Water heightmap not selected.");
-				}
+				updateSettings();
+				heightmap = heightmaps[comboHmaps.getSelectedIndex()];
+				setUserSelection(APPROVE_SELECTION);
 			}
 		});
         JButton btnCancel = new JButton("Cancel");
@@ -213,7 +199,7 @@ public final class SettingsDialog extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.gridx = 1;
         gbc.gridwidth = 2;
-        panelMain.add(txtSelected, gbc);
+        panelMain.add(comboHmaps, gbc);
 
         // Buttons
         gbc = new GridBagConstraints();
@@ -248,6 +234,10 @@ public final class SettingsDialog extends JFrame {
 	
 	public AppSettings getSettings() {
 		return settings;
+	}
+	
+	public String getHeightmap() {
+	    return heightmap;
 	}
 	
 	// Taken from JME3 settings dialog.

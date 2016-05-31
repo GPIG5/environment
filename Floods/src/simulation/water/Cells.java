@@ -6,6 +6,7 @@ import org.lwjgl.BufferUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -50,9 +51,11 @@ public class Cells {
         pinors = new ArrayList<Pinor>();
         // Load water height map + process
         try {
-            BufferedImage img = ImageIO.read(Cells.class.getResourceAsStream("/assets/mask.png"));
+            BufferedImage img = ImageIO.read(Cells.class.getResourceAsStream(heightmap));
+            System.out.println("Heightmap file: " +heightmap);
             if (img.getWidth() != nc1 || img.getHeight() != nr1) {
-                throw new ArrayIndexOutOfBoundsException("Water height map size error!");
+                // Default image
+                throw new ArrayIndexOutOfBoundsException();
             }
             // Make planes
             int i = 0;
@@ -114,7 +117,7 @@ public class Cells {
                     float h = (0xFF & color) * 0.0008f;
                     heights.put(i, h);
                     // Does this cell meet pinor requirements?
-                    if ((h > 0.001f) && (h < 0.01f) && (Math.random() < 0.0005)) {
+                    if ((h > 0.001f) && (h < 0.08f) && (Math.random() < 0.0005)) {
                         pinors.add(new Pinor(new Vector3f(avg.x, terh, avg.z)));
                     }
                     vbuffer.put(avg.x);

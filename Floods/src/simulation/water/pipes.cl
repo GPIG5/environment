@@ -96,6 +96,10 @@ kernel void height(const float t,
 		float dv = t * (inflow-outflow);
 		float waterh = heights[offset] + dv/(CSIZE);
 		float nh = fmax(0.0f, waterh);
+		/* Rain...
+		if (nh >= 0.05f) {
+			nh += t * 0.002f;
+		} */
 		heights[offset] = nh;
 		// Update vertex buffer.
 		float nheight = theights[offset] + nh;

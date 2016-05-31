@@ -49,11 +49,13 @@ public class Simulation extends SimpleApplication {
     Material droneMat;
     List<Location> c2locs;
     float range;
+    String heightmap;
 
-    public void start(ServiceInterface si, List<Location> c2locs, float range) {
+    public void start(ServiceInterface si, List<Location> c2locs, float range, String heightmap) {
         this.si = si;
         this.c2locs = c2locs;
         this.range = range;
+        this.heightmap = heightmap;
         super.start();
     }
 
@@ -136,7 +138,7 @@ public class Simulation extends SimpleApplication {
         Material pinormat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         pinormat.setColor("Color", ColorRGBA.Red);
         // make cells.
-        cells = terrain.makeCells("");
+        cells = terrain.makeCells(heightmap);
 
         water = new Water(cells, Display.getDrawable());
         Geometry g = new Geometry("Water", water);
