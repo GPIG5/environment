@@ -89,6 +89,7 @@ public class ASCTerrain extends Mesh {
                 pStart = pEnd + 1;
             }
         }
+        System.out.println("Source terrain is: "+nrows+"x"+ncols);
         return points;
     }
 

@@ -66,7 +66,7 @@ public class DroneCam {
         if (req != null && req.getLocation() != null) {
             // Move the camera
             try {
-                System.out.println("Drone at: Lat: " + loc.getLat() + " Lon: " + loc.getLon() + " Alt: " + loc.getAlt());
+                //System.out.println("Drone at: Lat: " + loc.getLat() + " Lon: " + loc.getLon() + " Alt: " + loc.getAlt());
                 pos = terrain.osgbTo3D(loc.getOSGB(), loc.getAlt());
                 cam.setLocation(pos);
                 cam.lookAt(new Vector3f(pos.x, 0f, pos.z), up);

@@ -30,8 +30,9 @@ public class UserInterface extends JFrame {
 	
 	public UserInterface(Map<String, Drone> drones) {
     	this.drones = drones;
-		this.setResizable(false);
-		this.setAlwaysOnTop(true);
+		this.setResizable(true);
+		this.setAlwaysOnTop(false);
+		this.setFocusable(false);
 		createWindow();
 	}
 	
@@ -86,6 +87,8 @@ public class UserInterface extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 3;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         panelMain.add(tableScrollPane, gbc);
 		this.addWindowListener(new WindowAdapter() {

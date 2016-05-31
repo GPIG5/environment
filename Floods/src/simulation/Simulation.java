@@ -66,6 +66,7 @@ public class Simulation extends SimpleApplication {
         cam.setLocation(new Vector3f(0.0f, 4f, 0.0f));
         cam.setAxes(new Quaternion(0.0f, 1.0f, 0.0f, 1.0f));
         flyCam.setMoveSpeed(4.0f);
+        flyCam.setDragToRotate(true);
         addLights();
         droneCamera = new DroneCam(renderManager, rootNode, terrain);
         requests = si.getRequestQueue();
