@@ -69,8 +69,8 @@ public class DroneCam {
             try {
                 //System.out.println("Drone at: Lat: " + loc.getLat() + " Lon: " + loc.getLon() + " Alt: " + loc.getAlt());
             	// Ignore the drone altitude for reasons.
-                pos = terrain.osgbTo3D(loc.getOSGB(), 75);
-                cam.setLocation(pos);
+                pos = terrain.osgbTo3D(loc.getOSGB(), loc.getAlt());
+                cam.setLocation(new Vector3f(pos.x, 200f, pos.z));
                 cam.lookAt(new Vector3f(pos.x, 0f, pos.z), up);
             } catch (Exception e) {
                 e.printStackTrace();
