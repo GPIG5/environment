@@ -42,7 +42,8 @@ public final class SettingsDialog extends JFrame {
 	// available heightmaps
 	private final String[] heightmaps = {
 	        "/assets/mask.png", 
-	        "/assets/historic.png"
+	        "/assets/historic.png",
+	        "/assets/noflood.png"
 	 };
 	
 	private String heightmap = "";

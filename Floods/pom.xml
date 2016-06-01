@@ -52,6 +52,7 @@
           						<include>lidar.zip</include>
           						<include>mask.png</include>
           						<include>historic.png</include>
+          						<include>noflood.png</include>
           						<include>yorktex.jpg</include>
           					</includes>
 			            </resource>
