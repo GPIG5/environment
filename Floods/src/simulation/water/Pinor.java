@@ -19,7 +19,7 @@ public class Pinor extends Geometry {
         bv.setCheckPlane(0);
         FrustumIntersect fi = c.contains(bv);
         bv.setCheckPlane(state);
-        return fi != FrustumIntersect.Outside;
+        return fi == FrustumIntersect.Inside;
     }
 
 }

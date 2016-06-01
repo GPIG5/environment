@@ -51,7 +51,7 @@ public class DroneCam {
         rm = renderman;
         terrain = t;
         cam = new Camera(width, height);
-        cam.setFrustumPerspective(45f, (float) width / (float) height, 1f, 1000f);
+        cam.setFrustumPerspective(25f, (float) width / (float) height, 1f, 1000f);
         vp = new ViewPort("Drone View", cam);
         vp.setClearFlags(true, true, true);
         vp.attachScene(root);
@@ -67,7 +67,8 @@ public class DroneCam {
             // Move the camera
             try {
                 //System.out.println("Drone at: Lat: " + loc.getLat() + " Lon: " + loc.getLon() + " Alt: " + loc.getAlt());
-                pos = terrain.osgbTo3D(loc.getOSGB(), loc.getAlt());
+            	// Ignore the drone altitude for reasons.
+                pos = terrain.osgbTo3D(loc.getOSGB(), 85);
                 cam.setLocation(pos);
                 cam.lookAt(new Vector3f(pos.x, 0f, pos.z), up);
             } catch (Exception e) {
@@ -102,7 +103,7 @@ public class DroneCam {
             }
             bi.getRaster().setDataElements(0, 0, width, height, data);
             ArrayList<Location> locs = new ArrayList<Location>();
-            // Detect pinors
+            // Detect pinors - only if above 50m
             for (Pinor p : pinors) {
                 int state = cam.getPlaneState();
                 cam.setPlaneState(0);
