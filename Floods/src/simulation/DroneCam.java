@@ -59,6 +59,7 @@ public class DroneCam {
         fb.setDepthBuffer(Format.Depth);
         fb.setColorBuffer(Format.ARGB8);
         rend = rm.getRenderer();
+        cam.setParallelProjection(true);
     }
 
     public ServiceResponse process(float tpf, ServiceRequest req, List<Pinor> pinors) {
@@ -68,7 +69,7 @@ public class DroneCam {
             try {
                 //System.out.println("Drone at: Lat: " + loc.getLat() + " Lon: " + loc.getLon() + " Alt: " + loc.getAlt());
             	// Ignore the drone altitude for reasons.
-                pos = terrain.osgbTo3D(loc.getOSGB(), 85);
+                pos = terrain.osgbTo3D(loc.getOSGB(), 75);
                 cam.setLocation(pos);
                 cam.lookAt(new Vector3f(pos.x, 0f, pos.z), up);
             } catch (Exception e) {
