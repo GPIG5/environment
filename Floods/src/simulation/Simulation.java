@@ -100,7 +100,7 @@ public class Simulation extends SimpleApplication {
         droneMat.setFloat("Shininess", 32f); // [1,128] for shininess
         
         Material sphereMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        sphereMat.setColor("Color", new ColorRGBA(1, 1, 0, 0.5f));
+        sphereMat.setColor("Color", new ColorRGBA(1, 1, 0, 0.2f));
         sphereMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
     	
         // Load drone
