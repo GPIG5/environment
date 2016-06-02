@@ -32,6 +32,7 @@ public class Drone implements Runnable {
     private MeshServer mesh;
     private volatile int battery = 0;
     private volatile boolean killComms = false;
+    private LastMessage last = new LastMessage();
 
     public Drone(Socket clientSoc, MeshServer mesh, long timeOut) {
         this.socket = clientSoc;
@@ -59,17 +60,18 @@ public class Drone implements Runnable {
                 //Check if data to send from other drones
                 String msgToSend = dataToSend.poll();
                 if (msgToSend != null) {
-                    soc.txData(msgToSend);
+                    soc.txData(msgToSend, last);
                 }
                 ServiceResponse r = respToSend.poll();
                 if (r != null) {
                 	DirectPINORMessage pj = new DirectPINORMessage(r);
-                	soc.txData(gson.toJson(pj));
+                	soc.txData(gson.toJson(pj), last);
                 }
             }
         } catch (Exception e) {
         	e.printStackTrace();
-//        	System.out.println(e.getMessage());
+        	System.out.println("Last size " + last.size);
+            System.out.println("Last json " + last.json);
         } finally {
         	mesh.removeDrone(uuid);
             System.out.println("Drone disconnected");

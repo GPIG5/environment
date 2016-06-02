@@ -59,9 +59,11 @@ public class SocCom implements AutoCloseable {
         return new String(msgBuf, StandardCharsets.UTF_8);
     }
 
-    public void txData(String toSend) throws IOException {
+    public void txData(String toSend, LastMessage last) throws IOException {
         byte[] strBytes = toSend.getBytes(StandardCharsets.UTF_8);
         int size = strBytes.length;
+        last.size = size;
+        last.json = toSend;
 
         for (int i = 0; i != SIZE_BYTES; ++i) {
             out.write(size >>> 8 * (SIZE_BYTES - i - 1));
