@@ -33,7 +33,7 @@ import javax.imageio.ImageIO;
 public class DroneCam {
     static final int width = 640;
     static final int height = 480;
-    static final Vector3f up = new Vector3f(-1, 0, 0);
+    static final Vector3f up = new Vector3f(0, -1, 0);
     private final ByteBuffer cpubuffer = BufferUtils.createByteBuffer(width * height * 4);
     int i = 0;
     Camera cam;
@@ -51,7 +51,6 @@ public class DroneCam {
         rm = renderman;
         terrain = t;
         cam = new Camera(width, height);
-        cam.setFrustumPerspective(25f, (float) width / (float) height, 1f, 1000f);
         vp = new ViewPort("Drone View", cam);
         vp.setClearFlags(true, true, true);
         vp.attachScene(root);
@@ -60,6 +59,19 @@ public class DroneCam {
         fb.setColorBuffer(Format.ARGB8);
         rend = rm.getRenderer();
         cam.setParallelProjection(true);
+        float owidth = 62.424f;
+        float oheight = 52.596f;
+        float mheight = 8774.0f;
+        float mwidth = 10412.0f;
+        float wm2o = owidth / mwidth;
+        float hm2o = oheight / mheight;
+        float mcscale = 50.0f;
+        float mcheight = 3.0f * mcscale;
+        float mcwidth = 4.0f * mcscale;
+        float ocheight = mcheight * hm2o;
+        float ocwidth = mcwidth * wm2o;
+
+        cam.setFrustum(0.0f, 1.5f, -(ocwidth / 2.0f), ocwidth / 2.0f, ocheight / 2.0f, -(ocheight / 2.0f));
     }
 
     public ServiceResponse process(float tpf, ServiceRequest req, List<Pinor> pinors) {
@@ -70,8 +82,8 @@ public class DroneCam {
                 //System.out.println("Drone at: Lat: " + loc.getLat() + " Lon: " + loc.getLon() + " Alt: " + loc.getAlt());
             	// Ignore the drone altitude for reasons.
                 pos = terrain.osgbTo3D(loc.getOSGB(), loc.getAlt());
-                cam.setLocation(new Vector3f(pos.x, 75f, pos.z));
-                cam.lookAt(new Vector3f(pos.x, 0f, pos.z), up);
+                cam.setLocation(new Vector3f(pos.x, 1.0f, pos.z));
+                cam.lookAt(new Vector3f(pos.x, 0.0f, pos.z), up);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Location conversion failed in DroneCam");
